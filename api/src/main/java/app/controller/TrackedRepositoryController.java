@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ai.djl.translate.TranslateException;
 import app.service.GithubApiService;
+import app.service.textEmbeddingService;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
 
@@ -20,9 +22,11 @@ import jakarta.validation.constraints.NotBlank;
 @Validated
 public class TrackedRepositoryController {
     private final GithubApiService githubApiService;
+    private final textEmbeddingService textEmbService;
 
-    public TrackedRepositoryController(GithubApiService githubApiService) {
+    public TrackedRepositoryController(GithubApiService githubApiService, textEmbeddingService textEmbService) {
         this.githubApiService = githubApiService;
+        this.textEmbService = textEmbService;
     }
 
     private record AddRepoRequest(@NotBlank String repositoryUrl) {}
@@ -30,7 +34,15 @@ public class TrackedRepositoryController {
     @PostMapping("/add")
     public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
         githubApiService.validateRepoExist(request.repositoryUrl);   
-        githubApiService.indexRepoIssues(request.repositoryUrl);
+        githubApiService.fetchRepoIssues(request.repositoryUrl)
+            .thenApply(issueUrlTexts -> {
+                try {
+                    return textEmbService.generateEmbeddings(issueUrlTexts);
+                } catch (TranslateException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .thenAccept(null);
         
         return ResponseEntity.accepted().body("added");
     }
