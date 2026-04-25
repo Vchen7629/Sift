@@ -21,7 +21,11 @@ public class GithubApiService {
         this.githubClient = githubClient;
     }
 
-    public void validateRepoExist(String repoName) throws IOException {
+    public void validateRepoExist(String repoName) throws IOException, IllegalArgumentException {
+        if (repoName == null || repoName.trim().isEmpty()) {
+            throw new IllegalArgumentException("repoName must not be null or empty");
+        }
+
         githubClient.getRepository(repoName);
     }
 
