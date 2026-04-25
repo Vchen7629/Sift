@@ -1,8 +1,7 @@
 package app.controller;
 
-import java.util.ArrayList;
+import java.io.IOException;
 
-import org.kohsuke.github.GitHub;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.service.GithubApiService;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
 
@@ -19,11 +19,19 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/tracked_repository")
 @Validated
 public class TrackedRepositoryController {
+    private final GithubApiService githubApiService;
+
+    public TrackedRepositoryController(GithubApiService githubApiService) {
+        this.githubApiService = githubApiService;
+    }
 
     private record AddRepoRequest(@NotBlank String repositoryUrl) {}
 
     @PostMapping("/add")
-    public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) {        
+    public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
+        githubApiService.validateRepoExist(request.repositoryUrl);   
+        githubApiService.indexRepoIssues(request.repositoryUrl);
+        
         return ResponseEntity.accepted().body("added");
     }
 
@@ -36,8 +44,8 @@ public class TrackedRepositoryController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<ArrayList<String>> listTrackedRepos() {
+    public ResponseEntity<String> listTrackedRepos() throws IOException {
 
-        return ResponseEntity.ok().body(null);
+        return ResponseEntity.ok().body("dicking robin down");
     }
 }
