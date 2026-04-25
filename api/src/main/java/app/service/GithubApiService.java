@@ -1,7 +1,9 @@
 package app.service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.kohsuke.github.GHFileNotFoundException;
@@ -15,13 +17,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class GithubApiService {
     private final GitHub githubClient;
+    private final textEmbeddingService textEmbService;
 
     // constructor
-    public GithubApiService(GitHub githubClient) {
+    public GithubApiService(GitHub githubClient, textEmbeddingService textEmbService) {
         this.githubClient = githubClient;
+        this.textEmbService = textEmbService;
     }
 
-    public void validateRepoExist(String repoName) throws IOException, IllegalArgumentException {
+    public void validateRepoExist(String repoName) throws IOException {
         if (repoName == null || repoName.trim().isEmpty()) {
             throw new IllegalArgumentException("repoName must not be null or empty");
         }
@@ -30,7 +34,7 @@ public class GithubApiService {
     }
 
     @Async
-    public CompletableFuture<Void> indexRepoIssues(String repoName) {
+    public CompletableFuture<Map<String, String>> fetchRepoIssues(String repoName) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
             
@@ -41,14 +45,12 @@ public class GithubApiService {
                 .iterator()
                 .nextPage(); 
 
+            Map<String, String> issueUrlTexts = new HashMap<>();
             for (GHIssue issue: issues) {
-                // todo: add issues to opensearch or smth
-
-                String message = String.format("fetched issue #" + issue.getNumber() + ": " + issue.getTitle() + "\n");
-                System.out.println(message);
+                issueUrlTexts.put(issue.getHtmlUrl().toString(), textEmbService.combineDescBody(issue.getTitle(), issue.getBody()));
             }
 
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(issueUrlTexts);
         } catch (GHFileNotFoundException e) {
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
