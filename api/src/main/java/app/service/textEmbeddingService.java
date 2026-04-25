@@ -7,19 +7,19 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import ai.djl.inference.Predictor;
+import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 
 @Service
 public class textEmbeddingService {
-    private final Predictor<String, float[]> embeddingPredictor;
+    private final ZooModel<String, float[]> embeddingModel;
 
-    public textEmbeddingService(Predictor<String, float[]> embeddingPredictor) {
-        this.embeddingPredictor = embeddingPredictor;
+    public textEmbeddingService(ZooModel<String, float[]> embeddingModel) {
+        this.embeddingModel = embeddingModel;
     }
 
     // Combine issue title and body into one single string for better embeddings
-    public String combineDescBody(String title, String body) {
+    public static String combineDescBody(String title, String body) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("issue title must not be null or empty");
         }
@@ -41,13 +41,16 @@ public class textEmbeddingService {
         List<Map<String, String>> batches = partition(issueUrlTexts, 32);
         Map<String, float[]> allEmbeddings = new HashMap<>();
 
-        for (Map<String, String> batch : batches) {
-            List<String> urls = new ArrayList<>(batch.keySet());
-            List<String> texts = urls.stream().map(batch::get).toList();
+        try (var predictor = embeddingModel.newPredictor()) {
+            for (Map<String, String> batch : batches) {
+                List<String> urls = new ArrayList<>(batch.keySet());
+                List<String> texts = urls.stream().map(batch::get).toList();
 
-            List<float[]> embeddings = embeddingPredictor.batchPredict(texts);
-            for (int i = 0; i < urls.size(); i++) {
-                allEmbeddings.put(urls.get(i), embeddings.get(i));
+                List<float[]> embeddings = predictor.batchPredict(texts);
+                for (int i = 0; i < urls.size(); i++) {
+                    allEmbeddings.put(urls.get(i), embeddings.get(i));
+                }
+                System.out.println("hi" + embeddings);
             }
         }
     
@@ -56,7 +59,7 @@ public class textEmbeddingService {
 
     // partition helper so we dont pass a large amount of issues at a time (500+) to embeddings
     // and overwhelm the resources
-    private List<Map<String, String>> partition(Map<String, String> allIssues, int batchSize) {
+    private static List<Map<String, String>> partition(Map<String, String> allIssues, int batchSize) {
         List<Map.Entry<String, String>> entries = new ArrayList<>(allIssues.entrySet());
         List<Map<String, String>> batches = new ArrayList<>();
 
