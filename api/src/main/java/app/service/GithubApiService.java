@@ -17,12 +17,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class GithubApiService {
     private final GitHub githubClient;
-    private final textEmbeddingService textEmbService;
 
     // constructor
-    public GithubApiService(GitHub githubClient, textEmbeddingService textEmbService) {
+    public GithubApiService(GitHub githubClient) {
         this.githubClient = githubClient;
-        this.textEmbService = textEmbService;
     }
 
     public void validateRepoExist(String repoName) throws IOException {
@@ -47,7 +45,10 @@ public class GithubApiService {
 
             Map<String, String> issueUrlTexts = new HashMap<>();
             for (GHIssue issue: issues) {
-                issueUrlTexts.put(issue.getHtmlUrl().toString(), textEmbService.combineDescBody(issue.getTitle(), issue.getBody()));
+                issueUrlTexts.put(
+                    issue.getHtmlUrl().toString(), 
+                    textEmbeddingService.combineDescBody(issue.getTitle(), issue.getBody())
+                );
             }
 
             return CompletableFuture.completedFuture(issueUrlTexts);
