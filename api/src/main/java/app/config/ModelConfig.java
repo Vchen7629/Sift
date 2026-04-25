@@ -18,7 +18,7 @@ public class ModelConfig {
     private static final String MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2";
 
     @Bean
-    private ZooModel<String, float[]> embeddingModel() throws ModelNotFoundException, MalformedModelException, IOException {
+    public Predictor<String, float[]> embeddingPredictor() throws ModelNotFoundException, MalformedModelException, IOException {
         Criteria<String, float[]> embeddingModelConfig = Criteria.builder()
             .setTypes(String.class, float[].class)
             .optModelUrls("djl://ai.djl.huggingface.pytorch/" + MODEL_NAME)
@@ -26,11 +26,8 @@ public class ModelConfig {
             .optTranslatorFactory(new TextEmbeddingTranslatorFactory())
             .optProgress(new ProgressBar())
             .build();
-        return embeddingModelConfig.loadModel();
-    }
+        ZooModel<String, float[]> model = embeddingModelConfig.loadModel();
 
-    @Bean
-    public Predictor<String, float[]> embeddingPredictor(ZooModel<String, float[]> embeddingModel) {
-        return embeddingModel.newPredictor();
+        return model.newPredictor();
     }
 }
