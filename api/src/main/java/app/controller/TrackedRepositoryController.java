@@ -42,7 +42,7 @@ public class TrackedRepositoryController {
                     throw new RuntimeException(e);
                 }
             })
-            .thenAccept(null);
+            .thenAccept(embeddings -> {});
         
         return ResponseEntity.accepted().body("added");
     }
