@@ -12,8 +12,12 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.validation.constraints.NotBlank;
 
 @Service
+@Validated
 public class GithubApiService {
     private final GitHub githubClient;
 
@@ -22,18 +26,15 @@ public class GithubApiService {
         this.githubClient = githubClient;
     }
 
-    public void validateRepoExist(String repoName) throws IOException {
-        if (repoName == null || repoName.trim().isEmpty()) {
-            throw new IllegalArgumentException("repoName must not be null or empty");
-        }
-
-        githubClient.getRepository(repoName);
-    }
-
-    public static record IssueDocument(String repoName, String url, String title, String text) {}
+    public static record IssueDocument(
+        @NotBlank String repoName, 
+        @NotBlank String url, 
+        @NotBlank String title, 
+        @NotBlank String body
+    ) {}
 
     @Async
-    public CompletableFuture<List<IssueDocument>> fetchRepoIssues(String repoName) {
+    public CompletableFuture<List<IssueDocument>> fetchRepoIssues(@NotBlank String repoName) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
             
@@ -50,7 +51,7 @@ public class GithubApiService {
                     repoName,
                     issue.getHtmlUrl().toString(), 
                     issue.getTitle(), 
-                    TextEmbeddingService.combineDescBody(issue.getTitle(), issue.getBody())
+                    issue.getBody()
                 ));
             }
 
