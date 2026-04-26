@@ -1,6 +1,7 @@
 package app.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +32,10 @@ public class GithubApiService {
         githubClient.getRepository(repoName);
     }
 
+    public static record IssueDocument(String url, String title, String text) {}
+
     @Async
-    public CompletableFuture<Map<String, String>> fetchRepoIssues(String repoName) {
+    public CompletableFuture<List<IssueDocument>> fetchRepoIssues(String repoName) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
             
@@ -42,16 +45,17 @@ public class GithubApiService {
                 .withPageSize(20) // todo: remove this 20 issue limit later, testing for now                                                                                                                                                                
                 .iterator()
                 .nextPage(); 
-
-            Map<String, String> issueUrlTexts = new HashMap<>();
+            
+            List<IssueDocument> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
-                issueUrlTexts.put(
+                issueDocuments.add(new IssueDocument(
                     issue.getHtmlUrl().toString(), 
-                    textEmbeddingService.combineDescBody(issue.getTitle(), issue.getBody())
-                );
+                    issue.getTitle(), 
+                    TextEmbeddingService.combineDescBody(issue.getTitle(), issue.getBody())
+                ));
             }
 
-            return CompletableFuture.completedFuture(issueUrlTexts);
+            return CompletableFuture.completedFuture(issueDocuments);
         } catch (GHFileNotFoundException e) {
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
