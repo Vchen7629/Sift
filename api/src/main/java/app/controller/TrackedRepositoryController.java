@@ -2,6 +2,7 @@ package app.controller;
 
 import java.io.IOException;
 
+import org.kohsuke.github.GitHub;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,10 +22,12 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/tracked_repository")
 @Validated
 public class TrackedRepositoryController {
+    private final GitHub githubClient;
     private final GithubApiService githubApiService;
     private final TextEmbeddingService textEmbService;
 
-    public TrackedRepositoryController(GithubApiService githubApiService, TextEmbeddingService textEmbService) {
+    public TrackedRepositoryController(GitHub githubClient, GithubApiService githubApiService, TextEmbeddingService textEmbService) {
+        this.githubClient = githubClient;
         this.githubApiService = githubApiService;
         this.textEmbService = textEmbService;
     }
@@ -33,7 +36,7 @@ public class TrackedRepositoryController {
 
     @PostMapping("/add")
     public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
-        githubApiService.validateRepoExist(request.repositoryUrl);   
+        githubClient.getRepository(request.repositoryUrl);   
         githubApiService.fetchRepoIssues(request.repositoryUrl)
             .thenApply(issueUrlTexts -> {
                 try {
