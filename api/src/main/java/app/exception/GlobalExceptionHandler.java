@@ -23,11 +23,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(500).body("Github API error");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
-        return ResponseEntity.status(400).body(e.getMessage());
-    }
-
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> handleIOException(IOException e) {
         return ResponseEntity.status(500).body("Github API error");

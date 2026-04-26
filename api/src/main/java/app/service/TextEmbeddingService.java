@@ -52,7 +52,7 @@ public class TextEmbeddingService {
                 for (int i = 0; i < urls.size(); i++) {
                     embeddingDocuments.add(new embeddingDocument(repoNames.get(i), urls.get(i), titles.get(i), embeddings.get(i)));
                 }
-                System.out.println("hi" + java.util.Arrays.toString(embeddings.get(0)));
+                //System.out.println("hi" + java.util.Arrays.toString(embeddings.get(0)));
             }
         }
     
