@@ -117,14 +117,23 @@ public class OpenSearchRepository {
                 .settings(s -> s.knn(true))
                 .mappings(m -> m // using keyword instead of text since we only need it for displaying/filtering
                     .properties("title", p -> p.keyword(k -> k))
+                    .properties("body", p -> p.keyword(k -> k))
                     .properties("repoName", p -> p.keyword(k -> k))
                     .properties("url", p -> p.keyword(k -> k))
-                    .properties("embedding", p -> p.knnVector(k -> k
+                    .properties("titleEmbedding", p -> p.knnVector(k -> k
                         .dimension(embeddingDim)
                         .method(met -> met
                             .name("hnsw")
                             .spaceType("cosinesimil")
-                            .engine("faiss")
+                            .engine("lucene")
+                        )
+                    ))
+                    .properties("bodyEmbedding", p -> p.knnVector(k -> k
+                        .dimension(embeddingDim)
+                        .method(met -> met
+                            .name("hnsw")
+                            .spaceType("cosinesimil")
+                            .engine("lucene")
                         )
                     ))
                 )
