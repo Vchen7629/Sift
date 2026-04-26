@@ -32,7 +32,7 @@ public class GithubApiService {
         githubClient.getRepository(repoName);
     }
 
-    public static record IssueDocument(String url, String title, String text) {}
+    public static record IssueDocument(String repoName, String url, String title, String text) {}
 
     @Async
     public CompletableFuture<List<IssueDocument>> fetchRepoIssues(String repoName) {
@@ -49,6 +49,7 @@ public class GithubApiService {
             List<IssueDocument> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
                 issueDocuments.add(new IssueDocument(
+                    repoName,
                     issue.getHtmlUrl().toString(), 
                     issue.getTitle(), 
                     TextEmbeddingService.combineDescBody(issue.getTitle(), issue.getBody())

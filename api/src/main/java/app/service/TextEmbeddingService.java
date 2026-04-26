@@ -29,7 +29,7 @@ public class TextEmbeddingService {
         return title + "\n" + body;
     }
 
-    public static record embeddingDocument(String url, String title, float[] embedding) {} 
+    public static record embeddingDocument(String repoName, String url, String title, float[] embedding) {} 
 
     // pass in a list of <url, text> and return issue <url, embedding>
     // does batch embedding generation with a sentence transformer model
@@ -43,13 +43,14 @@ public class TextEmbeddingService {
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<GithubApiService.IssueDocument> batch : batches) {
+                List<String> repoNames = batch.stream().map(doc -> doc.repoName()).toList();
                 List<String> urls = batch.stream().map(doc -> doc.url()).toList();
                 List<String> titles = batch.stream().map(doc -> doc.title()).toList();
                 List<String> texts = batch.stream().map(doc -> doc.text()).toList();
                 
                 List<float[]> embeddings = predictor.batchPredict(texts);
                 for (int i = 0; i < urls.size(); i++) {
-                    embeddingDocuments.add(new embeddingDocument(urls.get(i), titles.get(i), embeddings.get(i)));
+                    embeddingDocuments.add(new embeddingDocument(repoNames.get(i), urls.get(i), titles.get(i), embeddings.get(i)));
                 }
                 System.out.println("hi" + java.util.Arrays.toString(embeddings.get(0)));
             }
