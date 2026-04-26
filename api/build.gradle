@@ -23,8 +23,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.kohsuke:github-api:2.0-rc.6'
 	implementation 'com.infradna.tool:bridge-method-annotation:1.31'
-	implementation 'org.opensearch.client:opensearch-java:3.0.0'
-  	implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+	implementation 'org.opensearch.client:opensearch-java:3.8.0'
+  	implementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
 	implementation platform('ai.djl:bom:0.36.0')
 	implementation 'ai.djl.huggingface:tokenizers'
 	implementation 'ai.djl:api'
