@@ -16,7 +16,7 @@ public class GeneralExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<String> constraintViolationException(IOException e) {
+    public ResponseEntity<String> constraintViolationException(ConstraintViolationException e) {
         return ResponseEntity.status(500).body("internal server error");
     }
 }
