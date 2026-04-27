@@ -45,29 +45,21 @@ public class TrackedRepositoryController {
     private record AddRepoRequest(@NotBlank String repositoryUrl) {}
 
     @PostMapping("/add")
-    public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
+    public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException, TranslateException { 
         githubClient.getRepository(request.repositoryUrl); 
 
         if (openSearchRepository.isRepoIndexed(request.repositoryUrl)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }       
+
+        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(request.repositoryUrl).join();
+        if (githubIssues.isEmpty()) {
+            return ResponseEntity.ok().body("No open issues found for repository");
+        }
         
-        githubApiService.fetchRepoIssues(request.repositoryUrl)
-            .thenApply(issueUrlTexts -> {
-                try {
-                    return textEmbService.generateEmbeddings(issueUrlTexts);
-                } catch (TranslateException e) {
-                    throw new RuntimeException(e);
-                }
-            })
-            .thenAccept(embeddings -> {
-                try {
-                    openSearchRepository.indexGithubIssue(embeddings);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        
+        List<TextEmbeddingService.embeddingDocument> embeddings = textEmbService.generateEmbeddings(githubIssues);
+        openSearchRepository.indexGithubIssue(embeddings);
+
         return ResponseEntity.accepted().body("added");
     }
 
@@ -82,7 +74,7 @@ public class TrackedRepositoryController {
 
     @GetMapping("/list")
     public ResponseEntity<List<String>> listTrackedRepos() throws IOException {
-        List<String> trackedRepos = openSearchRepository.listAllIndexedRepoNames();
+        List<String> trackedRepos = openSearchRepository.findAllIndexedRepoNames();
 
         return ResponseEntity.ok().body(trackedRepos);
     }
