@@ -35,7 +35,34 @@ services:
     networks:                                                                                                                                                          
       - opensearch-net
                                                                                                                                                                         
-volumes:        
+  dashboards-init:
+    image: curlimages/curl:latest
+    container_name: dashboards-init
+    depends_on:
+      - opensearch-dashboards
+    networks:
+      - opensearch-net
+    environment:
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    entrypoint:
+      - sh
+      - -c
+      - |
+        until curl -sk -o /dev/null -w '%{http_code}' http://opensearch-dashboards:5601/api/status -u admin:$$OPENSEARCH_INITIAL_ADMIN_PASSWORD | grep -q '200'; do
+          echo 'Waiting for Dashboards...'; sleep 3;
+        done
+        curl -sk -c /tmp/cookie.txt -X POST http://opensearch-dashboards:5601/auth/login \
+          -H 'Content-Type: application/json' \
+          -H 'osd-xsrf: true' \
+          -d "{\"username\":\"admin\",\"password\":\"$$OPENSEARCH_INITIAL_ADMIN_PASSWORD\"}"
+        curl -sk -b /tmp/cookie.txt -X POST http://opensearch-dashboards:5601/api/saved_objects/index-pattern/github-issues \
+          -H 'Content-Type: application/json' \
+          -H 'osd-xsrf: true' \
+          -d '{"attributes":{"title":"github-issues","timeFieldName":""}}' &&
+        echo 'Index pattern created.'
+    restart: on-failure
+
+volumes:
   opensearch-data:
 
 networks:
