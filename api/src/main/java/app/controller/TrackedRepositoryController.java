@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.kohsuke.github.GitHub;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,11 +44,14 @@ public class TrackedRepositoryController {
 
     private record AddRepoRequest(@NotBlank String repositoryUrl) {}
 
-    // todo: make this idempotent. IE check if the repo exists in the dashboard and only allow updates
-    // if values dont already exist in the database
     @PostMapping("/add")
     public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
-        githubClient.getRepository(request.repositoryUrl);   
+        githubClient.getRepository(request.repositoryUrl); 
+
+        if (openSearchRepository.isRepoIndexed(request.repositoryUrl)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
+        }       
+        
         githubApiService.fetchRepoIssues(request.repositoryUrl)
             .thenApply(issueUrlTexts -> {
                 try {

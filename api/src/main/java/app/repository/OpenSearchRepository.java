@@ -63,6 +63,24 @@ public class OpenSearchRepository {
         }
     }
 
+    public boolean isRepoIndexed(String repoName) throws IOException{
+        SearchResponse<Void> searchRes = openSearchClient.search(r -> r
+            .index("github-issues")
+            .timeout("30s")
+            .query(q -> q
+                .term(t -> t
+                    .field("repoName")
+                    .value(v -> v.stringValue(repoName))
+                )
+            ), 
+            Void.class
+        );
+
+        var total = searchRes.hits().total();
+
+        return total != null && total.value() > 0;
+    }
+
     public List<String> listAllIndexedRepoNames() throws IOException {
         final int maxUniqueRepos = 1000;
 
@@ -94,7 +112,7 @@ public class OpenSearchRepository {
             .index("github-issues")
             .query(q -> q
                 .term(t -> t
-                    .field("github-issues")
+                    .field("repoName")
                     .value(v -> v.stringValue(repoName))
                 )
             )
