@@ -1,6 +1,7 @@
 package app.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.kohsuke.github.GitHub;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.djl.translate.TranslateException;
+import app.repository.OpenSearchRepository;
 import app.service.GithubApiService;
 import app.service.TextEmbeddingService;
 import jakarta.validation.Valid;                                                                                                                                                       
@@ -25,15 +27,24 @@ public class TrackedRepositoryController {
     private final GitHub githubClient;
     private final GithubApiService githubApiService;
     private final TextEmbeddingService textEmbService;
+    private final OpenSearchRepository openSearchRepository;
 
-    public TrackedRepositoryController(GitHub githubClient, GithubApiService githubApiService, TextEmbeddingService textEmbService) {
+    public TrackedRepositoryController(
+        GitHub githubClient, 
+        GithubApiService githubApiService, 
+        TextEmbeddingService textEmbService,
+        OpenSearchRepository openSearchRepository
+    ) {
         this.githubClient = githubClient;
         this.githubApiService = githubApiService;
         this.textEmbService = textEmbService;
+        this.openSearchRepository = openSearchRepository;
     }
 
     private record AddRepoRequest(@NotBlank String repositoryUrl) {}
 
+    // todo: make this idempotent. IE check if the repo exists in the dashboard and only allow updates
+    // if values dont already exist in the database
     @PostMapping("/add")
     public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException { 
         githubClient.getRepository(request.repositoryUrl);   
@@ -45,7 +56,13 @@ public class TrackedRepositoryController {
                     throw new RuntimeException(e);
                 }
             })
-            .thenAccept(embeddings -> {});
+            .thenAccept(embeddings -> {
+                try {
+                    openSearchRepository.indexGithubIssue(embeddings);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         
         return ResponseEntity.accepted().body("added");
     }
@@ -53,14 +70,16 @@ public class TrackedRepositoryController {
     private record DeleteRepoRequest(@NotBlank String repositoryName) {}
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) {
+    public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) throws IOException {
+        openSearchRepository.deleteTrackedRepo(request.repositoryName);
 
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/list")
-    public ResponseEntity<String> listTrackedRepos() throws IOException {
+    public ResponseEntity<List<String>> listTrackedRepos() throws IOException {
+        List<String> trackedRepos = openSearchRepository.listAllIndexedRepoNames();
 
-        return ResponseEntity.ok().body("dicking robin down");
+        return ResponseEntity.ok().body(trackedRepos);
     }
 }

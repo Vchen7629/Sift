@@ -58,7 +58,6 @@ public class TextEmbeddingService {
                         )
                     );
                 }
-                //System.out.println("hi" + java.util.Arrays.toString(embeddings.get(0)));
             }
         }
     
