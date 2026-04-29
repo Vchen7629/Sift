@@ -2,9 +2,11 @@ package app.repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
@@ -26,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import ai.djl.translate.TranslateException;
 import app.service.TextEmbeddingService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
@@ -156,10 +159,29 @@ public class OpenSearchRepository {
 
         SearchResponse<IssueSearchResult> searchRes = openSearchClient.search(searchRequest, IssueSearchResult.class);
     
-        return searchRes.hits().hits().stream()
+        return deduplicateSearchResults(searchRes.hits().hits().stream()
             .map(hit -> hit.source())
             .filter(Objects::nonNull)
-            .toList();
+            .toList());
+    }
+
+    // opensearch returns duplicate issues sometimes, using url to deduplicate
+    // since each issue has a unique url.
+    private final List<IssueSearchResult> deduplicateSearchResults(
+        @NotEmpty @Valid List<IssueSearchResult> searchResults
+    ) {
+        List<IssueSearchResult> deduplicatedList = new ArrayList<>();
+        Set<String> seenIds = new HashSet<>();
+
+        for (IssueSearchResult issue : searchResults) {
+            boolean notSeen = seenIds.add(issue.url());
+
+            if (notSeen) {
+                deduplicatedList.add(issue);
+            }
+        }
+
+        return deduplicatedList;
     }
 
     public List<String> findAllIndexedRepoNames() throws IOException {
