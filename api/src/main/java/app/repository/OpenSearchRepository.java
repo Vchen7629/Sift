@@ -99,7 +99,7 @@ public class OpenSearchRepository {
     public static record IssueSearchResult(String url, String title, String body) {};
 
     public List<IssueSearchResult> findRelevantIssues(
-        @NotBlank String repoUrl,
+        @NotBlank String repoName,
         @NotBlank String searchQuery
     ) throws TranslateException, IOException {
         Query keywordQuery = Query.of(q -> q
@@ -114,11 +114,19 @@ public class OpenSearchRepository {
         List<Float> searchVector = new ArrayList<>();
         for (float f : searchEmbedding) searchVector.add(f); 
 
+        Query repoFilter = Query.of(q -> q
+            .term(t -> t
+                .field("repoName")
+                .value(v -> v.stringValue(repoName))
+            )
+        );
+
         Query titleSemQuery = Query.of(q -> q
             .knn(k -> k
                 .field("titleEmbedding")
                 .vector(searchVector)
                 .k(10)
+                .filter(repoFilter)
             )
         );
 
@@ -127,6 +135,7 @@ public class OpenSearchRepository {
                 .field("bodyEmbedding")
                 .vector(searchVector)
                 .k(10)
+                .filter(repoFilter)
             )
         );
 
@@ -139,18 +148,8 @@ public class OpenSearchRepository {
         var resultAmount = 10;
         SearchRequest searchRequest = SearchRequest.of(s -> s
             .index(indexName)
-            .query(q -> q
-                .bool(b -> b
-                    .filter(
-                        f -> f
-                        .term(t -> t
-                            .field("repoUrl")
-                            .value(v -> v.stringValue(repoUrl))
-                        )
-                    )
-                    .must(hybridQuery)
-                )
-            )
+            .query(hybridQuery)
+            .postFilter(repoFilter)
             .size(resultAmount)
             .timeout("30s")
         );

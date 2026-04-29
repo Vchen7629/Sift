@@ -42,17 +42,17 @@ public class TrackedRepositoryController {
         this.openSearchRepository = openSearchRepository;
     }
 
-    private record AddRepoRequest(@NotBlank String repositoryUrl) {}
+    private record AddRepoRequest(@NotBlank String repoName) {}
 
     @PostMapping("/add")
     public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException, TranslateException { 
-        githubClient.getRepository(request.repositoryUrl); 
+        githubClient.getRepository(request.repoName); 
 
-        if (openSearchRepository.isRepoIndexed(request.repositoryUrl)) {
+        if (openSearchRepository.isRepoIndexed(request.repoName)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }       
 
-        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(request.repositoryUrl).join();
+        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(request.repoName).join();
         if (githubIssues.isEmpty()) {
             return ResponseEntity.ok().body("No open issues found for repository");
         }
@@ -63,11 +63,11 @@ public class TrackedRepositoryController {
         return ResponseEntity.accepted().body("added");
     }
 
-    private record DeleteRepoRequest(@NotBlank String repositoryName) {}
+    private record DeleteRepoRequest(@NotBlank String repoName) {}
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) throws IOException {
-        openSearchRepository.deleteTrackedRepo(request.repositoryName);
+        openSearchRepository.deleteTrackedRepo(request.repoName);
 
         return ResponseEntity.noContent().build();
     }
