@@ -29,6 +29,7 @@ dependencies {
 	implementation 'ai.djl.huggingface:tokenizers'
 	implementation 'ai.djl:api'
 	implementation 'ai.djl.pytorch:pytorch-engine'
+	implementation 'io.nats:jnats:2.25.2'
   	runtimeOnly 'ai.djl.pytorch:pytorch-native-cpu'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
