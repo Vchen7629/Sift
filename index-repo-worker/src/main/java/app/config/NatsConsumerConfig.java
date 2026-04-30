@@ -14,6 +14,7 @@ import io.nats.client.PullSubscribeOptions;
 import io.nats.client.api.AckPolicy;
 import io.nats.client.api.ConsumerConfiguration;
 import io.nats.client.api.ConsumerInfo;
+import io.nats.client.api.StreamInfo;
 
 @Configuration
 public class NatsConsumerConfig {
@@ -24,7 +25,7 @@ public class NatsConsumerConfig {
     private final static Duration ACK_WAIT = Duration.ofSeconds(30);
     
     @Bean
-    public ConsumerInfo indexRepoConsumer(JetStreamManagement jsm) throws IOException, JetStreamApiException {
+    public ConsumerInfo indexRepoConsumer(JetStreamManagement jsm, StreamInfo streamInfo) throws IOException, JetStreamApiException {
         ConsumerConfiguration config = ConsumerConfiguration.builder()
             .durable(CONSUMER_NAME)
             .filterSubject(SUBJECT_NAME)
