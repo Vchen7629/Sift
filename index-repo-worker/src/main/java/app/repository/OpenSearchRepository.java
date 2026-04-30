@@ -8,29 +8,28 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.springframework.stereotype.Repository;
+import org.springframework.validation.annotation.Validated;
 
 import app.service.TextEmbeddingService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
 @Repository
+@Validated
 public class OpenSearchRepository {
     private final OpenSearchClient openSearchClient;
-    private final TextEmbeddingService textEmbeddingService;
-    private final static String indexName = "github-issues";
+    private final static String issuesIndexName = "github-issues";
+    private final static String jobStatusIndexName = "job-status";
 
-    public OpenSearchRepository(
-        OpenSearchClient openSearchClient,
-        TextEmbeddingService textEmbeddingService
-    ) {
+    public OpenSearchRepository(OpenSearchClient openSearchClient) {
         this.openSearchClient = openSearchClient;
-        this.textEmbeddingService = textEmbeddingService;
     }
 
     @PostConstruct
     private void init() throws IOException {
-        createIndexIfNotExist(indexName);
+        createIndexIfNotExist();
     }
 
     public void indexGithubIssue(@NotEmpty List<TextEmbeddingService.embeddingDocument> issueDocuments) throws IOException {
@@ -44,7 +43,7 @@ public class OpenSearchRepository {
         }
                 
         BulkResponse bulkRes = openSearchClient.bulk(r -> r
-            .index(indexName)
+            .index(issuesIndexName)
             .operations(operations)
         );
 
@@ -62,15 +61,27 @@ public class OpenSearchRepository {
         }
     }
 
+    public record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
+
+    public void upsertJobStatus(@Valid JobStatus jobStatus) throws IOException {
+        openSearchClient.update(r -> r
+            .index(jobStatusIndexName)
+            .id(jobStatus.repoName)
+            .doc(new JobStatus(jobStatus.repoName, jobStatus.status))
+            .docAsUpsert(true)
+            , JobStatus.class
+        );
+    }
+
     // dim number from: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
     private static final Integer embeddingDim = 384;
 
-    private void createIndexIfNotExist(@NotBlank String indexName) throws IOException {
-        boolean exists = openSearchClient.indices().exists(r -> r.index(indexName)).value();
+    private void createIndexIfNotExist() throws IOException {
+        boolean exists = openSearchClient.indices().exists(r -> r.index(issuesIndexName)).value();
 
         if (!exists) {
             openSearchClient.indices().create(r -> r
-                .index(indexName)
+                .index(issuesIndexName)
                 .settings(s -> s.knn(true))
                 .mappings(m -> m // using keyword instead of text since we only need it for displaying/filtering
                     .properties("title", p -> p.keyword(k -> k))
