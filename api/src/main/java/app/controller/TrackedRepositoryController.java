@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ai.djl.translate.TranslateException;
 import app.repository.OpenSearchRepository;
-import app.service.TextEmbeddingService;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
 
@@ -25,16 +24,13 @@ import jakarta.validation.constraints.NotBlank;
 @Validated
 public class TrackedRepositoryController {
     private final GitHub githubClient;
-    private final TextEmbeddingService textEmbService;
     private final OpenSearchRepository openSearchRepository;
 
     public TrackedRepositoryController(
         GitHub githubClient, 
-        TextEmbeddingService textEmbService,
         OpenSearchRepository openSearchRepository
     ) {
         this.githubClient = githubClient;
-        this.textEmbService = textEmbService;
         this.openSearchRepository = openSearchRepository;
     }
 
@@ -47,15 +43,9 @@ public class TrackedRepositoryController {
 
         if (openSearchRepository.isRepoIndexed(request.repoName)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
-        }       
+        }      
 
-        List<TextEmbeddingService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(request.repoName).join();
-        if (githubIssues.isEmpty()) {
-            return ResponseEntity.ok().body("No open issues found for repository");
-        }
-        
-        List<TextEmbeddingService.embeddingDocument> embeddings = textEmbService.generateEmbeddings(githubIssues);
-        openSearchRepository.indexGitY.IssueDocument>hubIssue(embeddings);
+        // todo: Add logic to pub to nats jetstream topic
 
         return ResponseEntity.accepted().body("added");
     }
