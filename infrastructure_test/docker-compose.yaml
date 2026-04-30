@@ -84,7 +84,7 @@ services:
           echo 'waiting for nats...'; sleep 1;
         done
         sleep 1
-        nats stream add jobs \
+        nats stream add sift-job-processing-stream \
           --server nats://nats:4222 \
           --subjects 'index-repo.subject.>' \
           --storage=file \
