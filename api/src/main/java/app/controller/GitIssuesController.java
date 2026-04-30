@@ -28,7 +28,7 @@ public class GitIssuesController {
     private record searchIssueRequest(@NotBlank String repoUrl, @NotBlank String searchQuery) {}
     
     @PostMapping("/search")
-    public ResponseEntity<?> searchIssue(@RequestBody @Valid searchIssueRequest query) throws TranslateException, IOException {
+    public ResponseEntity<?> searchRelevantIssues(@RequestBody @Valid searchIssueRequest query) throws TranslateException, IOException {
         if (!openSearchRepository.isRepoIndexed(query.repoUrl)) {
             return ResponseEntity.status(404).body("Repository isn't indexed, no relevant issues");
         }
