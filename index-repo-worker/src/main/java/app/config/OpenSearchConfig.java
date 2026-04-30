@@ -27,7 +27,7 @@ public class OpenSearchConfig {
     private String connPass;
 
     @Bean(destroyMethod = "close")
-    public OpenSearchClient openSearchClient() throws Exception {
+    public OpenSearchTransport openSearchTransport() throws Exception {
         final HttpHost host = new HttpHost("https", "localhost", 9200);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(
@@ -57,7 +57,11 @@ public class OpenSearchConfig {
                 .setConnectionManager(connectionManager);
         });
 
-        final OpenSearchTransport transport = builder.build();
+        return builder.build();
+    }
+
+    @Bean
+    public OpenSearchClient openSearchClient(OpenSearchTransport transport) throws Exception {
         return new OpenSearchClient(transport);
     }
 }
