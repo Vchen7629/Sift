@@ -64,14 +64,6 @@ public class TextEmbeddingService {
         return embeddingDocuments;
     }
 
-    public float[] embedText(String text) throws TranslateException {
-        try (var predictor = embeddingModel.newPredictor()) {
-            float[] textEmbedding = predictor.predict(text);
-
-            return textEmbedding;
-        }
-    }
-
     // partition helper so we dont pass a large amount of issues at a time 
     // (500+) to embeddings and overwhelm the resources
     private static List<List<GithubApiService.IssueDocument>> partition(
