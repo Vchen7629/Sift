@@ -34,14 +34,7 @@ public class NatsConsumerConfig {
             .ackWait(ACK_WAIT)
             .build();
 
-        try {
-            return jsm.updateConsumer(STREAM_NAME, config);
-        } catch (JetStreamApiException e) {
-            if (e.getErrorCode() == 404) {
-                return jsm.addOrUpdateConsumer(STREAM_NAME, config);
-            }
-            throw e;
-        }
+        return jsm.addOrUpdateConsumer(STREAM_NAME, config);
     }
 
     @Bean(destroyMethod = "unsubscribe")
