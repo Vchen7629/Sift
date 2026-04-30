@@ -20,7 +20,7 @@ public class NatsStreamConfig {
     private static final int REPLICA_COUNT = 1;
 
     @Bean(destroyMethod = "close")
-    public StreamInfo natsStreamConfig(JetStreamManagement jsm) throws IOException, JetStreamApiException {
+    public StreamInfo natsStream(JetStreamManagement jsm) throws IOException, JetStreamApiException {
         StreamConfiguration config = StreamConfiguration.builder()
             .name(STREAM_NAME)
             .subjects(SUBJECT_NAMES)
