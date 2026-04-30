@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 public class ModelConfig {
     private static final String MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2";
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public static ZooModel<String, float[]> embeddingModel() throws ModelNotFoundException, MalformedModelException, IOException {
         Criteria<String, float[]> criteria = Criteria.builder()
             .setTypes(String.class, float[].class)

@@ -26,7 +26,7 @@ public class OpenSearchConfig {
     @Value("${opensearch.password}")
     private String connPass;
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public OpenSearchClient openSearchClient() throws Exception {
         final HttpHost host = new HttpHost("https", "localhost", 9200);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
