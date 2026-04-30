@@ -3,51 +3,26 @@ package app.controller;
 import java.io.IOException;
 import java.util.List;
 
-import org.kohsuke.github.GitHub;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ai.djl.translate.TranslateException;
 import app.repository.OpenSearchRepository;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
 
 @RestController
-@RequestMapping("/tracked_repository")
+@RequestMapping("/indexed_repo")
 @Validated
-public class TrackedRepositoryController {
-    private final GitHub githubClient;
+public class IndexedRepoController {
     private final OpenSearchRepository openSearchRepository;
 
-    public TrackedRepositoryController(
-        GitHub githubClient, 
-        OpenSearchRepository openSearchRepository
-    ) {
-        this.githubClient = githubClient;
+    public IndexedRepoController(OpenSearchRepository openSearchRepository) {
         this.openSearchRepository = openSearchRepository;
-    }
-
-    private record AddRepoRequest(@NotBlank String repoName) {}
-
-    // todo: refactor this to pub to message queue for async processing
-    @PostMapping("/add")
-    public ResponseEntity<String> addNewRepo(@RequestBody @Valid AddRepoRequest request) throws IOException, TranslateException { 
-        githubClient.getRepository(request.repoName); 
-
-        if (openSearchRepository.isRepoIndexed(request.repoName)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
-        }      
-
-        // todo: Add logic to pub to nats jetstream topic
-
-        return ResponseEntity.accepted().body("added");
     }
 
     private record DeleteRepoRequest(@NotBlank String repoName) {}
