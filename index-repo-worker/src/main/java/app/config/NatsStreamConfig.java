@@ -19,7 +19,7 @@ public class NatsStreamConfig {
     private static final String SUBJECT_NAMES = "index-repo.subject.>";
     private static final int REPLICA_COUNT = 1;
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public StreamInfo natsStream(JetStreamManagement jsm) throws IOException, JetStreamApiException {
         StreamConfiguration config = StreamConfiguration.builder()
             .name(STREAM_NAME)
