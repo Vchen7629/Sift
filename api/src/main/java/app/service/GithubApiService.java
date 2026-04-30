@@ -41,9 +41,7 @@ public class GithubApiService {
             List<GHIssue> issues = repo.queryIssues()
                 .state(GHIssueState.OPEN)
                 .list()
-                .withPageSize(20) // todo: remove this 20 issue limit later, testing for now                                                                                                                                                                
-                .iterator()
-                .nextPage(); 
+                .toList();
             
             List<IssueDocument> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
