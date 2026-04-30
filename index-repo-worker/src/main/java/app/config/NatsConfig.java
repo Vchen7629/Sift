@@ -35,14 +35,14 @@ public class NatsConfig {
         return Nats.connect(options);
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public JetStream jetStream(Connection connection) throws IOException {
         JetStreamOptions options = JetStreamOptions.defaultOptions();
 
         return connection.jetStream(options);
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public JetStreamManagement jetStreamManagement(Connection connection) throws IOException {
         return connection.jetStreamManagement();
     }

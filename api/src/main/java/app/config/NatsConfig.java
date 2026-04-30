@@ -34,7 +34,7 @@ public class NatsConfig {
         return Nats.connect(options);
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public JetStream jetStream(Connection connection) throws IOException {
         JetStreamOptions options = JetStreamOptions.defaultOptions();
 
