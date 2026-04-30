@@ -89,7 +89,7 @@ services:
           --subjects 'index-repo.subject.>' \
           --storage=file \
           --replicas=1 \
-          --retention=limits \
+          --retention=workqueue \
           --max-msgs=-1 \
           --max-bytes=-1 \
           --max-age=24h \
