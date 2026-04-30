@@ -35,7 +35,8 @@ import jakarta.validation.constraints.NotEmpty;
 public class OpenSearchRepository {
     private final OpenSearchClient openSearchClient;
     private final TextEmbeddingService textEmbeddingService;
-    private final static String indexName = "github-issues";
+    private final static String issuesIndexName = "github-issues";
+    private final static String jobStatusIndexName = "job-status";
 
     public OpenSearchRepository(
         OpenSearchClient openSearchClient,
@@ -48,11 +49,12 @@ public class OpenSearchRepository {
     @PostConstruct
     private void init() throws IOException {
         createSearchPipelineIfNotExist();
+        createIndexIfNotExist();
     }
 
     public void deleteTrackedRepo(@NotBlank String repoName) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
-            .index(indexName)
+            .index(issuesIndexName)
             .query(q -> q
                 .term(t -> t
                     .field("repoName")
@@ -118,7 +120,7 @@ public class OpenSearchRepository {
 
         var resultAmount = 10;
         SearchRequest searchRequest = SearchRequest.of(s -> s
-            .index(indexName)
+            .index(issuesIndexName)
             .query(hybridQuery)
             .postFilter(repoFilter)
             .size(resultAmount)
@@ -156,7 +158,7 @@ public class OpenSearchRepository {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(indexName)
+            .index(issuesIndexName)
             .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
             .timeout("30s")
             .aggregations("repoNames", a -> a
@@ -180,7 +182,7 @@ public class OpenSearchRepository {
 
     public boolean isRepoIndexed(String repoName) throws IOException{
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(indexName)
+            .index(issuesIndexName)
             .timeout("30s")
             .query(q -> q
                 .term(t -> t
@@ -195,6 +197,42 @@ public class OpenSearchRepository {
 
         return total != null && total.value() > 0;
     }
+
+    private record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
+
+    public String findJobStatus(@NotBlank String repoName) throws IOException {
+        SearchResponse<JobStatus> searchRes = openSearchClient.search(r -> r
+            .index(jobStatusIndexName)
+            .timeout("30s")
+            .query(q -> q
+                .term(t -> t
+                    .field("repoName")
+                    .value(v -> v.stringValue(repoName))
+                )
+            ), JobStatus.class
+        );
+        
+        JobStatus dbRes = searchRes.hits().hits().get(0).source();
+        
+        return dbRes != null ? dbRes.status() : null;
+    }
+
+    private void createIndexIfNotExist() throws IOException {
+        boolean exists = openSearchClient.indices().exists(r -> r
+            .index(jobStatusIndexName)
+        ).value();
+
+        if (!exists) {
+            openSearchClient.indices().create(r -> r
+                .index(jobStatusIndexName)
+                .mappings(m -> m
+                    .properties("repoName", p -> p.keyword(k -> k))
+                    .properties("status", p -> p.keyword(k -> k))
+                )
+            );
+        }
+    }
+
 
     private void createSearchPipelineIfNotExist() throws IOException {
         boolean exists = openSearchClient.searchPipeline()
