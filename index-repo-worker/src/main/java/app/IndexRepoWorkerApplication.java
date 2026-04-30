@@ -2,12 +2,14 @@ package app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-public class GithubIssueWorkeApplication {
+@EnableScheduling
+public class IndexRepoWorkerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(GithubIssueWorkeApplication.class, args);
+		SpringApplication.run(IndexRepoWorkerApplication.class, args);
 	}
 
 }
