@@ -20,10 +20,14 @@ import app.service.ProducerService;
 import io.nats.client.JetStreamApiException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 
 @Controller
 @RequestMapping("/index_repo")
 @Validated
+@Slf4j
 public class IndexRepoController {
     private final GitHub githubClient;
     private final OpenSearchRepository openSearchRepository;
@@ -45,13 +49,18 @@ public class IndexRepoController {
     public ResponseEntity<String> addNewRepo(
         @RequestBody @Valid IndexRepoRequest request
     ) throws IOException, JetStreamApiException, TranslateException { 
+        String requestId = UUID.randomUUID().toString();
+
+        log.info("recieved add new repo request", 
+            kv("repoName", request.repoName), 
+            kv("requestId", requestId));
+
         githubClient.getRepository(request.repoName); 
 
         if (openSearchRepository.isRepoIndexed(request.repoName)) {
+            log.warn("repo already indexed, cant add it again", kv("repoName", request.repoName));
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }      
-
-        String requestId = UUID.randomUUID().toString();
 
         producerService.PublishIndexRepoJobRequest(new ProducerService.RepoIndexMsg(request.repoName, requestId));
         
@@ -60,9 +69,19 @@ public class IndexRepoController {
 
     @GetMapping("/get_status/{repoName}")
     public ResponseEntity<String> getStatus(@NotBlank @PathVariable String repoName) throws IOException {
+        String requestId = UUID.randomUUID().toString();
+
+        log.info("recieved get repo index job status request", 
+            kv("repoName", repoName),
+            kv("requestId", requestId));
+
         String jobStatus = openSearchRepository.findJobStatus(repoName);
 
         if (jobStatus.equals(null)) {
+            log.warn("repo hasn't been added to db yet", 
+                kv("repoName", repoName),
+                kv("requestId", requestId));
+                
             return ResponseEntity.status(404).body("repo status not found, add it for processing first");
         }
 

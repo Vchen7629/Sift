@@ -2,6 +2,7 @@ package app.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,10 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import app.repository.OpenSearchRepository;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
+import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 
 @RestController
 @RequestMapping("/indexed_repo")
 @Validated
+@Slf4j
 public class IndexedRepoController {
     private final OpenSearchRepository openSearchRepository;
 
@@ -29,14 +34,23 @@ public class IndexedRepoController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) throws IOException {
-        openSearchRepository.deleteTrackedRepo(request.repoName);
+        String requestId = UUID.randomUUID().toString();
+
+        log.info("recieved delete repo request", 
+                kv("repoUrl", request.repoName), 
+                kv("requestId", requestId));
+
+        openSearchRepository.deleteTrackedRepo(request.repoName, requestId);
 
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/list")
     public ResponseEntity<List<String>> listTrackedRepos() throws IOException {
-        List<String> trackedRepos = openSearchRepository.findAllIndexedRepoNames();
+        String requestId = UUID.randomUUID().toString();
+        log.info("recieved list all tracked repos request", kv("requestId", requestId));
+
+        List<String> trackedRepos = openSearchRepository.findAllIndexedRepoNames(requestId);
 
         return ResponseEntity.ok().body(trackedRepos);
     }

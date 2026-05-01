@@ -16,9 +16,13 @@ import io.nats.client.impl.NatsMessage;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 
 @Service
 @Validated
+@Slf4j
 public class ProducerService {
     private final JetStream js;
     private final ObjectMapper objectMapper;
@@ -37,8 +41,17 @@ public class ProducerService {
 
         PublishAck ack = js.publish(msg);
         if (ack.hasError()) {
+            log.error("failed to pub index repo job request to jetstream", 
+                kv("repoName", repoIndexMsg.repoName),
+                kv("requestId", repoIndexMsg.requestId),
+                kv("error", ack.getError()));
+
             throw new RuntimeException("Failed to publish: " + ack.getError());
         }
+
+        log.debug("published index repo job request", 
+            kv("repoName", repoIndexMsg.repoName),
+            kv("requestId", repoIndexMsg.requestId));
     }
 
     // build the index repo job request nats message with headers so it doesnt publish duplicate messages

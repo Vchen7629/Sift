@@ -29,9 +29,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 
 @Repository
 @Validated
+@Slf4j
 public class OpenSearchRepository {
     private final OpenSearchClient openSearchClient;
     private final TextEmbeddingService textEmbeddingService;
@@ -52,7 +56,7 @@ public class OpenSearchRepository {
         createIndexIfNotExist();
     }
 
-    public void deleteTrackedRepo(@NotBlank String repoName) throws IOException {
+    public void deleteTrackedRepo(@NotBlank String repoName, @NotBlank String requestId) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
             .index(issuesIndexName)
             .query(q -> q
@@ -63,7 +67,15 @@ public class OpenSearchRepository {
             )
         );
 
+        log.debug("successfully deleted track Repo", 
+            kv("repoName", repoName), 
+            kv("requestId", requestId));
+
         if (deleteRes.deleted() == 0) {
+            log.warn("No repo found in db to delete", 
+                kv("repoName", repoName),
+                kv("requestId", requestId));
+
             throw new NoSuchElementException("No repo found to delete");
         }
     }
@@ -73,7 +85,8 @@ public class OpenSearchRepository {
 
     public List<IssueSearchResult> findRelevantIssues(
         @NotBlank String repoName,
-        @NotBlank String searchQuery
+        @NotBlank String searchQuery,
+        @NotBlank String requestId
     ) throws TranslateException, IOException {
         Query keywordQuery = Query.of(q -> q
             .multiMatch(m -> m
@@ -129,32 +142,42 @@ public class OpenSearchRepository {
 
         SearchResponse<IssueSearchResult> searchRes = openSearchClient.search(searchRequest, IssueSearchResult.class);
     
-        return deduplicateSearchResults(searchRes.hits().hits().stream()
+        return deduplicateSearchResults((searchRes.hits().hits().stream()
             .map(hit -> hit.source())
             .filter(Objects::nonNull)
-            .toList());
+            .toList()
+        ), requestId);
     }
 
     // opensearch returns duplicate issues sometimes, using url to deduplicate
     // since each issue has a unique url.
     private final List<IssueSearchResult> deduplicateSearchResults(
-        @NotEmpty @Valid List<IssueSearchResult> searchResults
+        @NotEmpty @Valid List<IssueSearchResult> searchResults,
+        @NotBlank String requestId
     ) {
         List<IssueSearchResult> deduplicatedList = new ArrayList<>();
         Set<String> seenIds = new HashSet<>();
+
+        int deduplicatedCount = 0;
 
         for (IssueSearchResult issue : searchResults) {
             boolean notSeen = seenIds.add(issue.url());
 
             if (notSeen) {
                 deduplicatedList.add(issue);
+            } else {
+                deduplicatedCount++;
             }
         }
+
+        log.debug("deduplicated search results", 
+            kv("requestId", requestId), 
+            kv("duplicatesRemoved", deduplicatedCount));
 
         return deduplicatedList;
     }
 
-    public List<String> findAllIndexedRepoNames() throws IOException {
+    public List<String> findAllIndexedRepoNames(@NotBlank String requestId) throws IOException {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
@@ -169,15 +192,21 @@ public class OpenSearchRepository {
 
         Aggregate repoNameAgg = searchRes.aggregations().get("repoNames");
         if (repoNameAgg == null || !repoNameAgg.isSterms()) {
+            log.debug("found no indexed repos in the db", kv("requestId", requestId));
             return List.of(); // return empty list instead of throwing an exception
         }
 
-        return repoNameAgg
+        List<String> indexedRepos = repoNameAgg
             .sterms()
             .buckets().array()
             .stream()
             .map(StringTermsBucket::key)
             .toList();
+
+        log.debug("Successfully fetched {} indexed repos", indexedRepos.size(), 
+            kv("requestId", requestId));
+
+        return indexedRepos;
     }
 
     public boolean isRepoIndexed(String repoName) throws IOException{
