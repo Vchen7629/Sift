@@ -118,6 +118,7 @@ public class OpenSearchRepository {
                     .properties("body", p -> p.keyword(k -> k))
                     .properties("repoName", p -> p.keyword(k -> k))
                     .properties("url", p -> p.keyword(k -> k))
+                    .properties("labelList", p -> p.keyword(k -> k))
                     .properties("titleEmbedding", p -> p.knnVector(k -> k
                         .dimension(embeddingDim)
                         .method(met -> met
