@@ -12,10 +12,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.extern.slf4j.Slf4j;
+import static net.logstash.logback.argument.StructuredArguments.kv;
 import jakarta.validation.constraints.NotBlank;
 
 @Service
 @Validated
+@Slf4j
 public class TextEmbeddingService {
     private final ZooModel<String, float[]> embeddingModel;
 
@@ -35,10 +38,15 @@ public class TextEmbeddingService {
     // pass in a list of <url, text> and return issue <url, embedding>
     // does batch embedding generation with a sentence transformer model
     public List<embeddingDocument> generateEmbeddings(
-        @NotEmpty @Valid List<GithubApiService.IssueDocument> issueDocuments
+        @NotEmpty @Valid List<GithubApiService.IssueDocument> issueDocuments,
+        @NotBlank String requestId
     ) throws TranslateException {
         List<List<GithubApiService.IssueDocument>> batches = partition(issueDocuments, 32);
         List<embeddingDocument> embeddingDocuments = new ArrayList<>();
+
+        log.debug("created {} batches", batches.size(), kv("requestId", requestId));
+
+        long start = System.currentTimeMillis();
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<GithubApiService.IssueDocument> batch : batches) {
@@ -50,6 +58,8 @@ public class TextEmbeddingService {
                 List<float[]> titleEmbeddings = predictor.batchPredict(titles);
                 List<float[]> bodyEmbeddings = predictor.batchPredict(bodies);
 
+                log.debug("embeddings for batch", kv("requestId", requestId));
+
                 for (int i = 0; i < urls.size(); i++) {
                     embeddingDocuments.add(
                         new embeddingDocument(
@@ -58,8 +68,15 @@ public class TextEmbeddingService {
                         )
                     );
                 }
+
+                log.debug("added embedding document to result list", kv("requestId", requestId));
             }
         }
+
+        long elapsed = System.currentTimeMillis() - start;
+        log.debug("processed {} issues in {}ms ({}s)", 
+                embeddingDocuments.size(), elapsed, elapsed / 1000.0,
+                kv("requestId", requestId));
     
         return embeddingDocuments;
     }
