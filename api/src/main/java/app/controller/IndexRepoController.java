@@ -55,7 +55,7 @@ public class IndexRepoController {
 
         producerService.PublishIndexRepoJobRequest(new ProducerService.RepoIndexMsg(request.repoName, requestId));
         
-        return ResponseEntity.accepted().body("added " + request.repoName + "to processing");
+        return ResponseEntity.accepted().body("added " + request.repoName + " to processing");
     }
 
     @GetMapping("/get_status/{repoName}")
