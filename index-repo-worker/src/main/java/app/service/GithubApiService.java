@@ -41,17 +41,27 @@ public class GithubApiService {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
             
+            long start = System.currentTimeMillis();
+
             List<GHIssue> issues = repo.queryIssues()
                 .state(GHIssueState.OPEN)
                 .list()
                 .toList();
 
-            log.debug("fetched {} issues for repo {}", issues.size(), repoName);
+            long elapsed = System.currentTimeMillis() - start;
+
+            log.debug("fetched {} issues for repo {} in {}ms ({}s)", 
+                issues.size(), repoName, elapsed, elapsed / 1000.0);
             
             List<IssueDocument> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
                 String body = issue.getBody();
                 if (body == null || body.isBlank()) continue; // skip over issues will blank body
+
+                int charCountLimit = 32000;
+                if (body.length() > charCountLimit) {
+                    body = body.substring(0, charCountLimit); // todo: remove truncation bandaid fix with proper issue body chunking in the future
+                }
 
                 issueDocuments.add(new IssueDocument(
                     repoName,
