@@ -9,15 +9,18 @@ import org.opensearch.client.opensearch.core.BulkResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
+import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import app.service.TextEmbeddingService;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @Validated
+@Slf4j
 public class OpenSearchRepository {
     private final OpenSearchClient openSearchClient;
     private final static String issuesIndexName = "github-issues";
@@ -32,7 +35,10 @@ public class OpenSearchRepository {
         createIndexIfNotExist();
     }
 
-    public void indexGithubIssue(@NotEmpty List<TextEmbeddingService.embeddingDocument> issueDocuments) throws IOException {
+    public void indexGithubIssue(
+        @NotEmpty List<TextEmbeddingService.embeddingDocument> issueDocuments,
+        @NotBlank String requestId
+    ) throws IOException {
         List<BulkOperation> operations = new ArrayList<>();
 
         for (TextEmbeddingService.embeddingDocument doc : issueDocuments) {
@@ -47,6 +53,11 @@ public class OpenSearchRepository {
             .operations(operations)
         );
 
+        log.debug("bulk added {} issues", 
+            operations.size(), 
+            kv("index", issuesIndexName),
+            kv("requestId", requestId));
+
         if (bulkRes.errors()) {
             List<String> failures = bulkRes.items().stream()
                 .filter(i -> i.error() != null)
@@ -57,20 +68,39 @@ public class OpenSearchRepository {
                 })
                 .toList();
             
+            log.error("failed to bulk insert issues", 
+                kv("index", issuesIndexName),
+                kv("error", failures),
+                kv("requestId", requestId));
+
             throw new RuntimeException("Bulk index had failures: " + failures);
         }
     }
 
     public record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
 
-    public void upsertJobStatus(@Valid JobStatus jobStatus) throws IOException {
-        openSearchClient.update(r -> r
-            .index(jobStatusIndexName)
-            .id(jobStatus.repoName)
-            .doc(new JobStatus(jobStatus.repoName, jobStatus.status))
-            .docAsUpsert(true)
-            , JobStatus.class
-        );
+    public void upsertJobStatus(@Valid JobStatus jobStatus, @NotBlank String requestId) {
+        try {
+            openSearchClient.update(r -> r
+                .index(jobStatusIndexName)
+                .id(jobStatus.repoName)
+                .doc(new JobStatus(jobStatus.repoName, jobStatus.status))
+                .docAsUpsert(true)
+                , JobStatus.class
+            );
+            log.debug("upserted job status to {}", 
+                jobStatus.status, 
+                kv("index", jobStatusIndexName),
+                kv("repoName", jobStatus.repoName),
+                kv("requestId", requestId));
+
+        } catch (IOException e) { 
+            log.error("failed to upsert job status to {}", 
+                jobStatus.status, 
+                kv("index", jobStatusIndexName),
+                kv("repoName", jobStatus.repoName),
+                kv("requestId", requestId));
+        }
     }
 
     // dim number from: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
@@ -106,6 +136,8 @@ public class OpenSearchRepository {
                     ))
                 )
             );
+
+            log.info("created index", kv("index", issuesIndexName));
         }
     }
 
