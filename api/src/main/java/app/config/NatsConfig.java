@@ -16,7 +16,7 @@ import io.nats.client.Options;
 
 @Configuration
 public class NatsConfig {
-    @Value("%{nats.connection_url}")
+    @Value("${nats.connection_url}")
     private String connURL;
 
     private static final int MAX_RECONNECTS = -1;
