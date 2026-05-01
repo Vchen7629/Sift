@@ -69,7 +69,9 @@ public class ConsumerService {
     }
 
     private void processMsg(Message msg, @Valid RepoIndexMsg payload) throws JetStreamApiException, TranslateException, IOException {
-        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(payload.repoName).join();
+        log.info("processMsg called", kv("requestId", payload.requestId));
+
+        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(payload.repoName, payload.requestId).join();
 
         if (githubIssues.isEmpty()) {
             openSearchRepository.upsertJobStatus(
