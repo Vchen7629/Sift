@@ -9,9 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;
+import io.nats.client.Message;
 import io.nats.client.api.PublishAck;
+import io.nats.client.impl.Headers;
+import io.nats.client.impl.NatsMessage;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 @Service
 @Validated
@@ -29,9 +33,24 @@ public class ProducerService {
     public void PublishIndexRepoJobRequest(@Valid RepoIndexMsg repoIndexMsg) throws JetStreamApiException, IOException {
         byte[] data = objectMapper.writeValueAsBytes(repoIndexMsg);
 
-        PublishAck ack = js.publish("index-repo.subject.request", data);
+        Message msg = indexRepoJobReqMsg(repoIndexMsg, data);
+
+        PublishAck ack = js.publish(msg);
         if (ack.hasError()) {
             throw new RuntimeException("Failed to publish: " + ack.getError());
         }
+    }
+
+    // build the index repo job request nats message with headers so it doesnt publish duplicate messages
+    // using the header (repo name)
+    private static Message indexRepoJobReqMsg(@Valid RepoIndexMsg repoIndexMsg, @NotEmpty byte[] data) {
+        Headers headers = new Headers();
+        headers.add("Nats-Msg-Id", repoIndexMsg.repoName());
+
+        return NatsMessage.builder()
+            .subject("index-repo.subject.request")
+            .headers(headers)
+            .data(data)
+            .build();
     }
 }
