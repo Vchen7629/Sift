@@ -31,6 +31,7 @@ public class TextEmbeddingService {
         @NotBlank String url, 
         @NotBlank String title, 
         @NotBlank String body,
+        @NotNull List<String> labelList,
         @NotEmpty float[] titleEmbedding,
         @NotEmpty float[] bodyEmbedding
     ) {} 
@@ -54,6 +55,7 @@ public class TextEmbeddingService {
                 List<String> urls = batch.stream().map(doc -> doc.url()).toList();
                 List<String> titles = batch.stream().map(doc -> doc.title()).toList();
                 List<String> bodies = batch.stream().map(doc -> doc.body()).toList();
+                List<List<String>> labelLists = batch.stream().map(doc -> doc.labelList()).toList();
                 
                 List<float[]> titleEmbeddings = predictor.batchPredict(titles);
                 List<float[]> bodyEmbeddings = predictor.batchPredict(bodies);
@@ -63,7 +65,7 @@ public class TextEmbeddingService {
                 for (int i = 0; i < urls.size(); i++) {
                     embeddingDocuments.add(
                         new embeddingDocument(
-                            repoNames.get(i), urls.get(i), titles.get(i), bodies.get(i), 
+                            repoNames.get(i), urls.get(i), titles.get(i), bodies.get(i), labelLists.get(i),
                             titleEmbeddings.get(i), bodyEmbeddings.get(i)
                         )
                     );
