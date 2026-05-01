@@ -43,7 +43,7 @@ public class OpenSearchRepository {
 
         for (TextEmbeddingService.embeddingDocument doc : issueDocuments) {
             operations.add(new BulkOperation.Builder()
-                .index(i -> i.document(doc))
+                .index(i -> i.id(doc.url()).document(doc))
                 .build()
             );
         }
