@@ -46,7 +46,7 @@ public class PythonDependencyParser implements DependencyParserStrategy {
     ) throws JsonProcessingException {
         List<String> depNames = extractDepNames(nonLockFileContent);
 
-        if (lockFileContent.isBlank()) {
+        if (lockFileContent == null || lockFileContent.isBlank()) {
             return depNames.stream()
                 .map(name -> new Dependency(name, null))
                 .toList();
