@@ -2,6 +2,7 @@ package app.parser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class PythonDependencyParser implements DependencyParserStrategy {
     private static List<Dependency> parsePyProjectTOML(
         String nonLockFileContent, @Nullable String lockFileContent
     ) throws JsonProcessingException {
-        List<String> depNames = extractDepNames(nonLockFileContent);
+        Set<String> depNames = extractDepNames(nonLockFileContent);
 
         if (lockFileContent == null || lockFileContent.isBlank()) {
             return depNames.stream()
@@ -52,18 +53,18 @@ public class PythonDependencyParser implements DependencyParserStrategy {
                 .toList();
         }
 
-        Map<String, String> depVersions = extractLockFileDepVersions(lockFileContent);
+        Map<String, String> depVersions = extractLockFileDepVersions(lockFileContent, depNames);
 
-        return depNames.stream()
-            .map(name -> new Dependency(name, depVersions.get(name)))
+        return depVersions.entrySet().stream()
+            .map(e -> new Dependency(e.getKey(), e.getValue()))
             .toList();
     }
 
-    private static List<String> extractDepNames(String nonLockFileContent) throws JsonProcessingException {
+    private static Set<String> extractDepNames(String nonLockFileContent) throws JsonProcessingException {
         JsonNode deps = new TomlMapper().readTree(nonLockFileContent)
             .path("project").path("dependencies");
         
-        List<String> depNames = new ArrayList<>();
+        Set<String> depNames = new HashSet<>();
         for (JsonNode dep : deps) {
             String raw = dep.asText(); // parses it with version included "requests>=2.28.0"
             String name = raw.split("[><=!~\\s\\[]")[0];
@@ -74,7 +75,7 @@ public class PythonDependencyParser implements DependencyParserStrategy {
         return depNames;
     }
 
-    private static Map<String, String> extractLockFileDepVersions(String lockFileContent) {
+    private static Map<String, String> extractLockFileDepVersions(String lockFileContent, Set<String> depNames) {
         Map<String, String> depVersions = new HashMap<>();
 
         Pattern name = Pattern.compile("^name = \"([^\"]+)\"", Pattern.MULTILINE);
@@ -85,7 +86,11 @@ public class PythonDependencyParser implements DependencyParserStrategy {
             Matcher versionMatcher = version.matcher(block);
 
             if (nameMatcher.find() && versionMatcher.find()) {
-                depVersions.put(nameMatcher.group(1), versionMatcher.group(1));
+                String depName = nameMatcher.group(1);
+
+                if (depNames.contains(depName)) {
+                    depVersions.put(nameMatcher.group(1), versionMatcher.group(1));
+                }
             }
         }
 
