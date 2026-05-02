@@ -6,11 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public enum DependencyFileEnum {
-    // Java support
-    POM_XML("pom.xml", "java", false),
-    BUILD_GRADLE("build.gradle", "java", false),
-    BUILD_GRADLE_KTS("build.gradle.kts", "java", false),
-
     // Python support
     POETRY_LOCK("poetry.lock", "python", true),
     UV_LOCK("uv.lock", "python", true),
