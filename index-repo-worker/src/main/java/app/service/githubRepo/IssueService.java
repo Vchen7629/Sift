@@ -1,4 +1,4 @@
-package app.service;
+package app.service.githubRepo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,33 +24,35 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Service
 @Validated
 @Slf4j
-public class GithubApiService {
+public class IssueService {
     private final GitHub githubClient;
 
     // constructor
-    public GithubApiService(GitHub githubClient) {
+    public IssueService(GitHub githubClient) {
         this.githubClient = githubClient;
     }
 
-    public static record IssueDocument(
-        @NotBlank String repoName, 
-        @NotBlank String url, 
+    public static record Result(
+        @NotBlank String dependencyName, 
+        @NotBlank String version,
         @NotBlank String title, 
         @NotBlank String body,
-        @NotNull List<String> labelList
+        @NotBlank String url, 
+        @NotNull List<String> labelList,
+        @NotBlank String createdOn
     ) {}
 
     @Async
-    public CompletableFuture<List<IssueDocument>> fetchRepoIssues(
-        @NotBlank String repoName, @NotBlank String requestId
+    public CompletableFuture<List<Result>> fetchDependencyIssues(
+        @NotBlank String dependencyName, @NotBlank String requestId
     ) {
         try {
-            GHRepository repo = githubClient.getRepository(repoName);
+            GHRepository repo = githubClient.getRepository(dependencyName);
             
             long start = System.currentTimeMillis();
 
             List<GHIssue> issues = repo.queryIssues()
-                .state(GHIssueState.OPEN)
+                .state(GHIssueState.ALL)
                 .list()
                 .toList();
 
@@ -58,25 +60,25 @@ public class GithubApiService {
 
             log.debug("fetched {} issues in {}ms ({}s)", 
                 issues.size(), elapsed, elapsed / 1000.0,
-                kv("repoName", repoName),
+                kv("dependencyName", dependencyName),
                 kv("requestId", requestId));
             
-            List<IssueDocument> issueDocuments = new ArrayList<>();
+            List<Result> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
-                addIssueDocument(issue, issueDocuments, repoName);
+                addIssueDocument(issue, issueDocuments, dependencyName);
             }
 
             return CompletableFuture.completedFuture(issueDocuments);
         } catch (GHFileNotFoundException e) {
             log.error("Repo not found", 
-                kv("repoName", repoName), 
+                kv("dependencyName", dependencyName), 
                 kv("error", e.getMessage()),
                 kv("requestId", requestId));
 
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
             log.error("Unknown error fetching issues", 
-                kv("repoName", repoName), 
+                kv("dependencyName", dependencyName),
                 kv("error", e.getMessage()),
                 kv("requestId", requestId));
 
@@ -84,7 +86,9 @@ public class GithubApiService {
         }
     }
 
-    private void addIssueDocument(GHIssue issue, List<IssueDocument> issueDocuments, @NotBlank String repoName) {
+    private void addIssueDocument(GHIssue issue, List<Result> issueDocuments, @NotBlank String repoName) throws IOException {
+        //if (!hasRelevantLabel(issue)) return;
+
         String body = issue.getBody();
         if (body == null || body.isBlank()) return; // skip over issues with blank body
 
@@ -97,13 +101,27 @@ public class GithubApiService {
         List<String> labelList = issue.getLabels().stream()
             .map(GHLabel::getName)
             .collect(Collectors.toList());
+        
+        String version = "no version";
 
-        issueDocuments.add(new IssueDocument(
+        issueDocuments.add(new Result(
             repoName,
+            version,
             issue.getHtmlUrl().toString(), 
             issue.getTitle(), 
             body,
-            labelList
+            labelList,
+            issue.getCreatedAt().toString()
         ));
+    }
+
+    private static final List<String> RELEVANT_LABEL_KEYWORDS = List.of(
+        "bug", "breaking", "deprecat", "regression"
+    );
+
+    private boolean hasRelevantLabel(GHIssue issue) {
+        return issue.getLabels().stream()
+            .map(l -> l.getName().toLowerCase())
+            .anyMatch(name -> RELEVANT_LABEL_KEYWORDS.stream().anyMatch(name::contains));
     }
 }

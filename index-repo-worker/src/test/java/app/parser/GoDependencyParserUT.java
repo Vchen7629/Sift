@@ -11,18 +11,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import app.model.DependencyFileEnum;
-import app.parser.DependencyParserStrategy.Dependency;
+import app.component.parser.DependencyParserStrategy.Dependency;
+import app.component.parser.GoDependency;
 
 
 public class GoDependencyParserUT {
 
     private static final Path TEST_DATA_DIR = Path.of("src/test/java/app/parser_test_data");
 
-    private GoDependencyParser parser;
+    private GoDependency parser;
 
     @BeforeEach
     void setup() {
-        parser = new GoDependencyParser();
+        parser = new GoDependency();
     }
 
     @Test
@@ -33,10 +34,10 @@ public class GoDependencyParserUT {
 
         assertThat(deps).hasSize(4);
         assertThat(deps).containsExactlyInAnyOrder(
-            new Dependency("github.com/jackc/pgconn", "v1.14.3"),
-	        new Dependency("github.com/jackc/pgx/v4", "v4.18.3"),
-	        new Dependency("github.com/joho/godotenv", "v1.5.1"),
-	        new Dependency("github.com/kelseyhightower/envconfig", "v1.4.0")
+            new Dependency("jackc/pgconn", "v1.14.3", "jackc/pgconn"),
+	        new Dependency("pgx/v4", "v4.18.3", "jackc/pgx/v4"),
+	        new Dependency("joho/godotenv", "v1.5.1", "joho/godotenv"),
+	        new Dependency("kelseyhightower/envconfig", "v1.4.0", "kelseyhightower/envconfig")
         );
         assertThat(deps).noneMatch(d -> d.name().equals("dario.cat/mergo"));
     }

@@ -6,22 +6,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public enum DependencyFileEnum {
-    // Python support
+    /* Python support 
     POETRY_LOCK("poetry.lock", "python", true),
     UV_LOCK("uv.lock", "python", true),
     PYPROJECT_TOML("pyproject.toml", "python", false),
-    REQUIREMENTS_TXT("requirements.txt", "python", false),
+    REQUIREMENTS_TXT("requirements.txt", "python", false),*/
 
     // Go Support
-    GO_MOD("go.mod", "go", false),
+    GO_MOD("go.mod", "go", false);
 
-    // JS/TS Support
+    /*  JS/TS Support
     PACKAGE_LOCK("package-lock.json", "javascript", true),
-    PACKAGE_JSON("package.json", "javascript", false),
-
-    // Rust Support
-    CARGO_LOCK("Cargo.lock", "rust", true),
-    CARGO_TOML("Cargo.toml", "rust", false);
+    PACKAGE_JSON("package.json", "javascript", false);*/
 
     public final String path;
     public final String language;
@@ -60,9 +56,8 @@ public enum DependencyFileEnum {
      */
     public List<DependencyFileEnum> getLockFiles() {
         return switch (this) {
-            case PYPROJECT_TOML -> List.of(POETRY_LOCK, UV_LOCK); 
-            case PACKAGE_JSON   -> List.of(PACKAGE_LOCK);
-            case CARGO_TOML     -> List.of(CARGO_LOCK);
+            //case PYPROJECT_TOML -> List.of(POETRY_LOCK, UV_LOCK); 
+            //case PACKAGE_JSON   -> List.of(PACKAGE_LOCK);
             default             -> List.of();
         };
     }
