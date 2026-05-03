@@ -1,4 +1,4 @@
-package app.parser;
+package app.component.parser;
 
 import java.util.List;
 import java.util.Set;
@@ -9,7 +9,7 @@ import app.model.DependencyFileEnum;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 public interface DependencyParserStrategy {
-    public record Dependency(String name, String version) {};
+    public record Dependency(String name, String version, String repoName) {};
 
     List<Dependency> parse(
         DependencyFileEnum fileType, 

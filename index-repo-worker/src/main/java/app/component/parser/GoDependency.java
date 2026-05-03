@@ -1,4 +1,4 @@
-package app.parser;
+package app.component.parser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import app.model.DependencyFileEnum;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 @Component
-public class GoDependencyParser implements DependencyParserStrategy {
+public class GoDependency implements DependencyParserStrategy {
     
     @Override
     public Set<DependencyFileEnum> supports() {
@@ -44,7 +44,11 @@ public class GoDependencyParser implements DependencyParserStrategy {
             if (line.isEmpty() || line.contains("// indirect")) continue;
 
             String[] parts = line.split("\\s+");
-            deps.add(new Dependency(parts[0], parts[1]));
+            
+            String repoName = parts[0].replace("github.com/", "");
+            String version = parts[1];
+
+            deps.add(new Dependency(repoName, version, repoName));
         }
 
         return deps;

@@ -1,4 +1,4 @@
-package app.parser;
+package app.component.parser;
 
 import java.util.List;
 import java.util.Set;
@@ -14,11 +14,11 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 
 @Primary
 @Component
-public class CompositeDependencyParser implements DependencyParserStrategy {
+public class CompositeDependency implements DependencyParserStrategy {
 
     private final List<DependencyParserStrategy> parsers;
 
-    public CompositeDependencyParser(List<DependencyParserStrategy> parsers) {
+    public CompositeDependency(List<DependencyParserStrategy> parsers) {
         this.parsers = parsers;
     }
 
