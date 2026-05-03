@@ -10,6 +10,8 @@ import org.opensearch.client.opensearch.core.IndexResponse;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -39,7 +41,7 @@ public class UserRepoRepository {
         @NotBlank String userId,
         @NotBlank String repoName,
         @NotEmpty Map<String, String> dependencies,
-        Instant lastIndexed
+        @JsonSerialize(using = ToStringSerializer.class) Instant lastIndexed
     ) {};
 
     public void insertDocument(
@@ -70,10 +72,10 @@ public class UserRepoRepository {
             openSearchClient.indices().create(r -> r
                 .index(indexName)
                 .mappings(m -> m
-                    .properties("user_id", p -> p.keyword(k -> k))
-                    .properties("repo_name", p -> p.keyword(k -> k))
+                    .properties("userId", p -> p.keyword(k -> k))
+                    .properties("repoName", p -> p.keyword(k -> k))
                     .properties("dependencies", p -> p.flatObject(f -> f))
-                    .properties("last_indexed", p -> p.date(d -> d))
+                    .properties("lastIndexed", p -> p.date(d -> d))
                 )
             );
         }
