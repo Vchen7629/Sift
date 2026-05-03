@@ -107,9 +107,9 @@ public class IssueService {
         issueDocuments.add(new Result(
             repoName,
             version,
-            issue.getHtmlUrl().toString(), 
-            issue.getTitle(), 
+            issue.getTitle(),
             body,
+            issue.getHtmlUrl().toString(),
             labelList,
             issue.getCreatedAt().toString()
         ));
