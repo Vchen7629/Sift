@@ -134,8 +134,8 @@ public class DependencyRepository {
                 .mappings(m -> m
                     .properties("dependency_name", p -> p.keyword(k -> k))
                     .properties("version", p -> p.keyword(k -> k))
-                    .properties("title", p -> p.keyword(k -> k))
-                    .properties("body", p -> p.keyword(k -> k))
+                    .properties("title", p -> p.text(t -> t))
+                    .properties("body", p -> p.text(t -> t))
                     .properties("url", p -> p.keyword(k -> k))
                     .properties("labelList", p -> p.keyword(k -> k))
                     .properties("createdOn", p -> p.date(d -> d))

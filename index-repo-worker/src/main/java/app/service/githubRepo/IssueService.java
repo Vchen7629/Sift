@@ -92,12 +92,6 @@ public class IssueService {
         String body = issue.getBody();
         if (body == null || body.isBlank()) return; // skip over issues with blank body
 
-        int charCountLimit = 32000;
-        if (body.length() > charCountLimit) {
-            // todo: remove truncation bandaid fix with proper issue body chunking in the future
-            body = body.substring(0, charCountLimit); 
-        }
-
         List<String> labelList = issue.getLabels().stream()
             .map(GHLabel::getName)
             .collect(Collectors.toList());
