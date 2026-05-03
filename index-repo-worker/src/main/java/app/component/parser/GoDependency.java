@@ -45,7 +45,13 @@ public class GoDependency implements DependencyParserStrategy {
 
             String[] parts = line.split("\\s+");
             
-            String repoName = parts[0].replace("github.com/", "");
+            String modulePath = parts[0];
+            if (!modulePath.startsWith("github.com/")) continue;
+
+            String[] segments = modulePath.substring("github.com/".length()).split("/");
+            if (segments.length < 2) continue;
+
+            String repoName = segments[0] + "/" + segments[1];
             String version = parts[1];
 
             deps.add(new Dependency(repoName, version, repoName));
