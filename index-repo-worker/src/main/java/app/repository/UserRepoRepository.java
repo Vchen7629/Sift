@@ -1,10 +1,11 @@
 package app.repository;
 
 import java.io.IOException;
-import java.util.List;
+import java.time.Instant;
 import java.util.Map;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.mapping.DynamicMapping;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.IndexResponse;
 import org.springframework.stereotype.Repository;
@@ -38,7 +39,8 @@ public class UserRepoRepository {
     public static record UserRepo(
         @NotBlank String userId,
         @NotBlank String repoName,
-        @NotEmpty List<Map<String, String>> dependencies
+        @NotEmpty Map<String, String> dependencies,
+        Instant lastIndexed
     ) {};
 
     public void insertDocument(
@@ -71,10 +73,7 @@ public class UserRepoRepository {
                 .mappings(m -> m
                     .properties("user_id", p -> p.keyword(k -> k))
                     .properties("repo_name", p -> p.keyword(k -> k))
-                    .properties("libraries", p -> p.object(o -> o
-                        .properties("name", pp -> pp.keyword(k -> k))
-                        .properties("version", pp -> pp.keyword(k -> k))
-                    ))
+                    .properties("dependencies", p -> p.object(o -> o.dynamic(DynamicMapping.False)))
                     .properties("last_indexed", p -> p.date(d -> d))
                 )
             );

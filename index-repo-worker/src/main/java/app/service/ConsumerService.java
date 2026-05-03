@@ -2,7 +2,9 @@ package app.service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +129,7 @@ public class ConsumerService {
     ) throws TranslateException, IOException {
         List<IssueService.Result> issueList = new ArrayList<>();
         List<ChangelogService.Result> changeLogs = new ArrayList<>();
-        List<Map<String, String>> libraryMap = new ArrayList<>();
+        Map<String, String> libraryMap = new HashMap<>();
         Set<String> fetchedIssueRepos = new HashSet<>();
 
         jobStatusRepository.upsertJobStatus(
@@ -152,7 +154,7 @@ public class ConsumerService {
                     changeLogs.add(changeLog);
                 }
                 
-                libraryMap.add(Map.of(dependency.name(), dependency.version()));
+                libraryMap.put(dependency.name(), dependency.version());
             }
         }
 
@@ -161,6 +163,6 @@ public class ConsumerService {
 
         dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
         dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
-        userRepoRepository.insertDocument(new UserRepoRepository.UserRepo("test-user-1", repoName, libraryMap));
+        userRepoRepository.insertDocument(new UserRepoRepository.UserRepo("test-user-1", repoName, libraryMap, Instant.now()));
     }
 }
