@@ -1,8 +1,11 @@
 package app.repository;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.aggregations.Aggregate;
@@ -11,6 +14,8 @@ import org.opensearch.client.opensearch.core.DeleteByQueryResponse;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +55,50 @@ public class UserRepoRepository {
 
             throw new NoSuchElementException("No repo found to delete");
         }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record UserRepoDepDoc(Map<String, String> dependencies) {}
+
+    /**
+     * fetches all dependencies across the user's indexed repo for search filtering on
+     * @param requestId used just for tracking request in logs
+     * @param userId used to decide which user to fetch for
+     * @return a map containing the dependency name and version pairs
+     * @throws IOException from openSearchClient.search
+     */
+    public Map<String, String> findUserRepoDependencies(@NotBlank String requestId, @NotBlank String userId) throws IOException {
+        final int maxUniqueDependencies = 1000;
+
+        long start = System.currentTimeMillis();
+
+        SearchResponse<UserRepoDepDoc> searchRes = openSearchClient.search(r -> r
+            .index(indexedRepoIndexName)
+            .size(maxUniqueDependencies)
+            .query(q -> q
+                .term(t -> t
+                    .field("userId")
+                    .value(v -> v.stringValue(userId))
+                )
+            ),
+            UserRepoDepDoc.class
+        );
+
+        Map<String, String> repoDependencies = new HashMap<>();
+
+        searchRes.hits().hits().stream()
+            .map(hit -> hit.source())
+            .filter(Objects::nonNull)
+            .forEach(doc -> repoDependencies.putAll(doc.dependencies()));
+
+        long elapsed = System.currentTimeMillis() - start;
+
+         log.debug("fetched {} dependencies in {}ms ({}s)", 
+                repoDependencies.size(), elapsed, elapsed / 1000.0,
+                kv("userId", userId),
+                kv("requestId", requestId));
+
+        return repoDependencies;
     }
 
     public List<String> findAll(@NotBlank String requestId, @NotBlank String userId) throws IOException {
