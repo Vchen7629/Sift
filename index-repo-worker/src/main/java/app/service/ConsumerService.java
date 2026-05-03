@@ -139,19 +139,28 @@ public class ConsumerService {
             requestId
         );
 
+        Set<DependencyRepository.DependencyNameVersion> indexedDependencies = dependencyRepository.listDependencyNameVersion(requestId);
+
         for (Map.Entry<String, List<Dependency>> entry : dependenciesByLanguage.entrySet()) {
             List<Dependency> dependencies = entry.getValue();
 
             long start = System.currentTimeMillis();
 
+            // the amount of threads to spawn in for fetching issues, one per repo
             Set<String> uniqueRepos = dependencies.stream()
                 .map(Dependency -> Dependency.repoName())
                 .collect(Collectors.toSet());
 
+            // dependency names whose issues are already fetched
+            Set<String> indexedDepNames = indexedDependencies.stream()
+                .map(DependencyRepository.DependencyNameVersion::dependencyName)
+                .collect(Collectors.toSet());
+
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 List<Future<List<IssueService.Result>>> futures = uniqueRepos.stream()
-                    .map(repo -> executor.submit(() -> 
-                        issueService.fetchDependencyIssues(repo, requestId).join()))
+                    .filter(dep -> !indexedDepNames.contains(dep))
+                    .map(dependencyName -> executor.submit(() -> 
+                        issueService.fetchDependencyIssues(dependencyName, requestId).join()))
                     .toList();
                 
                 for (Future<List<IssueService.Result>> future : futures) {
@@ -164,8 +173,23 @@ public class ConsumerService {
                 issueList.size(), elapsed, elapsed / 1000.0,
                 kv("requestId", requestId));
             
+            // dependency versions whose changelogs are already fetched
+            Set<String> indexedDepVersions = indexedDependencies.stream()
+                .map(DependencyRepository.DependencyNameVersion::version)
+                .collect(Collectors.toSet());
 
             for (Dependency dependency : dependencies) {
+                if (indexedDepNames.contains(dependency.repoName()) && indexedDepVersions.contains(dependency.version())) {
+                    log.debug("changelog already indexed, skipping...", 
+                        kv("name", dependency.name()),
+                        kv("version", dependency.version()),
+                        kv("requestId", requestId));
+
+                    libraryMap.put(dependency.name(), dependency.version());
+
+                    continue;
+                }
+
                 ChangelogService.Result changeLog = changelogService.fetchChangeLogForVersion(
                     dependency.repoName(), dependency.version()
                 ).join();
@@ -178,11 +202,24 @@ public class ConsumerService {
             }
         }
 
-        List<TextEmbeddingService.IssueDocument> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
-        List<TextEmbeddingService.ChangeLogDocument> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
+        if (!issueList.isEmpty()) {
+            List<TextEmbeddingService.IssueDocument> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
+            dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
 
-        dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
-        dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
+            log.info("inserted new issue documents into openSearch successfully!", 
+                kv("requestId", requestId), kv("repoName", repoName)
+            );
+        }
+
+        if (!changeLogs.isEmpty()) {
+            List<TextEmbeddingService.ChangeLogDocument> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
+            dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
+
+            log.info("inserted new changelog documents into openSearch successfully!", 
+                kv("requestId", requestId), kv("repoName", repoName)
+            );
+        }
+
         userRepoRepository.insertDocument(new UserRepoRepository.UserRepo("test-user-1", repoName, libraryMap, Instant.now()));
     }
 }

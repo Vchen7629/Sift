@@ -3,12 +3,18 @@ package app.repository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.aggregations.Aggregate;
 import org.opensearch.client.opensearch.core.BulkResponse;
+import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import app.service.TextEmbeddingService.IndexableDocument;
 import jakarta.annotation.PostConstruct;
@@ -83,6 +89,52 @@ public class DependencyRepository {
                 throw new RuntimeException("Bulk index had failures: " + failures);
             }
         }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record DependencyNameVersion(String dependencyName, String version) {}
+
+    /**
+     * fetches all dependencies (name and version) already indexed so it doesnt refetch issues and changelogs
+     * @param requestId used just for tracking request in logs
+     * @return a set containing records containing the dependency name and version pairs
+     * @throws IOException from openSearchClient.search
+     */
+    public Set<DependencyNameVersion> listDependencyNameVersion(@NotBlank String requestId) throws IOException {
+        final int maxUniqueDependencies = 100000;
+
+        SearchResponse<Void> searchRes = openSearchClient.search(r -> r
+            .index(changeLogIndexName)
+            .size(0)
+            .timeout("45s")
+            .aggregations("byDependency", a -> a
+                .terms(t -> t.field("dependencyName").size(maxUniqueDependencies))
+                .aggregations("version", va -> va
+                    .terms(vt -> vt.field("version").size(1))
+                )
+            ),
+            Void.class
+        );
+
+        Aggregate byDependency = searchRes.aggregations().get("byDependency");
+        if (byDependency == null || !byDependency.isSterms()) {
+            log.warn("no dependencies from changelogs found", kv("requestId", requestId));
+            return Set.of();
+        }
+        
+        Set<DependencyNameVersion> dependencyNameVersions = byDependency.sterms().buckets().array().stream()
+            .map(depBucket -> {
+                String name = depBucket.key();
+                Aggregate versionAgg = depBucket.aggregations().get("version");
+                String version = versionAgg.sterms().buckets().array().get(0).key();
+                return new DependencyNameVersion(name, version);
+            })
+            .collect(Collectors.toSet());
+        
+        log.debug("Successfully fetched {} dependencies via changelog", dependencyNameVersions.size(), 
+            kv("requestId", requestId));
+        
+        return dependencyNameVersions;
     }
 
     // dim number from: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
