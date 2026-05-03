@@ -51,7 +51,7 @@ public class TextEmbeddingService {
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<ChangelogService.Result> batch : batches) {
-                List<String> libraryNames = batch.stream().map(doc -> doc.libraryName()).toList();
+                List<String> dependencyNames = batch.stream().map(doc -> doc.dependencyName()).toList();
                 List<String> versions = batch.stream().map(doc -> doc.version()).toList();
                 List<String> changeList = batch.stream().map(doc -> doc.changes()).toList();
                 List<String> urls = batch.stream().map(doc -> doc.url()).toList();
@@ -63,7 +63,7 @@ public class TextEmbeddingService {
                 for (int i = 0; i < urls.size(); i++) {
                     changeLogDocuments.add(
                         new ChangeLogDocument(
-                            libraryNames.get(i), versions.get(i), changeList.get(i), urls.get(i),
+                            dependencyNames.get(i), versions.get(i), changeList.get(i), urls.get(i),
                             changeEmbeddings.get(i)
                         )
                     );
@@ -83,11 +83,13 @@ public class TextEmbeddingService {
 
 
     public static record IssueDocument(
-        @NotBlank String repoName, 
-        @NotBlank String url, 
+        @NotBlank String dependencyName, 
+        @NotBlank String version, 
         @NotBlank String title, 
         @NotBlank String body,
+        @NotBlank String url,
         @NotNull List<String> labelList,
+        @NotNull String createdOn,
         @NotEmpty float[] titleEmbedding,
         @NotEmpty float[] bodyEmbedding
     ) implements IndexableDocument {} 
@@ -106,12 +108,14 @@ public class TextEmbeddingService {
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<IssueService.Result> batch : batches) {
-                List<String> repoNames = batch.stream().map(doc -> doc.repoName()).toList();
-                List<String> urls = batch.stream().map(doc -> doc.url()).toList();
+                List<String> dependencyNames = batch.stream().map(doc -> doc.dependencyName()).toList();
+                List<String> versions = batch.stream().map(doc -> doc.version()).toList();
                 List<String> titles = batch.stream().map(doc -> doc.title()).toList();
                 List<String> bodies = batch.stream().map(doc -> doc.body()).toList();
+                List<String> urls = batch.stream().map(doc -> doc.url()).toList();
                 List<List<String>> labelLists = batch.stream().map(doc -> doc.labelList()).toList();
-                
+                List<String> createdOnList = batch.stream().map(doc -> doc.createdOn()).toList();
+
                 List<float[]> titleEmbeddings = predictor.batchPredict(titles);
                 List<float[]> bodyEmbeddings = predictor.batchPredict(bodies);
 
@@ -120,7 +124,8 @@ public class TextEmbeddingService {
                 for (int i = 0; i < urls.size(); i++) {
                     embeddingDocuments.add(
                         new IssueDocument(
-                            repoNames.get(i), urls.get(i), titles.get(i), bodies.get(i), labelLists.get(i),
+                            dependencyNames.get(i), versions.get(i), titles.get(i), bodies.get(i), 
+                            urls.get(i), labelLists.get(i), createdOnList.get(i),
                             titleEmbeddings.get(i), bodyEmbeddings.get(i)
                         )
                     );

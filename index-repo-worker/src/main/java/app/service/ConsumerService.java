@@ -2,7 +2,9 @@ package app.service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,13 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import ai.djl.translate.TranslateException;
-import app.repository.OpenSearchRepository;
+import app.component.parser.DependencyParserStrategy.Dependency;
+import app.repository.DependencyRepository;
+import app.repository.JobStatusRepository;
+import app.repository.UserRepoRepository;
+import app.service.githubRepo.ChangelogService;
+import app.service.githubRepo.DependencyService;
+import app.service.githubRepo.IssueService;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
@@ -26,22 +34,34 @@ import io.nats.client.Message;
 @Validated
 @Slf4j
 public class ConsumerService {
-    private final GithubApiService githubApiService;
+    private final DependencyService dependencyService;
+    private final ChangelogService changelogService;
+    private final IssueService issueService;
     private final TextEmbeddingService textEmbeddingService;
-    private final OpenSearchRepository openSearchRepository;
+    private final JobStatusRepository jobStatusRepository;
+    private final DependencyRepository dependencyRepository;
+    private final UserRepoRepository userRepoRepository;
     private final JetStreamSubscription jetStreamSubscription; 
     private final ObjectMapper objectMapper;
 
     public ConsumerService(
-        GithubApiService githubApiService,
+        DependencyService dependencyService,
+        ChangelogService changelogService,
+        IssueService issueService,
         TextEmbeddingService textEmbeddingService,
-        OpenSearchRepository openSearchRepository,
+        JobStatusRepository jobStatusRepository,
+        DependencyRepository dependencyRepository,
+        UserRepoRepository userRepoRepository,
         JetStreamSubscription jetStreamSubscription,
         ObjectMapper objectMapper
     ) {
-        this.githubApiService = githubApiService;
+        this.dependencyService = dependencyService;
+        this.changelogService = changelogService;
+        this.issueService = issueService;
         this.textEmbeddingService = textEmbeddingService;
-        this.openSearchRepository = openSearchRepository;
+        this.jobStatusRepository = jobStatusRepository;
+        this.dependencyRepository = dependencyRepository;
+        this.userRepoRepository = userRepoRepository;
         this.jetStreamSubscription = jetStreamSubscription;
         this.objectMapper = objectMapper;
     }
@@ -59,43 +79,83 @@ public class ConsumerService {
             log.debug("recived index repo msg for processing", kv("requestId", payload.requestId));
 
             try {
-                processMsg(msg, payload);
+                Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
+                if (dependenciesByLanguage.isEmpty()) continue;
+
+                processRepoDependencies(dependenciesByLanguage, payload.repoName, payload.requestId);
+
+                msg.ack();
+                jobStatusRepository.upsertJobStatus(
+                    new JobStatusRepository.JobStatus(payload.repoName, "processed"), 
+                    payload.requestId);
+
+                log.debug("fully processed all issues for repo: {}", payload.repoName);
             } catch (Exception e) {
                 log.error("failed to process index repo msg", kv("requestId", payload.requestId), e);
-                openSearchRepository.upsertJobStatus(new OpenSearchRepository.JobStatus(payload.repoName, "failed"), payload.requestId);
+                jobStatusRepository.upsertJobStatus(new JobStatusRepository.JobStatus(payload.repoName, "failed"), payload.requestId);
                 msg.nak();
             }
         }
     }
 
-    private void processMsg(Message msg, @Valid RepoIndexMsg payload) throws JetStreamApiException, TranslateException, IOException {
+    private Map<String, List<Dependency>> fetchAllRepoDependencies(
+        Message msg, @Valid RepoIndexMsg payload
+    ) throws JetStreamApiException, TranslateException, IOException {
         log.info("processMsg called", kv("requestId", payload.requestId));
 
-        List<GithubApiService.IssueDocument> githubIssues = githubApiService.fetchRepoIssues(payload.repoName, payload.requestId).join();
+        Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(payload.repoName, payload.requestId).join();
 
-        if (githubIssues.isEmpty()) {
-            openSearchRepository.upsertJobStatus(
-                new OpenSearchRepository.JobStatus(payload.repoName, "Issues Not Found"), 
+        if (dependenciesByLanguage.isEmpty()) {
+            jobStatusRepository.upsertJobStatus(
+                new JobStatusRepository.JobStatus(payload.repoName, "Dependencies Not Found"), 
                 payload.requestId);
                 
-            log.warn("no issues found for the repo: {}", payload.repoName, kv("requestId", payload.requestId));
+            log.warn("no dependencies found for the repo: {}", payload.repoName, kv("requestId", payload.requestId));
             msg.ack();
-            return;
+            return Map.of();
         }
 
-        openSearchRepository.upsertJobStatus(
-            new OpenSearchRepository.JobStatus(payload.repoName, "processing"),
-            payload.requestId);
-        
-        List<TextEmbeddingService.embeddingDocument> embeddings = textEmbeddingService.generateEmbeddings(githubIssues, payload.requestId);
+        return dependenciesByLanguage;
+    }
 
-        openSearchRepository.indexGithubIssue(embeddings, payload.requestId);
+    private void processRepoDependencies(
+        Map<String, List<Dependency>> dependenciesByLanguage,
+        @NotBlank String repoName,
+        @NotBlank String requestId
+    ) throws TranslateException, IOException {
+        List<IssueService.Result> issueList = new ArrayList<>();
+        List<ChangelogService.Result> changeLogs = new ArrayList<>();
+        List<Map<String, String>> libraryMap = new ArrayList<>();
 
-        msg.ack();
-        openSearchRepository.upsertJobStatus(
-            new OpenSearchRepository.JobStatus(payload.repoName, "processed"), 
-            payload.requestId);
+        jobStatusRepository.upsertJobStatus(
+            new JobStatusRepository.JobStatus(repoName, "processing"),
+            requestId
+        );
 
-        log.debug("fully processed all issues for repo: {}", payload.repoName);
+        for (Map.Entry<String, List<Dependency>> entry : dependenciesByLanguage.entrySet()) {
+            List<Dependency> dependencies = entry.getValue();
+
+            for (Dependency dependency : dependencies) {
+                List<IssueService.Result> repoIssues = issueService.fetchDependencyIssues(dependency.repoName(), requestId).join();
+                issueList.addAll(repoIssues);
+
+                ChangelogService.Result changeLog = changelogService.fetchChangeLogForVersion(
+                    dependency.repoName(), dependency.version()
+                ).join();
+
+                if (!changeLog.changes().equals("no-release")) {
+                    changeLogs.add(changeLog);
+                }
+                
+                libraryMap.add(Map.of(dependency.name(), dependency.version()));
+            }
+        }
+
+        List<TextEmbeddingService.IssueDocument> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
+        List<TextEmbeddingService.ChangeLogDocument> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
+
+        dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
+        dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
+        userRepoRepository.insertDocument(new UserRepoRepository.UserRepo("test-user-1", repoName, libraryMap));
     }
 }
