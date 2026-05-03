@@ -20,11 +20,11 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Repository
 @Validated
 @Slf4j
-public class IndexedRepoRepository {
+public class UserRepoRepository {
     private final OpenSearchClient openSearchClient;
     private final static String indexedRepoIndexName = "user-repo";
 
-    public IndexedRepoRepository(OpenSearchClient openSearchClient) {
+    public UserRepoRepository(OpenSearchClient openSearchClient) {
         this.openSearchClient = openSearchClient;
     }
 
@@ -52,13 +52,19 @@ public class IndexedRepoRepository {
         }
     }
 
-    public List<String> findAll(@NotBlank String requestId) throws IOException {
+    public List<String> findAll(@NotBlank String requestId, @NotBlank String userId) throws IOException {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
             .index(indexedRepoIndexName)
             .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
             .timeout("30s")
+            .query(q -> q
+                .term(t -> t
+                    .field("userId")
+                    .value(v -> v.stringValue(userId))
+                )
+            )
             .aggregations("repoNames", a -> a
                 .terms(t -> t.field("repoName").size(maxUniqueRepos))
             ),
