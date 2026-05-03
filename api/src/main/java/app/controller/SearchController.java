@@ -56,7 +56,7 @@ public class SearchController {
 
         log.info("recieved hybrid search request", kv("query", request.searchQuery), kv("requestId", requestId));
 
-        Map<String, String> userRepoDependencies = userRepoRepository.findUserRepoDependencies(requestId, request.userId);
+        Map<String, String> userRepoDependencies = userRepoRepository.listAllDependencies(requestId, request.userId);
         if (userRepoDependencies.isEmpty()) {
             log.debug("no dependencies found for user", kv("userId", request.userId), kv("requestId", requestId));
             return ResponseEntity.status(404).body("No dependencies found for the userId");

@@ -31,17 +31,18 @@ public class UserRepoController {
         this.indexedRepoRepository = indexedRepoRepository;
     }
 
-    private record DeleteRepoRequest(@NotBlank String repoName) {}
+    private record DeleteRepoRequest(@NotBlank String userId, @NotBlank String repoName) {}
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) throws IOException {
         String requestId = UUID.randomUUID().toString();
 
         log.info("recieved delete repo request", 
+                kv("userId", request.userId),
                 kv("repoUrl", request.repoName), 
                 kv("requestId", requestId));
 
-        indexedRepoRepository.delete(request.repoName, requestId);
+        indexedRepoRepository.delete(request.userId, request.repoName, requestId);
 
         return ResponseEntity.noContent().build();
     }
@@ -51,7 +52,7 @@ public class UserRepoController {
         String requestId = UUID.randomUUID().toString();
         log.info("recieved list all tracked repos request", kv("requestId", requestId));
 
-        List<String> trackedRepos = indexedRepoRepository.findAll(requestId, userId);
+        List<String> trackedRepos = indexedRepoRepository.listAll(requestId, userId);
 
         return ResponseEntity.ok().body(trackedRepos);
     }

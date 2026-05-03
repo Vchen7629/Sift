@@ -33,13 +33,13 @@ public class UserRepoRepository {
         this.openSearchClient = openSearchClient;
     }
 
-    public void delete(@NotBlank String repoName, @NotBlank String requestId) throws IOException {
+    public void delete(@NotBlank String userId, @NotBlank String repoName, @NotBlank String requestId) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
             .index(indexedRepoIndexName)
             .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
+                .bool(b -> b
+                    .must(m -> m.term(t -> t.field("userId").value(v -> v.stringValue(userId))))
+                    .must(m -> m.term(t -> t.field("repoName").value(v -> v.stringValue(repoName))))
                 )
             )
         );
@@ -67,7 +67,7 @@ public class UserRepoRepository {
      * @return a map containing the dependency name and version pairs
      * @throws IOException from openSearchClient.search
      */
-    public Map<String, String> findUserRepoDependencies(@NotBlank String requestId, @NotBlank String userId) throws IOException {
+    public Map<String, String> listAllDependencies(@NotBlank String requestId, @NotBlank String userId) throws IOException {
         final int maxUniqueDependencies = 1000;
 
         long start = System.currentTimeMillis();
@@ -76,10 +76,7 @@ public class UserRepoRepository {
             .index(indexedRepoIndexName)
             .size(maxUniqueDependencies)
             .query(q -> q
-                .term(t -> t
-                    .field("userId")
-                    .value(v -> v.stringValue(userId))
-                )
+                .term(t -> t.field("userId").value(v -> v.stringValue(userId)))
             ),
             UserRepoDepDoc.class
         );
@@ -101,7 +98,14 @@ public class UserRepoRepository {
         return repoDependencies;
     }
 
-    public List<String> findAll(@NotBlank String requestId, @NotBlank String userId) throws IOException {
+    /**
+     * fetch all indexed repos belonging to the user
+     * @param requestId used to track the original request for logging
+     * @param userId the user to fetch the indexed repos for
+     * @return a list of repos indexed for the user
+     * @throws IOException from openSearchClient.search
+     */
+    public List<String> listAll(@NotBlank String requestId, @NotBlank String userId) throws IOException {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
@@ -109,9 +113,7 @@ public class UserRepoRepository {
             .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
             .timeout("30s")
             .query(q -> q
-                .term(t -> t
-                    .field("userId")
-                    .value(v -> v.stringValue(userId))
+                .term(t -> t.field("userId").value(v -> v.stringValue(userId))
                 )
             )
             .aggregations("repoNames", a -> a
@@ -144,9 +146,7 @@ public class UserRepoRepository {
             .index(indexedRepoIndexName)
             .timeout("30s")
             .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
+                .term(t -> t.field("repoName").value(v -> v.stringValue(repoName))
                 )
             ), 
             Void.class
