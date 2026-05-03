@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
 import org.opensearch.client.opensearch.core.SearchRequest;
@@ -35,7 +37,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 public class SearchRepository {
     private final OpenSearchClient openSearchClient;
     private final TextEmbeddingService textEmbeddingService;
-    private final static String issuesIndexName = "github-issues";
+    private final static String issuesIndexName = "dependency-issue";
 
     public SearchRepository(
         OpenSearchClient openSearchClient,
@@ -54,7 +56,7 @@ public class SearchRepository {
     public static record IssueSearchResult(String url, String title, String body) {};
 
     public List<IssueSearchResult> findRelevantIssues(
-        @NotBlank String repoName,
+        Map<String, String> dependencyFilterList,
         @NotBlank String searchQuery,
         @NotBlank String requestId
     ) throws TranslateException, IOException {
@@ -70,10 +72,15 @@ public class SearchRepository {
         List<Float> searchVector = new ArrayList<>();
         for (float f : searchEmbedding) searchVector.add(f); 
 
-        Query repoFilter = Query.of(q -> q
-            .term(t -> t
-                .field("repoName")
-                .value(v -> v.stringValue(repoName))
+        Query dependencyNameFilter = Query.of(q -> q
+            .terms(t -> t
+                .field("dependencyName")
+                .terms(tv -> tv
+                    .value(dependencyFilterList.keySet().stream()
+                        .map(FieldValue::of)
+                        .toList()
+                    )
+                )
             )
         );
 
@@ -82,7 +89,7 @@ public class SearchRepository {
                 .field("titleEmbedding")
                 .vector(searchVector)
                 .k(10)
-                .filter(repoFilter)
+                .filter(dependencyNameFilter)
             )
         );
 
@@ -91,7 +98,7 @@ public class SearchRepository {
                 .field("bodyEmbedding")
                 .vector(searchVector)
                 .k(10)
-                .filter(repoFilter)
+                .filter(dependencyNameFilter)
             )
         );
 
@@ -105,13 +112,15 @@ public class SearchRepository {
         SearchRequest searchRequest = SearchRequest.of(s -> s
             .index(issuesIndexName)
             .query(hybridQuery)
-            .postFilter(repoFilter)
             .size(resultAmount)
             .timeout("30s")
+            .postFilter(dependencyNameFilter)
         );
 
         SearchResponse<IssueSearchResult> searchRes = openSearchClient.search(searchRequest, IssueSearchResult.class);
-    
+
+        log.debug("search returned {} hits", searchRes.hits().hits().size(), kv("requestId", requestId));
+
         return deduplicateSearchResults((searchRes.hits().hits().stream()
             .map(hit -> hit.source())
             .filter(Objects::nonNull)
@@ -149,11 +158,11 @@ public class SearchRepository {
 
     
     private void createSearchPipelineIfNotExist() throws IOException {
-        boolean exists = openSearchClient.searchPipeline()
+        boolean exists = !openSearchClient.searchPipeline()
             .get(r -> r.id("hybrid-search-pipeline"))
             .result()
             .isEmpty();
-        
+
         if (!exists) {
             openSearchClient.searchPipeline().put(r -> r
                 .id("hybrid-search-pipeline")
@@ -171,6 +180,7 @@ public class SearchRepository {
                     )
                 )
             );
+            log.debug("Created Hybrid search pipeline");
         }
     }
 }
