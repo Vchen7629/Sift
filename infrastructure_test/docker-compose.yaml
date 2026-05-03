@@ -65,7 +65,9 @@ services:
           echo "$$PATTERN_ID -> HTTP $$STATUS"
           [ "$$STATUS" = "200" ] || [ "$$STATUS" = "409" ]
         }
-        until create_index_pattern github-issues; do echo 'Retrying github-issues...'; sleep 3; done
+        until create_index_pattern user-repo; do echo 'Retrying user-repo...'; sleep 3; done
+        until create_index_pattern dependency-changelog; do echo 'Retrying dependency-changelog...'; sleep 3; done
+        until create_index_pattern dependency-issue; do echo 'Retrying dependency-issue...'; sleep 3; done
         until create_index_pattern job-status; do echo 'Retrying job-status...'; sleep 3; done
         echo 'Index patterns created.'
     restart: on-failure
