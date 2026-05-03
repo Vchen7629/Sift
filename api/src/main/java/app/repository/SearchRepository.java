@@ -4,16 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.aggregations.Aggregate;
-import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
-import org.opensearch.client.opensearch.core.DeleteByQueryResponse;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.search_pipeline.ScoreCombinationTechnique;
@@ -36,13 +32,12 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Repository
 @Validated
 @Slf4j
-public class OpenSearchRepository {
+public class SearchRepository {
     private final OpenSearchClient openSearchClient;
     private final TextEmbeddingService textEmbeddingService;
     private final static String issuesIndexName = "github-issues";
-    private final static String jobStatusIndexName = "job-status";
 
-    public OpenSearchRepository(
+    public SearchRepository(
         OpenSearchClient openSearchClient,
         TextEmbeddingService textEmbeddingService
     ) {
@@ -53,31 +48,6 @@ public class OpenSearchRepository {
     @PostConstruct
     private void init() throws IOException {
         createSearchPipelineIfNotExist();
-        createIndexIfNotExist();
-    }
-
-    public void deleteTrackedRepo(@NotBlank String repoName, @NotBlank String requestId) throws IOException {
-        DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
-            .index(issuesIndexName)
-            .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
-                )
-            )
-        );
-
-        log.debug("successfully deleted track Repo", 
-            kv("repoName", repoName), 
-            kv("requestId", requestId));
-
-        if (deleteRes.deleted() == 0) {
-            log.warn("No repo found in db to delete", 
-                kv("repoName", repoName),
-                kv("requestId", requestId));
-
-            throw new NoSuchElementException("No repo found to delete");
-        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -177,92 +147,7 @@ public class OpenSearchRepository {
         return deduplicatedList;
     }
 
-    public List<String> findAllIndexedRepoNames(@NotBlank String requestId) throws IOException {
-        final int maxUniqueRepos = 1000;
-
-        SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(issuesIndexName)
-            .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
-            .timeout("30s")
-            .aggregations("repoNames", a -> a
-                .terms(t -> t.field("repoName").size(maxUniqueRepos))
-            ),
-            Void.class
-        );
-
-        Aggregate repoNameAgg = searchRes.aggregations().get("repoNames");
-        if (repoNameAgg == null || !repoNameAgg.isSterms()) {
-            log.debug("found no indexed repos in the db", kv("requestId", requestId));
-            return List.of(); // return empty list instead of throwing an exception
-        }
-
-        List<String> indexedRepos = repoNameAgg
-            .sterms()
-            .buckets().array()
-            .stream()
-            .map(StringTermsBucket::key)
-            .toList();
-
-        log.debug("Successfully fetched {} indexed repos", indexedRepos.size(), 
-            kv("requestId", requestId));
-
-        return indexedRepos;
-    }
-
-    public boolean isRepoIndexed(String repoName) throws IOException{
-        SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(issuesIndexName)
-            .timeout("30s")
-            .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
-                )
-            ), 
-            Void.class
-        );
-
-        var total = searchRes.hits().total();
-
-        return total != null && total.value() > 0;
-    }
-
-    private record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
-
-    public String findJobStatus(@NotBlank String repoName) throws IOException {
-        SearchResponse<JobStatus> searchRes = openSearchClient.search(r -> r
-            .index(jobStatusIndexName)
-            .timeout("30s")
-            .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
-                )
-            ), JobStatus.class
-        );
-        
-        JobStatus dbRes = searchRes.hits().hits().get(0).source();
-        
-        return dbRes != null ? dbRes.status() : null;
-    }
-
-    private void createIndexIfNotExist() throws IOException {
-        boolean exists = openSearchClient.indices().exists(r -> r
-            .index(jobStatusIndexName)
-        ).value();
-
-        if (!exists) {
-            openSearchClient.indices().create(r -> r
-                .index(jobStatusIndexName)
-                .mappings(m -> m
-                    .properties("repoName", p -> p.keyword(k -> k))
-                    .properties("status", p -> p.keyword(k -> k))
-                )
-            );
-        }
-    }
-
-
+    
     private void createSearchPipelineIfNotExist() throws IOException {
         boolean exists = openSearchClient.searchPipeline()
             .get(r -> r.id("hybrid-search-pipeline"))

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import app.repository.OpenSearchRepository;
+import app.repository.IndexedRepoRepository;
 import jakarta.validation.Valid;                                                                                                                                                       
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +24,10 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Validated
 @Slf4j
 public class IndexedRepoController {
-    private final OpenSearchRepository openSearchRepository;
+    private final IndexedRepoRepository indexedRepoRepository;
 
-    public IndexedRepoController(OpenSearchRepository openSearchRepository) {
-        this.openSearchRepository = openSearchRepository;
+    public IndexedRepoController(IndexedRepoRepository indexedRepoRepository) {
+        this.indexedRepoRepository = indexedRepoRepository;
     }
 
     private record DeleteRepoRequest(@NotBlank String repoName) {}
@@ -40,7 +40,7 @@ public class IndexedRepoController {
                 kv("repoUrl", request.repoName), 
                 kv("requestId", requestId));
 
-        openSearchRepository.deleteTrackedRepo(request.repoName, requestId);
+        indexedRepoRepository.delete(request.repoName, requestId);
 
         return ResponseEntity.noContent().build();
     }
@@ -50,7 +50,7 @@ public class IndexedRepoController {
         String requestId = UUID.randomUUID().toString();
         log.info("recieved list all tracked repos request", kv("requestId", requestId));
 
-        List<String> trackedRepos = openSearchRepository.findAllIndexedRepoNames(requestId);
+        List<String> trackedRepos = indexedRepoRepository.findAll(requestId);
 
         return ResponseEntity.ok().body(trackedRepos);
     }

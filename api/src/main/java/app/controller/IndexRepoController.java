@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ai.djl.translate.TranslateException;
-import app.repository.OpenSearchRepository;
+import app.repository.IndexedRepoRepository;
+import app.repository.JobStatusRepository;
 import app.service.ProducerService;
 import io.nats.client.JetStreamApiException;
 import jakarta.validation.Valid;
@@ -30,16 +31,19 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Slf4j
 public class IndexRepoController {
     private final GitHub githubClient;
-    private final OpenSearchRepository openSearchRepository;
+    private final IndexedRepoRepository indexedRepoRepository;
+    private final JobStatusRepository jobStatusRepository;
     private final ProducerService producerService;
 
     public IndexRepoController(
         GitHub githubClient,
-        OpenSearchRepository openSearchRepository,
+        IndexedRepoRepository indexedRepoRepository,
+        JobStatusRepository jobStatusRepository,
         ProducerService producerService
     ) {
         this.githubClient = githubClient;
-        this.openSearchRepository = openSearchRepository;
+        this.indexedRepoRepository = indexedRepoRepository;
+        this.jobStatusRepository = jobStatusRepository;
         this.producerService = producerService;
     }
     
@@ -57,7 +61,7 @@ public class IndexRepoController {
 
         githubClient.getRepository(request.repoName); 
 
-        if (openSearchRepository.isRepoIndexed(request.repoName)) {
+        if (indexedRepoRepository.isRepoIndexed(request.repoName)) {
             log.warn("repo already indexed, cant add it again", kv("repoName", request.repoName));
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }      
@@ -75,7 +79,7 @@ public class IndexRepoController {
             kv("repoName", repoName),
             kv("requestId", requestId));
 
-        String jobStatus = openSearchRepository.findJobStatus(repoName);
+        String jobStatus = jobStatusRepository.findJobStatus(repoName);
 
         if (jobStatus.equals(null)) {
             log.warn("repo hasn't been added to db yet", 
