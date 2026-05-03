@@ -22,7 +22,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Slf4j
 public class IndexedRepoRepository {
     private final OpenSearchClient openSearchClient;
-    private final static String issuesIndexName = "github-issues";
+    private final static String indexedRepoIndexName = "user-repo";
 
     public IndexedRepoRepository(OpenSearchClient openSearchClient) {
         this.openSearchClient = openSearchClient;
@@ -30,7 +30,7 @@ public class IndexedRepoRepository {
 
     public void delete(@NotBlank String repoName, @NotBlank String requestId) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
-            .index(issuesIndexName)
+            .index(indexedRepoIndexName)
             .query(q -> q
                 .term(t -> t
                     .field("repoName")
@@ -56,7 +56,7 @@ public class IndexedRepoRepository {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(issuesIndexName)
+            .index(indexedRepoIndexName)
             .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
             .timeout("30s")
             .aggregations("repoNames", a -> a
@@ -86,7 +86,7 @@ public class IndexedRepoRepository {
 
     public boolean isRepoIndexed(String repoName) throws IOException{
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(issuesIndexName)
+            .index(indexedRepoIndexName)
             .timeout("30s")
             .query(q -> q
                 .term(t -> t
