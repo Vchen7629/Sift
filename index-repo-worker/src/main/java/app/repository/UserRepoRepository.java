@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.Map;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.mapping.DynamicMapping;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch.core.IndexResponse;
 import org.springframework.stereotype.Repository;
@@ -73,7 +72,7 @@ public class UserRepoRepository {
                 .mappings(m -> m
                     .properties("user_id", p -> p.keyword(k -> k))
                     .properties("repo_name", p -> p.keyword(k -> k))
-                    .properties("dependencies", p -> p.object(o -> o.dynamic(DynamicMapping.False)))
+                    .properties("dependencies", p -> p.flatObject(f -> f))
                     .properties("last_indexed", p -> p.date(d -> d))
                 )
             );

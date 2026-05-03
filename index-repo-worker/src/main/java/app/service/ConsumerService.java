@@ -5,10 +5,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -126,11 +129,10 @@ public class ConsumerService {
         Map<String, List<Dependency>> dependenciesByLanguage,
         @NotBlank String repoName,
         @NotBlank String requestId
-    ) throws TranslateException, IOException {
+    ) throws TranslateException, IOException, InterruptedException, ExecutionException {
         List<IssueService.Result> issueList = new ArrayList<>();
         List<ChangelogService.Result> changeLogs = new ArrayList<>();
         Map<String, String> libraryMap = new HashMap<>();
-        Set<String> fetchedIssueRepos = new HashSet<>();
 
         jobStatusRepository.upsertJobStatus(
             new JobStatusRepository.JobStatus(repoName, "processing"),
@@ -140,12 +142,30 @@ public class ConsumerService {
         for (Map.Entry<String, List<Dependency>> entry : dependenciesByLanguage.entrySet()) {
             List<Dependency> dependencies = entry.getValue();
 
-            for (Dependency dependency : dependencies) {
-                if (fetchedIssueRepos.add(dependency.repoName())) {
-                    List<IssueService.Result> repoIssues = issueService.fetchDependencyIssues(dependency.repoName(), requestId).join();
-                    issueList.addAll(repoIssues);
-                }
+            long start = System.currentTimeMillis();
 
+            Set<String> uniqueRepos = dependencies.stream()
+                .map(Dependency -> Dependency.repoName())
+                .collect(Collectors.toSet());
+
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                List<Future<List<IssueService.Result>>> futures = uniqueRepos.stream()
+                    .map(repo -> executor.submit(() -> 
+                        issueService.fetchDependencyIssues(repo, requestId).join()))
+                    .toList();
+                
+                for (Future<List<IssueService.Result>> future : futures) {
+                    issueList.addAll(future.get());
+                }
+            }
+
+            long elapsed = System.currentTimeMillis() - start;
+            log.debug("fetched all {} issues in {}ms ({}s)", 
+                issueList.size(), elapsed, elapsed / 1000.0,
+                kv("requestId", requestId));
+            
+
+            for (Dependency dependency : dependencies) {
                 ChangelogService.Result changeLog = changelogService.fetchChangeLogForVersion(
                     dependency.repoName(), dependency.version()
                 ).join();
