@@ -3,8 +3,10 @@ package app.service;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -126,6 +128,7 @@ public class ConsumerService {
         List<IssueService.Result> issueList = new ArrayList<>();
         List<ChangelogService.Result> changeLogs = new ArrayList<>();
         List<Map<String, String>> libraryMap = new ArrayList<>();
+        Set<String> fetchedIssueRepos = new HashSet<>();
 
         jobStatusRepository.upsertJobStatus(
             new JobStatusRepository.JobStatus(repoName, "processing"),
@@ -136,8 +139,10 @@ public class ConsumerService {
             List<Dependency> dependencies = entry.getValue();
 
             for (Dependency dependency : dependencies) {
-                List<IssueService.Result> repoIssues = issueService.fetchDependencyIssues(dependency.repoName(), requestId).join();
-                issueList.addAll(repoIssues);
+                if (fetchedIssueRepos.add(dependency.repoName())) {
+                    List<IssueService.Result> repoIssues = issueService.fetchDependencyIssues(dependency.repoName(), requestId).join();
+                    issueList.addAll(repoIssues);
+                }
 
                 ChangelogService.Result changeLog = changelogService.fetchChangeLogForVersion(
                     dependency.repoName(), dependency.version()
