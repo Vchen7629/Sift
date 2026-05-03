@@ -33,7 +33,7 @@ public class TextEmbeddingService {
     }
 
     public static record ChangeLogDocument(
-        @NotBlank String library_name,
+        @NotBlank String dependencyName,
         @NotBlank String version,
         @NotBlank String changes,
         @NotBlank String url,

@@ -100,7 +100,7 @@ public class DependencyRepository {
                 .index(changeLogIndexName)
                 .settings(s -> s.knn(true))
                 .mappings(m -> m
-                    .properties("dependency_name", p -> p.keyword(k -> k))
+                    .properties("dependencyName", p -> p.keyword(k -> k))
                     .properties("version", p -> p.keyword(k -> k))
                     .properties("changes", p -> p.text(t -> t))
                     .properties("url", p -> p.keyword(k -> k))
@@ -132,7 +132,7 @@ public class DependencyRepository {
                 .index(issuesIndexName)
                 .settings(s -> s.knn(true))
                 .mappings(m -> m
-                    .properties("dependency_name", p -> p.keyword(k -> k))
+                    .properties("dependencyName", p -> p.keyword(k -> k))
                     .properties("version", p -> p.keyword(k -> k))
                     .properties("title", p -> p.text(t -> t))
                     .properties("body", p -> p.text(t -> t))
