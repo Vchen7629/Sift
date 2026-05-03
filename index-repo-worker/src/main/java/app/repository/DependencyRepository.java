@@ -49,33 +49,39 @@ public class DependencyRepository {
                 .build()
             );
         }
-                
-        BulkResponse bulkRes = openSearchClient.bulk(r -> r
-            .index(issuesIndexName)
-            .operations(operations)
-        );
 
-        log.debug("bulk added {} issues", 
-            operations.size(), 
-            kv("index", issuesIndexName),
-            kv("requestId", requestId));
+        int BATCH_SIZE = 500;
 
-        if (bulkRes.errors()) {
-            List<String> failures = bulkRes.items().stream()
-                .filter(i -> i.error() != null)
-                .map(i -> {                                                                                                                                                            
-                    var error = i.error();                                                                                                                                             
-                    String reason = error != null ? error.reason() : null;                                                                                                             
-                    return i.id() + ": " + (reason != null ? reason : "unknown error");                                                                                                
-                })
-                .toList();
-            
-            log.error("failed to bulk insert issues", 
-                kv("index", issuesIndexName),
-                kv("error", failures),
+        for (int i = 0; i < operations.size(); i += BATCH_SIZE) {
+            List<BulkOperation> batch = operations.subList(i, Math.min(i + BATCH_SIZE, operations.size()));
+
+            BulkResponse bulkRes = openSearchClient.bulk(r -> r
+                .index(indexName)
+                .operations(batch)
+            );
+
+            log.debug("bulk added {} documents",
+                batch.size(),
+                kv("index", indexName),
                 kv("requestId", requestId));
 
-            throw new RuntimeException("Bulk index had failures: " + failures);
+            if (bulkRes.errors()) {
+                List<String> failures = bulkRes.items().stream()
+                    .filter(item -> item.error() != null)
+                    .map(item -> {
+                        var error = item.error();
+                        String reason = error != null ? error.reason() : null;
+                        return item.id() + ": " + (reason != null ? reason : "unknown error");
+                    })
+                    .toList();
+
+                log.error("failed to bulk insert documents",
+                    kv("index", indexName),
+                    kv("error", failures),
+                    kv("requestId", requestId));
+
+                throw new RuntimeException("Bulk index had failures: " + failures);
+            }
         }
     }
 
