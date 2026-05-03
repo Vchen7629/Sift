@@ -4,12 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.kohsuke.github.GHContent;
@@ -99,7 +97,7 @@ public class DependencyService {
     private Optional<List<Dependency>> fetchLanguageDeps(
         GHRepository repo, String language, List<String> allPaths
     ) throws JsonProcessingException {
-        Set<Dependency> allDependencies = new HashSet<>();
+        Map<String, Dependency> allDependencies = new HashMap<>();
 
         for (DependencyFileEnum nonLockFile : DependencyFileEnum.getNonLockFilesForLanguage(language)) {
             List<String> matchedPaths = allPaths.stream()
@@ -120,12 +118,12 @@ public class DependencyService {
                     .findFirst()
                     .flatMap(lp -> tryFetchFileContent(repo, lp));
 
-                allDependencies.addAll(dependencyParserStrategy.parse(
-                    nonLockFile, nonLockFileContent.get(), lockFileContent.orElse(null)));
+                dependencyParserStrategy.parse(nonLockFile, nonLockFileContent.get(), lockFileContent.orElse(null))                                                                
+                    .forEach(dep -> allDependencies.putIfAbsent(dep.name(), dep));
             }
         }
 
-        return allDependencies.isEmpty() ? Optional.empty() : Optional.of(List.copyOf(allDependencies));
+        return allDependencies.isEmpty() ? Optional.empty() : Optional.of(List.copyOf(allDependencies.values()));
     }
 
     private Optional<String> tryFetchFileContent(GHRepository repo, String path) {
