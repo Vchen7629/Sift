@@ -1,4 +1,4 @@
-package app.config;
+package app.config.nats;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -17,9 +17,9 @@ import io.nats.client.api.ConsumerInfo;
 import io.nats.client.api.StreamInfo;
 
 @Configuration
-public class NatsConsumerConfig {
+public class ConsumerConfig {
     private final static String CONSUMER_NAME = "jobProcessConsumer";
-    private final static String STREAM_NAME = NatsStreamConfig.STREAM_NAME;
+    private final static String STREAM_NAME = StreamConfig.STREAM_NAME;
     private final static String SUBJECT_NAME = "index-repo.subject.request";
     private final static int RETRY_COUNT_LIMIT = 5;
     private final static Duration ACK_WAIT = Duration.ofSeconds(30);

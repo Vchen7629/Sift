@@ -1,4 +1,4 @@
-package app.config;
+package app.config.nats;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ import io.nats.client.api.StreamConfiguration;
 import io.nats.client.api.StreamInfo;
 
 @Configuration
-public class NatsStreamConfig {
+public class StreamConfig {
     public static final String STREAM_NAME = "sift-job-processing-stream";
 
     private static final String SUBJECT_NAMES = "index-repo.subject.>";

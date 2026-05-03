@@ -1,4 +1,4 @@
-package app.config;
+package app.config.nats;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -16,7 +16,7 @@ import io.nats.client.Nats;
 import io.nats.client.Options;
 
 @Configuration
-public class NatsConfig {
+public class BaseConfig {
     @Value("${nats.connection_url}")
     private String connURL;
 
