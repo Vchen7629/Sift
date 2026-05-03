@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ai.djl.translate.TranslateException;
-import app.repository.IndexedRepoRepository;
+import app.repository.UserRepoRepository;
 import app.repository.JobStatusRepository;
 import app.service.ProducerService;
 import io.nats.client.JetStreamApiException;
@@ -31,13 +31,13 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Slf4j
 public class IndexRepoController {
     private final GitHub githubClient;
-    private final IndexedRepoRepository indexedRepoRepository;
+    private final UserRepoRepository indexedRepoRepository;
     private final JobStatusRepository jobStatusRepository;
     private final ProducerService producerService;
 
     public IndexRepoController(
         GitHub githubClient,
-        IndexedRepoRepository indexedRepoRepository,
+        UserRepoRepository indexedRepoRepository,
         JobStatusRepository jobStatusRepository,
         ProducerService producerService
     ) {
