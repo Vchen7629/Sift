@@ -1,0 +1,49 @@
+"### Observed behavior\n\nI’m using `.Messages()` on a Jetstream consumer, and calling `.Next()` to process messages (see below). 
+If the NATS server shuts down while this program is running, the call to `.Next()` blocks indefinitely. This continues even after
+the underlying NATS connection is closed. It also continues to block even if `.Stop()` is called on the `MessagesContext` from 
+another goroutine.\n\nThis may be related to https://github.com/nats-io/nats.go/issues/1343.\n\n### Expected behavior\n\nThe 
+call to `.Next()` should return with error `ErrMsgIteratorClosed` after `.Stop()` is called, even if connection to the server 
+has been lost. The call to `.Next()` should also probably return with an error when the underlying NATS connection is closed 
+(and reconnect attempts have been exhausted).\n\n### Server and client version\n\n`nats.go`: v1.42.0\nServer: `nats:2.10` 
+(Docker image)\n\n### Host environment\n\nGo v1.23.6\nmacOS 14\n\n### Steps to reproduce\n\n1. Start the NATS server with 
+`docker run -p 4222:4222 -v nats:/data nats -js -sd /data`.\n2. Run the program below to subscribe to messages.\n3. While 
+the program is running, stop the NATS server with `Ctrl-C`.\n\nSubscriber program:\n```\npackage main\n\nimport 
+(\n\t\"context\"\n\t\"errors\"\n\t\"log\"\n\t\"sync\"\n\t\"time\"\n\n\t\"github.com/nats-io/nats.go\"\n\t\"github.com/nats-io/nats.go/jetstream\"\n)
+\n\nfunc main() {\n\tctx, cancel := context.WithCancel(context.Background())\n\n\tvar opts []nats.Option\n\topts =
+append(opts, nats.MaxReconnects(2))\n\t// Cancel the context to stop processing if we\n\t// lose connection to the NATS
+server. The issue\n\t// still occurs even if we don't do this.\n\topts = append(opts, nats.ClosedHandler(func(nc *nats.Conn)
+{\n\t\tlog.Print(\"No servers available, exiting\")\n\t\tcancel()\n\t}))\n\n\tnc, err := nats.Connect(\"nats://127.0.0.1:4222\",
+opts...)\n\tif err != nil {\n\t\tlog.Fatal(\"Couldn't connect to NATS\", err)\n\t}\n\n\tjs, err := jetstream.New(nc)\n\tif err
+!= nil {\n\t\tlog.Fatal(\"Couldn't create Jetstream\", err)\n\t}\n\n\tstream, err := js.CreateStream(context.Background(), 
+jetstream.StreamConfig{\n\t\tName:     \"test_stream\",\n\t\tSubjects: []string{\"test.subject\"},\n\t})\n\tif err != nil 
+{\n\t\tlog.Fatal(\"Couldn't create stream\", err)\n\t}\n\n\tconsumer, err := stream.CreateConsumer(context.Background(), 
+jetstream.ConsumerConfig{\n\t\tName: \"test_consumer\",\n\t})\n\tif err != nil {\n\t\tlog.Fatal(\"Couldn't create consumer\",
+err)\n\t}\n\n\twg := sync.WaitGroup{}\n\n\twg.Add(1)\n\tgo func() {\n\t\tsubscribe(ctx, consumer)\n\t\twg.Done()\n\t}()\n\n\tselect 
+{\n\tcase <-ctx.Done():\n\tcase <-time.Tick(30 * time.Second):\n\t\tlog.Printf(\"Time up, shutting down\")
+\n\t\tcancel()\n\t}\n\n\twg.Wait()\n}\n\n// subscribe reads and processes messages from the\n// given consumer, until the context
+is cancelled.\nfunc subscribe(ctx context.Context, consumer jetstream.Consumer) {\n\tmsgs, err := consumer.Messages()\n\tif err 
+!= nil {\n\t\tlog.Fatal(\"Couldn't get messages\", err)\n\t}\n\n\twg := sync.WaitGroup{}\n\twg.Add(1)\n\tgo func() 
+{\n\t\tprocessMessages(msgs)\n\t\twg.Done()\n\t}()\n\n\t<-ctx.Done()\n\tlog.Print(\"Closing messages context\")\n\tmsgs.Stop()
+\n\n\t// Wait until message processing has finished\n\t// before exiting.\n\twg.Wait()\n}\n\nfunc processMessages(msgs 
+jetstream.MessagesContext) {\n\tfor {\n\t\tlog.Print(\"Waiting for message\")\n\t\tmsg, err := msgs.Next() // This call 
+blocks indefinitely if the server shuts down.\n\t\tif err != nil {\n\t\t\tif errors.Is(err, jetstream.ErrMsgIteratorClosed) 
+{\n\t\t\t\tlog.Print(\"MessagesContext closed, exiting\")\n\t\t\t\treturn\n\t\t\t}\n\t\t\tcontinue\n\t\t}\n\n\t\tmsg.Ack()\n\t
+\tlog.Print(\"Message handled\")\n\t}\n}\n```\n\nThis results in a deadlock. The issue occurs regardless of whether the 
+`MessagesContext` is explicitly canceled with a call to `.Stop()` (ie commenting out line 24 does not change the result). 
+Log output:\n```\n2025/05/23 16:17:25 Waiting for message\n2025/05/23 16:17:33 No servers available, exiting\n2025/05/23 
+16:17:33 Closing messages context\nfatal error: all goroutines are asleep - deadlock!\n\ngoroutine 1 [semacquire]:
+\nsync.runtime_Semacquire(0x14ade961e166?)\n        /opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sema.go:71 
++0x2c\nsync.(*WaitGroup).Wait(0x1400025b7e0)\n        /opt/homebrew/Cellar/go/1.23.6/libexec/src/sync/waitgroup.go:118 +0x74\nmain.main()\n
+[path]/main.go:67 +0x53c\n\ngoroutine 53 [semacquire]:\nsync.runtime_Semacquire(0x14000108ec8?)\n        
+/opt/homebrew/Cellar/go/1.23.6/libexec/src/runtime/sema.go:71 +0x2c\nsync.(*WaitGroup).Wait(0x1400025b7f0)\n        
+/opt/homebrew/Cellar/go/1.23.6/libexec/src/sync/waitgroup.go:118 +0x74\nmain.subscribe({0x1049bd080, 0x140001565a0}, 
+{0x1049be750?, 0x1400023e4d0?})\n        [path]/main.go:91 +0x184\nmain.main.func2()\n       
+[path]/main.go:56 +0x34\ncreated by main.main in goroutine 1\n        [path]/main.go:55 +0x478\n\ngoroutine 56 
+[select]:\ngithub.com/nats-io/nats.go/jetstream.(*pullSubscription).Next(0x14000214f30)\n        
+[path]/go/pkg/mod/github.com/nats-io/nats.go@v1.42.0/jetstream/pull.go:589 +0x294\nmain.processMessages({0x1049bcca0, 0x14000214f30})\n        
+[path]/main.go:97 +0x88\nmain.subscribe.func1()\n        [path]/main.go:81 +0x2c\ncreated by main.subscribe in goroutine 53\n        
+[path]/main.go:80 +0x100\nexit status 2\n```\n\nIf the NATS server remains running (ie step 3 to reproduce is skipped), the program 
+exits as expected after 30s. Log output:\n```\n2025/05/23 16:21:17 Waiting for message\n2025/05/23 16:21:47 Time up, shutting 
+down\n2025/05/23 16:21:47 Closing messages context\n2025/05/23 16:21:47 MessagesContext closed, exiting\n```\n"
+
+

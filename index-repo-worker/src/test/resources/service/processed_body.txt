@@ -1,0 +1,13 @@
+"### Observed behavior\n\nI’m using `.Messages()` on a Jetstream consumer, and calling `.Next()` to process messages (see below). 
+If the NATS server shuts down while this program is running, the call to `.Next()` blocks indefinitely. This continues even after
+the underlying NATS connection is closed. It also continues to block even if `.Stop()` is called on the `MessagesContext` from 
+another goroutine.\n\nThis may be related to https://github.com/nats-io/nats.go/issues/1343.\n\n### Expected behavior\n\nThe 
+call to `.Next()` should return with error `ErrMsgIteratorClosed` after `.Stop()` is called, even if connection to the server 
+has been lost. The call to `.Next()` should also probably return with an error when the underlying NATS connection is closed 
+(and reconnect attempts have been exhausted).\n\n### Server and client version\n\n`nats.go`: v1.42.0\nServer: `nats:2.10` 
+(Docker image)\n\n### Host environment\n\nGo v1.23.6\nmacOS 14\n\n### Steps to reproduce\n\n1. Start the NATS server with 
+`docker run -p 4222:4222 -v nats:/data nats -js -sd /data`.\n2. Run the program below to subscribe to messages.\n3. While 
+the program is running, stop the NATS server with `Ctrl-C`.\n\nSubscriber program:\n\n\nThis results in a deadlock. The issue occurs regardless of whether the 
+`MessagesContext` is explicitly canceled with a call to `.Stop()` (ie commenting out line 24 does not change the result). 
+Log output:\n\n\nIf the NATS server remains running (ie step 3 to reproduce is skipped), the program 
+exits as expected after 30s. Log output:\n\n"
