@@ -10,7 +10,7 @@
 - [x] add a last updated field to user Repo
 
 ### Optimizations
-- [ ] Swap sentence transformer embedding model with one thats purpose built for RAG
+- [x] Swap sentence transformer embedding model with one thats purpose built for RAG
 - [ ] Implement search result reranker with cross encoding, add a threshold so it drops really unrelated issue results
 - [ ] Issue body text chunking so each chunk of the issue has its own embedding, solves token limit of
       embedding model. 
@@ -19,7 +19,8 @@
 - [ ] Valkey caching
 - [x] Add check when indexing a new user repo's dependencies to see if the dependency name + version is already indexed so they dont try to refetch issues/changelog again for an already indexed dependency
 - [ ] filter out markdown in text ('''Markdown) issue body before inserting to database
-- [ ] investigate if search pipeline is used properly in the search query
+- [x] investigate if search pipeline is used properly in the search query
+- [ ] look into parallelizing Embedding cpu processing since it takes 64665ms (64.665s) to create text embeddings for 3128 issues
 
 ### Edge cases
 - Detect if the dependency repo is deprecated/archived and save it in the database as a "status field"
