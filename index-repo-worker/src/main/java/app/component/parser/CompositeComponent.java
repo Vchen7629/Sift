@@ -14,11 +14,11 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 
 @Primary
 @Component
-public class CompositeDependency implements DependencyParserStrategy {
+public class CompositeComponent implements DependencyParserStrategy {
 
     private final List<DependencyParserStrategy> parsers;
 
-    public CompositeDependency(List<DependencyParserStrategy> parsers) {
+    public CompositeComponent(List<DependencyParserStrategy> parsers) {
         this.parsers = parsers;
     }
 

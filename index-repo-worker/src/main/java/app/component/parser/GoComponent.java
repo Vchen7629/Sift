@@ -12,7 +12,7 @@ import app.model.DependencyFileEnum;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 @Component
-public class GoDependency implements DependencyParserStrategy {
+public class GoComponent implements DependencyParserStrategy {
     
     @Override
     public Set<DependencyFileEnum> supports() {

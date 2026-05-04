@@ -3,6 +3,7 @@ package app.parser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -12,30 +13,29 @@ import org.junit.jupiter.api.Test;
 
 import app.model.DependencyFileEnum;
 import app.component.parser.DependencyParserStrategy.Dependency;
-import app.component.parser.GoDependency;
+import app.component.parser.GoComponent;
 
 
 public class GoDependencyParserUT {
-
-    private static final Path TEST_DATA_DIR = Path.of("src/test/java/app/parser_test_data");
-
-    private GoDependency parser;
+    private GoComponent parser;
 
     @BeforeEach
     void setup() {
-        parser = new GoDependency();
+        parser = new GoComponent();
     }
 
     @Test
-    void parseGoMod_returnsOnlyDirectDependencies() throws IOException {
-        String content = Files.readString(TEST_DATA_DIR.resolve("go.mod"));
+    void parseGoMod_returnsOnlyDirectDependencies() throws IOException, URISyntaxException {
+        String content = Files.readString(
+            Path.of(getClass().getClassLoader().getResource("component/go.mod").toURI())
+        );
 
         List<Dependency> deps = parser.parse(DependencyFileEnum.GO_MOD, content, null);
 
         assertThat(deps).hasSize(4);
         assertThat(deps).containsExactlyInAnyOrder(
             new Dependency("jackc/pgconn", "v1.14.3", "jackc/pgconn"),
-	        new Dependency("pgx/v4", "v4.18.3", "jackc/pgx/v4"),
+	        new Dependency("jackc/pgx", "v4.18.3", "jackc/pgx"),
 	        new Dependency("joho/godotenv", "v1.5.1", "joho/godotenv"),
 	        new Dependency("kelseyhightower/envconfig", "v1.4.0", "kelseyhightower/envconfig")
         );
