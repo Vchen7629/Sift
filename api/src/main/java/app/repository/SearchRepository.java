@@ -114,6 +114,7 @@ public class SearchRepository {
             .query(hybridQuery)
             .size(resultAmount)
             .timeout("30s")
+            .searchPipeline("hybrid-search-pipeline")
             .postFilter(dependencyNameFilter)
         );
 
