@@ -101,20 +101,14 @@ public class IssueService {
             repoName,
             version,
             issue.getTitle(),
-            body,
+            cleanIssueBody(body),
             issue.getHtmlUrl().toString(),
             labelList,
             issue.getCreatedAt().toString()
         ));
     }
 
-    private static final List<String> RELEVANT_LABEL_KEYWORDS = List.of(
-        "bug", "breaking", "deprecat", "regression"
-    );
-
-    private boolean hasRelevantLabel(GHIssue issue) {
-        return issue.getLabels().stream()
-            .map(l -> l.getName().toLowerCase())
-            .anyMatch(name -> RELEVANT_LABEL_KEYWORDS.stream().anyMatch(name::contains));
+    String cleanIssueBody(String body) {
+        return body.replaceAll("(?s)```.*?```", "").trim();
     }
 }
