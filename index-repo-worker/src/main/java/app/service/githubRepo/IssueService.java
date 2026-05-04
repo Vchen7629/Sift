@@ -52,9 +52,8 @@ public class IssueService {
             long start = System.currentTimeMillis();
 
             List<GHIssue> issues = repo.queryIssues()
-                .state(GHIssueState.ALL)
-                .list()
-                .toList();
+                .state(GHIssueState.ALL).list().toList()
+                .stream().filter(issue -> !issue.isPullRequest()).toList();
 
             long elapsed = System.currentTimeMillis() - start;
 
