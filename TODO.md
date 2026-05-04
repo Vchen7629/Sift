@@ -18,7 +18,7 @@
         context (harder)
 - [ ] Valkey caching
 - [x] Add check when indexing a new user repo's dependencies to see if the dependency name + version is already indexed so they dont try to refetch issues/changelog again for an already indexed dependency
-- [ ] filter out markdown in text ('''Markdown) issue body before inserting to database
+- [x] filter out markdown in text ('''Markdown) issue body before inserting to database
 - [x] investigate if search pipeline is used properly in the search query
 - [ ] look into parallelizing Embedding cpu processing since it takes 64665ms (64.665s) to create text embeddings for 3128 issues
 
