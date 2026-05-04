@@ -1,1055 +1,954 @@
 [
   {
+    "id": "https://github.com/google/uuid/issues/159",
+    "queries": [
+      "uuidv6 generated ID has incorrect prefix zero in time component",
+      "NewV6 not following RFC 4122 format produces wrong timestamp ordering",
+      "UUID version 6 implementation generates wrong value compared to RFC spec"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/147",
+    "queries": [
+      "uuid Parse accepts strings with leading trailing spaces instead of returning error",
+      "why does UUID parsing succeed when input has whitespace padding",
+      "parsing UUID with spaces around it returns nil error unexpectedly"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/184",
+    "queries": [
+      "undefined xtob error when building uuid package on arm64 Linux",
+      "uuid compilation fails with undefined symbols on Ubuntu 24.04 arm64 architecture",
+      "build error randomBits and xtob undefined after upgrading uuid library"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/51",
+    "queries": [
+      "UUID parse method returns all zeros instead of actual value",
+      "parsing UUID string results in 00000000-0000-0000-0000-000000000000",
+      "why does my parsed UUID come out as all zeros"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/148",
+    "queries": [
+      "UUIDv7 batch generation not monotonically increasing same timestamp",
+      "multiple UUIDv7 generated at same millisecond have no ordering guarantee",
+      "UUIDv7 sequential IDs created in loop are not sorted correctly"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/97",
+    "queries": [
+      "uuid generation causes panic in production kubernetes pods",
+      "random UUID creation panics intermittently under high load",
+      "uuid.New().String() panics rarely but consistently in containerized environment"
+    ]
+  },
+  {
+    "id": "https://github.com/google/uuid/issues/4",
+    "queries": [
+      "multiple-value function used in single-value context compilation error",
+      "Parse function returns two values but used where one value expected",
+      "cannot use multi-return function in single-value context Go compiler error"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/892",
+    "queries": [
+      "module requires replace directive for dependency that should not be needed",
+      "go.mod replace block required for transitive dependency to build module",
+      "cannot fetch module without adding replace directive for indirect dependency"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2859",
+    "queries": [
+      "SkipIfProviderIsNotHealthy panics when Docker is not available",
+      "test helper function causes panic instead of skipping when Docker missing",
+      "unconditional panic on macOS runners where Docker is not installed"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/1370",
+    "queries": [
+      "go get fails with module declares its path as dario.cat/mergo but required as github.com/imdario/mergo",
+      "dependency update broken after mergo changed import path to vanity domain",
+      "go mod error restoring old mergo version after running go get -u"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/604",
+    "queries": [
+      "GenericContainer fails with podman socket but works with Docker",
+      "container creation error when using podman via DOCKER_HOST environment variable",
+      "testcontainers podman connection fails unless SkipReaper is set to true"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/159",
+    "queries": [
+      "ForListeningPort waiting strategy returns immediately on Windows instead of retrying",
+      "container port wait strategy fails on Windows with WSAECONNREFUSED error",
+      "WaitUntilReady exits after first connection error on Windows not retrying"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/157",
+    "queries": [
+      "container startup fails with context deadline exceeded when image takes long to start",
+      "how to increase timeout for slow containers that exceed default deadline",
+      "integration test fails because container not ready before context expires"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/250",
+    "queries": [
+      "postgres testcontainer fails to start correctly",
+      "docker postgres container not starting with testcontainers go",
+      "testcontainers postgres image fails while other containers like redis work"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2965",
+    "queries": [
+      "ollama tests randomly failing in CI intermittently",
+      "flaky test failures running ollama integration tests",
+      "CI tests pass locally but fail randomly in pipeline ollama"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2542",
+    "queries": [
+      "WithInitScripts multiple SQL files not executed in order postgres testcontainer",
+      "second init script fails with relation does not exist but table was created in first script",
+      "postgres container init scripts not sharing same database state across multiple files"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2745",
+    "queries": [
+      "module not appearing in pkg.go.dev section-directories after release",
+      "go module name mismatch with git tag causing package not found",
+      "released module missing from package index due to incorrect module name"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/427",
+    "queries": [
+      "container Exec returns exit code 1 but same command works with docker exec directly",
+      "exec command in container fails with exit code 1 when running bash script successfully outside",
+      "running bash script via container Exec gives wrong exit code despite successful execution"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/606",
+    "queries": [
+      "log consumer panics when container exits or is marked for removal",
+      "getting logs from a terminated container causes panic instead of graceful stop",
+      "log producer crashes with dead container error instead of stopping cleanly"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/3088",
+    "queries": [
+      "security vulnerability in jwt dependency not updated in library",
+      "golang-jwt CVE affecting transitive dependency not patched",
+      "dependency with known security advisory not bumped to fixed version"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/1929",
+    "queries": [
+      "go get fails with unresolvable package github.com/mitchellh/osext",
+      "cannot download dependency that does not exist on GitHub during go get",
+      "missing transitive dependency causes module installation to fail"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/3177",
+    "queries": [
+      "reuse container considered running but was stopped by testcontainers",
+      "container reuse fails because stopped container detected as still running",
+      "reusing docker container broken after it was stopped programmatically"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2573",
+    "queries": [
+      "restarting container with log consumer fails on second start",
+      "container restart error when log consumer is attached",
+      "log consumer causes error after container is restarted twice"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/1374",
+    "queries": [
+      "cannot connect to container started with compose module in docker outside of docker",
+      "testcontainers compose container unreachable when running inside docker CI environment",
+      "test fails to reach compose service container using docker wormhole pattern"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/61",
+    "queries": [
+      "docker client version too new error when running daemon",
+      "error response from daemon client version is too new",
+      "docker API version mismatch client version not supported by daemon"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2328",
+    "queries": [
+      "LogConsumer stops receiving logs prematurely with error",
+      "container log consumer exits early before container finishes",
+      "log streaming stops unexpectedly with error in testcontainers"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/1359",
+    "queries": [
+      "http invalid Host header error when starting containers with Go 1.20.6",
+      "ryuk setup fails with host port waiting failed after Go upgrade",
+      "docker sock path causes invalid Host header in container initialization"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/2640",
+    "queries": [
+      "container Endpoint returns wrong port when multiple ports are exposed",
+      "first exposed port randomly returns second port instead",
+      "Endpoint method non-deterministic port order with multiple container ports"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/3310",
+    "queries": [
+      "DOCKER_AUTH_CONFIG environment variable format not working with testcontainers",
+      "docker auth config env var format mismatch causes authentication failures",
+      "same DOCKER_AUTH_CONFIG that works with Docker CLI fails pulling images in tests"
+    ]
+  },
+  {
+    "id": "https://github.com/testcontainers/testcontainers-go/issues/1495",
+    "queries": [
+      "localstack container fails to become ready in time on Linux",
+      "testcontainers localstack startup timeout slow to initialize",
+      "localstack not ready within timeout when running integration tests"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1677",
+    "queries": [
+      "documentation example has waitFor and tick arguments swapped in function signature",
+      "misleading docs show wrong parameter order for timeout and polling interval",
+      "example code passes arguments in wrong order causing unexpected test behavior"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/771",
+    "queries": [
+      "panic in test suite shows wrong file and line number in trace",
+      "suite panic stack trace points to suite.go instead of my test file",
+      "multiple panics all report same incorrect file location in test suite"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1359",
+    "queries": [
+      "Equal assertion does not distinguish between int32 and rune types",
+      "why does assert.Equal treat rune and int32 as the same type",
+      "type mismatch between rune and int32 not detected by equality check"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1010",
+    "queries": [
+      "assert.Equal fails for times with different locations representing same instant",
+      "two time.Time values equal by time but different timezone not equal in assert",
+      "testify does not use time Equal method when comparing time objects"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/645",
+    "queries": [
+      "mock.MatchedBy with context.Context argument always returns unexpected method call",
+      "testify mock matcher fails to match context parameter in function call",
+      "why does MatchedBy not work with context but mock.Anything does"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1080",
+    "queries": [
+      "Delta and Epsilon comparison functions fail when values contain NaN",
+      "NaN values cause similarity checks to fail unexpectedly in float comparisons",
+      "approximate equality assertion returns false for NaN compared to NaN"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/484",
+    "queries": [
+      "assert.Equal output shows percent signs interpreted as format verbs",
+      "test failure message prints values with printf formatting instead of literal string",
+      "assertion error output shows MISSING args when value contains percent sign"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1437",
+    "queries": [
+      "EventuallyWithT assertion errors not copied when condition fails",
+      "race condition in EventuallyWithT causes missing error messages on failure",
+      "EventuallyWithT sometimes shows no errors even though assertions failed inside"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/162",
+    "queries": [
+      "InDelta assertion passes when actual value is NaN",
+      "why does delta comparison not fail for NaN actual value",
+      "floating point assertion incorrectly succeeds when given NaN input"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1263",
+    "queries": [
+      "slice delta comparison passes even when actual has fewer elements than expected",
+      "InDeltaSlice not verifying all expected values are matched",
+      "assertion succeeds when actual slice is missing elements from expected"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1215",
+    "queries": [
+      "error message shows raw bytes instead of String() method output",
+      "fmt.Stringer interface not used when formatting error output for custom types",
+      "custom type with String() method displays unreadable representation in validation errors"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/474",
+    "queries": [
+      "assert.Fail panics when passing non-string argument as message",
+      "unexpected panic when using Fail with integer argument in test",
+      "type assertion panic in assertions Fail method with extra args"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1000",
+    "queries": [
+      "mock.MatchedBy does not work when function argument is an interface type",
+      "MatchedBy matcher fails with interface type argument instead of concrete struct",
+      "testify mock MatchedBy panics or errors when matching interface parameter"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/757",
+    "queries": [
+      "go get -u testify adds unexpected indirect dependency to go.mod",
+      "why does importing testify clutter my go.mod with indirect dependencies",
+      "go mod tidy shows different dependencies than testify go.mod declares"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/573",
+    "queries": [
+      "require.New called outside test function causes panic nil runtime.Goexit",
+      "test panics with 'test executed panic(nil) or runtime.Goexit' when using require",
+      "require assertion fails silently with runtime.Goexit instead of showing error message"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1220",
+    "queries": [
+      "assert package TestingT interface not implemented by testing.T",
+      "Cannot use type testing.T does not implement TestingT interface error",
+      "assert methods fail with type mismatch testing.T compilation error"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/773",
+    "queries": [
+      "assert.Equal returns different results for xerrors vs standard errors package",
+      "why does assert.Equal fail when comparing xerrors but pass for errors package",
+      "migrating from errors to xerrors breaks equality assertions in tests"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/38",
+    "queries": [
+      "mock package test AssertExpectations failing with custom type",
+      "unit test failure in mock package on go 1.2 darwin",
+      "AssertExpectationsCustomType test failing when running mock tests"
+    ]
+  },
+  {
+    "id": "https://github.com/stretchr/testify/issues/1794",
+    "queries": [
+      "assert.Regexp panics when given an invalid regular expression string",
+      "passing invalid regex pattern to assertion causes runtime panic instead of test failure",
+      "why does my test panic with bad regexp instead of failing gracefully"
+    ]
+  },
+  {
     "id": "https://github.com/joho/godotenv/issues/28",
     "queries": [
-      "env var set to empty string gets overwritten by dotenv file value",
-      "dotenv overrides existing environment variable when value is empty string",
-      "empty environment variable not respected when loading dot env file"
-    ],
-    "dependencyName": "joho/godotenv"
+      "env var set to empty string gets overwritten by dotenv file",
+      "dotenv overrides empty environment variable instead of respecting it",
+      "variable with blank value in shell being replaced by config file value"
+    ]
   },
   {
-    "id": "https://github.com/joho/godotenv/issues/105",
+    "id": "https://github.com/joho/godotenv/issues/94",
     "queries": [
-      "environment variable with dollar sign prints wrong value",
-      "fmt print shows unexpected string when variable contains special characters",
-      "dollar sign in env variable causes incorrect output when printing"
-    ],
-    "dependencyName": "joho/godotenv"
+      "file written but changes lost after program crash due to missing sync",
+      "opened file never closed after write operation causing resource leak",
+      "write function leaves file handle open without flushing OS buffer"
+    ]
   },
   {
-    "id": "https://github.com/joho/godotenv/issues/139",
+    "id": "https://github.com/joho/godotenv/issues/76",
     "queries": [
-      "environment variable value truncated at dollar sign followed by number",
-      "string with dollar sign and digits gets cut off when parsing env file",
-      "value containing $1 or $45 loses everything from dollar sign onward"
-    ],
-    "dependencyName": "joho/godotenv"
+      "Load() with no arguments fails with file not found error",
+      "godotenv Load() without args looks for .env but my file has different name",
+      "calling Load with no parameters throws open .env no such file or directory"
+    ]
   },
   {
-    "id": "https://github.com/joho/godotenv/issues/162",
+    "id": "https://github.com/joho/godotenv/issues/250",
     "queries": [
-      "bufio Scanner token too long error when parsing env file",
-      "env file with very long lines causes scanner buffer overflow",
-      "parsing dotenv file fails with lines exceeding 64k characters"
-    ],
-    "dependencyName": "joho/godotenv"
-  },
-  {
-    "id": "https://github.com/joho/godotenv/issues/45",
-    "queries": [
-      "quoted value with single quote at end gets truncated when parsing env file",
-      "trailing quote character dropped from environment variable value",
-      "env file parser removes closing single quote inside double quoted string"
-    ],
-    "dependencyName": "joho/godotenv"
-  },
-  {
-    "id": "https://github.com/joho/godotenv/issues/225",
-    "queries": [
-      "escaped backslash before quote in env file causes parse error",
-      "double backslash followed by quote not recognized as end of quoted string",
-      "env file with value ending in backslash fails to read correctly"
-    ],
-    "dependencyName": "joho/godotenv"
-  },
-  {
-    "id": "https://github.com/joho/godotenv/issues/153",
-    "queries": [
-      "env variable default value syntax FOO dollar sign dash not working",
-      "dollar curly brace colon dash default not parsed in dotenv file",
-      "variable expansion with fallback default value ignored when parsing env file"
-    ],
-    "dependencyName": "joho/godotenv"
-  },
-  {
-    "id": "https://github.com/joho/godotenv/issues/209",
-    "queries": [
-      "dotenv parser error unexpected character dash in variable name",
-      "env file with hyphen in key name fails to parse after upgrade",
-      "reading .env file throws unexpected character minus sign in variable name"
-    ],
-    "dependencyName": "joho/godotenv"
-  },
-  {
-    "id": "https://github.com/joho/godotenv/issues/117",
-    "queries": [
-      "env file multiline value in quotes not parsed correctly",
-      "quoted string with newline inside splits into separate key value pairs",
-      "variable value spanning multiple lines breaks env parser"
-    ],
-    "dependencyName": "joho/godotenv"
+      "environment variable parsing fails on Windows with unexpected error",
+      "parsing env vars throws error only on Windows platform",
+      "why does environment variable parsing break on Windows but not other systems"
+    ]
   },
   {
     "id": "https://github.com/joho/godotenv/issues/19",
     "queries": [
-      "YAML list values not being parsed from env file",
-      "environment variable with yml array format not read correctly",
-      "multiline list in yml config file ignored when loading variables"
-    ],
-    "dependencyName": "joho/godotenv"
+      "YAML list values not being parsed or read correctly",
+      "environment variable with YAML array format ignored when loading config",
+      "yml file list items not recognized after parsing"
+    ]
   },
   {
-    "id": "https://github.com/joho/godotenv/issues/176",
+    "id": "https://github.com/joho/godotenv/issues/129",
     "queries": [
-      "environment variables not set consistently only works half the time",
-      "secrets injected into env sometimes empty value instead of secret",
-      "intermittent failure setting environment variable from secrets manager"
-    ],
-    "dependencyName": "joho/godotenv"
+      "relative path to .env file wrong when loading from subdirectory",
+      "godotenv Load requires extra ../ levels to find env file in parent directory",
+      "env file not found with expected relative path from nested package"
+    ]
   },
   {
-    "id": "https://github.com/joho/godotenv/issues/52",
+    "id": "https://github.com/joho/godotenv/issues/192",
     "queries": [
-      "env variable value with dollar sign gets truncated or partially ignored",
-      "reading dotenv file strips characters after $ sign in value",
-      "dollar sign in env value causes part of string to be missing"
-    ],
-    "dependencyName": "joho/godotenv"
+      "dotenv silently ignores missing file instead of returning error",
+      "no error returned when env file does not exist",
+      "loading nonexistent dotenv file fails silently without error"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/175",
+    "queries": [
+      "command line dotenv skips remaining files when first file does not exist",
+      "multiple env files not loaded if earlier file is missing",
+      "godotenv CLI stops processing env files after missing file"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/204",
+    "queries": [
+      "unquoted values with whitespace stopped working after upgrade",
+      "dotenv parsing breaks on values containing spaces without quotes in new version",
+      "environment variable with spaces no longer parsed correctly after updating"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/209",
+    "queries": [
+      "hyphen dash in env variable name causes unexpected character error",
+      "env file with key containing dash stopped working after upgrade",
+      "unexpected character in variable name error when parsing dotenv file with hyphen"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/68",
+    "queries": [
+      "go mod fails to load package with unknown import path error",
+      "package import path not found after dependency update",
+      "module dependency cannot be resolved due to moved package location"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/26",
+    "queries": [
+      "panic slice bounds out of range when env var has empty value",
+      "empty environment variable causes runtime panic",
+      "env file with blank value variables crashes with index out of range error"
+    ]
+  },
+  {
+    "id": "https://github.com/joho/godotenv/issues/241",
+    "queries": [
+      "dotenv Go library fails to parse env file with unescaped double quotes",
+      "escaped characters in .env values being parsed differently than Node dotenv behavior",
+      "godotenv keeps backslash when escaping exclamation mark but should remove it"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/1414",
+    "queries": [
+      "Field() returns struct field name instead of json tag name",
+      "validator FieldError Field method ignoring json tag returns wrong name",
+      "field validation error shows Go field name not json tag name despite documentation"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/347",
+    "queries": [
+      "cannot detect VCS error when installing package with glide",
+      "glide get fails with Unable to checkout and Cannot detect VCS",
+      "package install error Cannot detect VCS for gopkg.in path"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/1370",
+    "queries": [
+      "unique validation tag always fails even when value is not duplicate",
+      "field validation fails on unique tag despite no duplicate data existing",
+      "custom unique validator returns error for non-duplicate values in struct"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/521",
+    "queries": [
+      "cannot use NotBlank as validator.Func value in argument to RegisterValidation",
+      "non-standard validators package import wrong validator type compile error",
+      "notblank validator function type mismatch prevents RegisterValidation from compiling"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/1155",
+    "queries": [
+      "panic reflect call of reflect.Value.Type on zero Value when using custom field types",
+      "validator panics with zero Value reflect error on non-validated custom types",
+      "go-playground validator crashes with reflect panic when custom field type has no validate tag"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/900",
+    "queries": [
+      "validator uuid4 tag fails for google uuid.UUID type",
+      "validation error uuid is not valid value for uuid.UUID struct field",
+      "go-playground validator rejecting valid UUID string with custom UUID type"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/796",
+    "queries": [
+      "fl.Field() returns time.Time instead of *time.Time causing panic",
+      "validator custom function panics when field type is pointer to time.Time",
+      "FieldLevel Field() dereferences pointer unexpectedly causing nil pointer panic"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/593",
+    "queries": [
+      "nil pointer panic when registering min validation translation in Russian locale",
+      "validator translation causes panic with plural forms in ru_RU locale",
+      "go-playground validator crashes adding ru_RU translation for min or gt rules"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/590",
+    "queries": [
+      "locale package fails to load when using GOPATH instead of modules",
+      "validator translations not working in GOPATH based project",
+      "error loading locale files when project is outside module mode"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/1415",
+    "queries": [
+      "conditional required_if validation still runs other validators when condition is false",
+      "field validated as uri even when required_if condition not met",
+      "chaining required_with and uri validator applies uri check unconditionally"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/584",
+    "queries": [
+      "panic strconv.ParseInt invalid syntax when validating time.Duration struct field",
+      "struct field time.Duration causes parse int panic during validation",
+      "how to validate duration type field throws invalid syntax error"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/920",
+    "queries": [
+      "dive tag not validating elements when field is pointer to slice",
+      "validator dive tag ignored for pointer to slice fields in struct",
+      "slice pointer field skips element validation even with dive tag"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/470",
+    "queries": [
+      "custom validator not called for struct type fields",
+      "how to register validation on a field that is a struct type",
+      "custom validation function never triggered when field type is struct"
+    ]
+  },
+  {
+    "id": "https://github.com/go-playground/validator/issues/1030",
+    "queries": [
+      "required tag on struct field not returning error when struct is zero value",
+      "validator ignores required constraint on nested struct using default values",
+      "how to make struct field fail validation when empty or uninitialized"
+    ]
   },
   {
     "id": "https://github.com/go-playground/validator/issues/794",
     "queries": [
       "ValidateStructMap not validating array of map slice elements",
-      "omitempty not working with map validation fields still fail when missing",
-      "map struct validation fails on absent fields without required tag"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1112",
-    "queries": [
-      "URL validator accepts incomplete URL with only scheme like https colon",
-      "validation passes for malformed URL missing host and path",
-      "why does URL validation not reject strings with only scheme no host"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/738",
-    "queries": [
-      "int validation min gt always passes when value is zero",
-      "required min=1 constraint not catching zero integer value",
-      "struct field with min binding fails to validate 0 as invalid"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/723",
-    "queries": [
-      "url_encoded validation fails for plain english text with no special characters",
-      "struct field with url_encoded tag incorrectly rejects valid unencoded ASCII strings",
-      "validator returns error for simple english string when using url encoded tag"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/372",
-    "queries": [
-      "struct validation silently passes when tags have extra spaces",
-      "space between validate colon and quoted tag causes rules to be ignored",
-      "validation not triggered for required fields with malformed struct tags"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1248",
-    "queries": [
-      "rfc3339 validation tag has no translation message in english",
-      "field validation failed on rfc3339 tag missing error translation",
-      "custom validator rule not showing translated error message only raw tag name"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1130",
-    "queries": [
-      "cron validator accepts invalid string with leading slash like /15",
-      "cron validation passes for malformed cron expression starting with slash",
-      "validator not rejecting invalid cron string that should fail validation"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1020",
-    "queries": [
-      "validate struct returns strconv.ParseInt error instead of ValidationError",
-      "gte=0 tag on int field causes parse error not validation error",
-      "numeric validator panics with invalid syntax error instead of returning ValidationError"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/395",
-    "queries": [
-      "invalid map key type interface compile error in validator",
-      "go build fails with invalid map key type for interface used as map key",
-      "compile error invalid map key type when using interface as map key in Go"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/955",
-    "queries": [
-      "ValidateMapCtx fails to validate slice of maps inside interface slice",
-      "map validation not working when JSON array unmarshalled into []interface{}",
-      "validator skips nested map validation inside []interface{} field"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/835",
-    "queries": [
-      "validators with OR operator being skipped during validation",
-      "multiple OR conditions in struct tags not evaluated correctly",
-      "combined OR validation rules ignored when chaining conditions"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/943",
-    "queries": [
-      "required_without rule causes panic when validating map type",
-      "validateMap panics with cross-field validation rules like required_without",
-      "panic or error using required_without on map validation in Go"
-    ],
-    "dependencyName": "go-playground/validator"
+      "omitempty tag not working with ValidateStructMap fields not required but still failing",
+      "map validation fails when field not specified even without required rule"
+    ]
   },
   {
     "id": "https://github.com/go-playground/validator/issues/972",
     "queries": [
-      "ltfield validation fails when pointer field is nil",
-      "struct validation panics or errors with nil pointer and ltefield tag",
-      "ltefield tag fails unexpectedly when one compared field is nil pointer"
-    ],
-    "dependencyName": "go-playground/validator"
+      "ltfield validation fails when pointer fields are nil in struct",
+      "validator ltfield tag panics or errors with nil pointer struct fields",
+      "struct field comparison validation error when one pointer field is nil"
+    ]
   },
   {
-    "id": "https://github.com/go-playground/validator/issues/599",
+    "id": "https://github.com/go-playground/validator/issues/1385",
     "queries": [
-      "hostname validator accepts multiple consecutive dots like example..com",
-      "RFC952 hostname validation not rejecting double dots in domain name",
-      "validator allows invalid hostnames with repeated dot characters between labels"
-    ],
-    "dependencyName": "go-playground/validator"
+      "nil pointer dereference in Arabic translation during struct validation",
+      "validator panics with Arabic locale when validating min max tags",
+      "runtime nil pointer error when using Arabic translations with struct validator"
+    ]
   },
   {
-    "id": "https://github.com/go-playground/validator/issues/781",
+    "id": "https://github.com/go-playground/validator/issues/738",
     "queries": [
-      "required_without validation not splitting multiple field names by space",
-      "validator required_without with two fields fails to find struct field",
-      "required_without multiple fields treated as single field name instead of separate"
-    ],
-    "dependencyName": "go-playground/validator"
+      "integer value 0 not being validated by min or gt constraints",
+      "validator min gt tags not working when int field equals zero",
+      "comparison validation silently passes for zero value integer parameters"
+    ]
   },
   {
-    "id": "https://github.com/go-playground/validator/issues/625",
+    "id": "https://github.com/go-playground/validator/issues/893",
     "queries": [
-      "field validation error message shows empty key name when using Var method",
-      "Key field is blank in validation error when validating single variable with tag",
-      "validator Var function produces empty string for field name in error output"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1272",
-    "queries": [
-      "SSN validation accepts invalid formats that should be rejected",
-      "social security number regex too permissive allows wrong separators",
-      "SSN validator passes strings with inconsistent dash and space formatting"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/879",
-    "queries": [
-      "missing translation for unique validation tag in Chinese locale",
-      "zh translation package does not include unique tag error message",
-      "validator unique tag not translated when using zh or zh_tw language"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1550",
-    "queries": [
-      "uuid validation fails for uppercase UUID strings but passes lowercase",
-      "struct validation rejects valid uppercase UUID format unexpectedly",
-      "why does uuid tag fail when letters are capitalized in UUID field"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/1414",
-    "queries": [
-      "validator Field() returns struct field name instead of json tag name",
-      "FieldError Field method ignoring json tag returning original Go field name",
-      "struct validation error shows field name not json tag despite documentation saying otherwise"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/505",
-    "queries": [
-      "validate field with json dash tag receives empty values instead of actual data",
-      "struct field tagged json hyphen shows empty string during validation",
-      "validation fails when field has json minus sign to hide from response"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/go-playground/validator/issues/843",
-    "queries": [
-      "required validation not working for custom type alias of time.Time",
-      "zero value check fails when wrapping time.Time with custom named type",
-      "struct field with custom datetime type passes required validation when it should fail"
-    ],
-    "dependencyName": "go-playground/validator"
-  },
-  {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/180",
-    "queries": [
-      "map string string env var fails when value contains colon character",
-      "environment variable map parsing breaks with URL values containing colons",
-      "map config empty after process when values have colon like https URLs"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
-  },
-  {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/212",
-    "queries": [
-      "duration field with invalid value silently gets zero instead of error",
-      "parsing invalid time duration from environment variable returns no error",
-      "environment config ignores unparseable duration value and uses zero default"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
-  },
-  {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/175",
-    "queries": [
-      "envconfig not processing nested struct fields",
-      "environment variables not being read for embedded struct fields",
-      "nested struct configuration values not populated from env vars"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "required_if panics with ValidateMap on simple map",
+      "panic Invalid field namespace when validating map with required_if rule",
+      "ValidateMap causes panic with required_if validation on simple map struct"
+    ]
   },
   {
     "id": "https://github.com/kelseyhightower/envconfig/issues/199",
     "queries": [
       "required field error message missing prefix in environment variable name",
-      "envconfig required key error shows short name instead of full prefixed variable",
-      "required env var error message does not include configured prefix"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "error says required key BAR missing but should show ENV_CONFIG_BAR with prefix",
+      "required env var error not including config prefix in missing value message"
+    ]
   },
   {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/37",
+    "id": "https://github.com/kelseyhightower/envconfig/issues/112",
     "queries": [
-      "empty prefix causes underscore prepended to env variable name",
-      "MustProcess with empty string prefix looks for _FIELD instead of FIELD",
-      "required env var not found when using empty prefix in config processing"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "environment variables not being read returning empty struct",
+      "docker container env vars not loaded showing empty object",
+      "os environment variables returning empty when running as root in container"
+    ]
+  },
+  {
+    "id": "https://github.com/kelseyhightower/envconfig/issues/14",
+    "queries": [
+      "environment variable without prefix used as fallback when prefixed version not set",
+      "unprefixed env var value leaks into config when prefix defined but variable missing",
+      "why does my app read USER instead of MYAPP_USER when prefixed env var is absent"
+    ]
+  },
+  {
+    "id": "https://github.com/kelseyhightower/envconfig/issues/148",
+    "queries": [
+      "env prefix ignored when alt key matches system environment variable",
+      "struct field gets populated from wrong env variable when prefixed key not set",
+      "why does my config use system USER variable instead of empty string when MY_APP_USER not set"
+    ]
+  },
+  {
+    "id": "https://github.com/kelseyhightower/envconfig/issues/54",
+    "queries": [
+      "parsing stopped working after a recent commit",
+      "code that worked before now fails to parse after update",
+      "previously working functionality broke after upgrading to new version"
+    ]
   },
   {
     "id": "https://github.com/kelseyhightower/envconfig/issues/107",
     "queries": [
       "go test cache not invalidated when environment variables change",
-      "tests passing incorrectly after changing env vars due to caching",
-      "go 1.10 test cache ignores environment variable changes between runs"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "tests incorrectly cached even though env vars changed between runs",
+      "go 1.10 test caching causes tests to pass when they should fail after env var update"
+    ]
   },
   {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/90",
+    "id": "https://github.com/kelseyhightower/envconfig/issues/137",
     "queries": [
-      "envconfig override tag ignored in usage output shows prefix instead",
-      "required key error message uses wrong name when envconfig tag is set",
-      "struct field with envconfig tag still gets prefix prepended in error and usage"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "nested map as struct field value causes parsing error",
+      "how to use map of maps or list of lists in environment variable config",
+      "environment variable parsing fails when value contains colon or comma in map"
+    ]
   },
   {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/54",
+    "id": "https://github.com/kelseyhightower/envconfig/issues/84",
     "queries": [
-      "struct field after pointer to url.URL not being parsed from env",
-      "environment variable parsing stops after nil pointer field in struct",
-      "fields following a pointer type field not populated when pointer is nil"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "map string string env var fails when value contains colon URL",
+      "envconfig invalid map item error with URL in map value",
+      "cannot use URLs with colons as map keys or values in env config"
+    ]
   },
   {
-    "id": "https://github.com/kelseyhightower/envconfig/issues/186",
+    "id": "https://github.com/nats-io/nats.go/issues/25",
     "queries": [
-      "env variable long string gets corrupted when reading",
-      "base64 encoded environment variable truncated or mangled on read",
-      "long string value from env config comes back incorrect or cut off"
-    ],
-    "dependencyName": "kelseyhightower/envconfig"
+      "channel subscription only receives first message then stops",
+      "BindRecvChan not receiving more than one message after fix",
+      "subscriber stops getting messages after first one using channel binding"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1042",
+    "id": "https://github.com/nats-io/nats.go/issues/412",
     "queries": [
-      "object store get API digest verification always fails",
-      "content hash mismatch error when retrieving object from store",
-      "base64 decode error on digest check after fetching object data"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "channel subscription only receives first message then stops",
+      "ChanSubscribe drops messages after the first one received",
+      "why does subscribing with a channel miss messages that callback receives all of"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1929",
+    "id": "https://github.com/nats-io/nats.go/issues/108",
     "queries": [
-      "jetstream consumer processing redelivered messages after ack wait timeout with multiple replicas",
-      "duplicate message handling when consumer pre-buffers messages and ackwait expires",
-      "second replica receives redelivered messages that first replica already has buffered"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "subscriber never receives messages when publisher connects to different server order",
+      "multiple servers configured but published messages not delivered to subscriber",
+      "client subscribed to topic gets no messages when another client publishes to different cluster node"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/240",
+    "id": "https://github.com/nats-io/nats.go/issues/1612",
     "queries": [
-      "request always times out when handler is defined as separate named function",
-      "timeout occurs using named function handler but works with inline anonymous function",
-      "why does request timeout when subscriber uses external function instead of closure"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "async publish max pending limit being exceeded in JetStream",
+      "WithPublishAsyncMaxPending option does not enforce the specified limit",
+      "JetStream async publisher sends more messages than max pending allows"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1615",
+    "id": "https://github.com/nats-io/nats.go/issues/537",
     "queries": [
-      "key-value store created with wrong discard policy using new jetstream package",
-      "KV bucket discard policy mismatch between old and new API packages",
-      "jetstream KV store getting OLD discard policy instead of NEW when created"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "once.Do failure causes all subsequent requests to permanently fail",
+      "sync.Once error not retried causing permanent subscription failure",
+      "request handler cannot recover after initial setup fails due to network error"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1081",
+    "id": "https://github.com/nats-io/nats.go/issues/871",
     "queries": [
-      "ErrorIs not working correctly for error comparison",
-      "case mismatch in error strings causes errors.Is to fail",
-      "error wrapping comparison returns false due to string casing difference"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "TestGetClientID test fails with Did not reconnect error",
+      "go test fails reconnection test on Linux ppc64le architecture",
+      "client ID test timing out during reconnect after 5 seconds"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1952",
+    "id": "https://github.com/nats-io/nats.go/issues/136",
     "queries": [
-      "panic close of closed channel in JetStream pull consumer during drain",
-      "race condition when stopping messages context and draining nats connection simultaneously",
-      "JetStream consumer crashes with closed channel panic on concurrent Stop and Drain calls"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "nil pointer dereference when publishing during reconnect",
+      "publish crashes with nil pending buffer while reconnecting",
+      "panic on nc.pending.Len() called before reconnect goroutine initializes buffer"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1876",
+    "id": "https://github.com/nats-io/nats.go/issues/553",
     "queries": [
-      "installed package version missing methods shown in release notes",
-      "go get module version does not include new API methods that should be in release",
-      "pkg.go.dev shows different interface than GitHub release tag for same version"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "encoded connection silently ignores JSON decode errors on received messages",
+      "why doesn't my NATS encoded connection report errors when receiving invalid JSON",
+      "message handler never called with error when subscriber receives malformed JSON payload"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1891",
+    "id": "https://github.com/nats-io/nats.go/issues/1672",
     "queries": [
-      "writer permanently fails after first timeout error cannot recover",
-      "subsequent write calls all fail after single transient write error",
-      "connection still valid but writer returns same error for every write attempt"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "ConsumerContext Drain returns before in-flight messages finish processing",
+      "JetStream consumer drain function not blocking until message handling completes",
+      "how to cleanly stop JetStream consumer after current messages are processed"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/368",
+    "id": "https://github.com/nats-io/nats.go/issues/1664",
     "queries": [
-      "memory leak when repeatedly opening and closing connections in a loop",
-      "connection Close() not freeing memory after repeated connect disconnect cycles",
-      "heap memory keeps growing after closing connections periodically"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "JetStream publish retry attempts not working stops after first attempt",
+      "RetryAttempts and RetryWait options ignored on publish no responder error",
+      "js.Publish gives up immediately despite setting retry count and wait time"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/554",
+    "id": "https://github.com/nats-io/nats.go/issues/800",
     "queries": [
-      "nc.Request does not return early when connection is closed with old request style",
-      "request hangs until timeout after Close() called instead of returning immediately",
-      "closing NATS connection does not unblock pending request when using legacy request mode"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "getting nats request timeout error when using Fetch with context on pull subscription",
+      "pull subscription Fetch returns timeout error even when messages are available",
+      "JetStream Fetch with nats.Context unexpectedly returns Request Timeout"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/452",
+    "id": "https://github.com/nats-io/nats.go/issues/1865",
     "queries": [
-      "client disconnects after 2 minutes with no error event fired",
-      "unexpected disconnection no reconnect attempt no error handler called",
-      "connection drops silently without triggering disconnect or error callback"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "PublishMsgAsync deadlock on select statement goroutine stuck",
+      "async publish causes deadlock after upgrading nats client",
+      "goroutine dump shows deadlock in async publish select block"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/269",
+    "id": "https://github.com/nats-io/nats.go/issues/1832",
     "queries": [
-      "TLS connection error received record with version 4552 expecting version 303",
-      "intermittent TLS handshake fails on ARM architecture no reconnect attempts",
-      "TLS version mismatch error on startup happens 20 percent of the time possible race condition"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "watcher goroutine stuck in infinite loop after Stop is called",
+      "ObjectWatcher Stop method does not close the channel causing goroutines to hang",
+      "channel not closed when watcher is stopped leaving goroutines blocked"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/480",
+    "id": "https://github.com/nats-io/nats.go/issues/890",
     "queries": [
-      "max payload limit not updated after authentication with account",
-      "server sends INFO before auth so payload size stays at default",
-      "max_payload not refreshed when connecting to account with different limits"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "PullSubscribe fetch timeout after server restart",
+      "JetStream pull subscription stops working after NATS server restarts",
+      "fetch always returns timeout error after reconnecting to server"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1343",
+    "id": "https://github.com/nats-io/nats.go/issues/1815",
     "queries": [
-      "calling Stop on JetStream consumer causes Next to block indefinitely",
-      "Next method hangs forever after stopping JetStream message iterator",
-      "JetStream pull consumer Stop does not unblock Next in separate goroutine"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "data race between reading and writing subscription status in concurrent goroutines",
+      "race condition when calling Drain followed by StatusChanged on subscription",
+      "subscription status read outside mutex causing data race with changeSubStatus"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/14",
+    "queries": [
+      "server PING messages not being handled by client",
+      "client fails to respond to PING from server",
+      "PING protocol messages ignored causing connection issues"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/925",
+    "queries": [
+      "websocket connection hangs forever when no authentication provided",
+      "NATS websocket connection never times out or errors without credentials",
+      "connecting to websocket server without auth causes indefinite hang instead of error"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/732",
+    "queries": [
+      "jetstream publish returns invalid response error",
+      "nats jetstream pub call fails with invalid publish response",
+      "publishing to jetstream stream gets unexpected response format"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/244",
+    "queries": [
+      "publishing messages to many different topics extremely slow for first message",
+      "first message to each topic takes seconds but subsequent messages are fast",
+      "why does sending one message per topic to 300 topics take 5 minutes"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/1202",
+    "queries": [
+      "fetch from work queue stream times out after purging a subject",
+      "JetStream consumer Fetch hangs after calling PurgeStream with specific subject filter",
+      "messages not returned by Fetch after stream subject purge even though messages exist"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/790",
+    "queries": [
+      "messages acked in SubscribeSync cause Drain to hang or timeout",
+      "drain timeout after acknowledging messages from synchronous subscription",
+      "why does Drain() never complete when using SubscribeSync with message acks"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/555",
+    "queries": [
+      "subject rewriting service responses not dispatched to mux subscription correctly",
+      "client can only make single request when using response mux with subject rewriting",
+      "mux subscription fails to parse rewritten response subject causing request dispatch error"
+    ]
+  },
+  {
+    "id": "https://github.com/nats-io/nats.go/issues/1588",
+    "queries": [
+      "jetstream Consume fails with Exceeded MaxRequestBatch error silently",
+      "consumer Consume ignores MaxRequestBatch config and uses default 500 batch size",
+      "PullMaxMessages exceeds ConsumerConfig MaxRequestBatch causing silent consume failure"
+    ]
   },
   {
     "id": "https://github.com/nats-io/nats.go/issues/1313",
     "queries": [
-      "object store get with context option causes race condition",
-      "race condition when using context option in object store get operation",
-      "concurrent access bug triggered by passing context to object store retrieval"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "ObjectStore Get with context option causes race condition",
+      "nats object store Get race condition when passing context option",
+      "race condition detected when using Context as GetObjectOpt parameter"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1294",
+    "id": "https://github.com/nats-io/nats.go/issues/1552",
     "queries": [
-      "FilterSubjects not working with wildcard subjects in JetStream consumer",
-      "consumer receiving all messages instead of filtered subjects only",
-      "JetStream consumer FilterSubjects config ignored when using wildcard stream subjects"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "connection does not reconnect after authentication expired error",
+      "NATS client stays disconnected when JWT expires instead of reconnecting",
+      "auth expired error received but client fails to attempt reconnection"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1245",
+    "id": "https://github.com/nats-io/nats.go/issues/1696",
     "queries": [
-      "JetStream AddStream duplicate error wrong type cannot cast to APIError",
-      "creating stream twice returns error but type assertion fails unexpected error type",
-      "JS stream update conflict error not matching expected error interface type"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "pull-based subscription fetch returns duplicate messages unexpectedly",
+      "NATS JetStream Fetch causing unexpected delay and receiving duplicate messages",
+      "pull subscription no_wait option not working causes message duplicates and timeout"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1656",
+    "id": "https://github.com/nats-io/nats.go/issues/1491",
     "queries": [
-      "panic interface conversion jetstream Consumer is nil not pullConsumer",
-      "ordered consumer reset causing nil interface conversion panic",
-      "jetstream orderedConsumer Consume goroutine panics with nil consumer interface"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "object store returns stream not found error instead of bucket not found",
+      "why does object store API give stream not found when bucket doesn't exist",
+      "incorrect error message when accessing non-existent object store bucket"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/822",
+    "id": "https://github.com/nats-io/nats.go/issues/1615",
     "queries": [
-      "AddConsumer with QueueSubscribeSync fails JetStream",
-      "JetStream consumer missing AckPolicy causes subscription error",
-      "QueueSubscribe fails when using pre-created consumer configuration"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "KV store created with wrong discard policy using jetstream package",
+      "inconsistent discard policy between jetstream and nats package when creating key-value store",
+      "key value bucket gets old discard policy instead of new with jetstream API"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/1104",
+    "id": "https://github.com/nats-io/nats.go/issues/1777",
     "queries": [
-      "JetStream ConsumerInfo domain option ignored when passed as parameter",
-      "options passed to AddConsumer not applied except timeout and context",
-      "ConsumerInfo ignores domain setting causing lookup to fail on wrong domain"
-    ],
-    "dependencyName": "nats-io/nats.go"
+      "key value watch channel closed after connection lost does not recover",
+      "KV watcher stops receiving updates after NATS reconnection",
+      "ordered consumer not recreated when connection drops during key watch"
+    ]
   },
   {
-    "id": "https://github.com/nats-io/nats.go/issues/909",
+    "id": "https://github.com/nats-io/nats.go/issues/1228",
     "queries": [
-      "purge stream hangs or blocks when messages are being consumed",
-      "stream purge not completing while subscriber is processing messages",
-      "JetStream PurgeStream freezes when consumer is actively acking messages"
-    ],
-    "dependencyName": "nats-io/nats.go"
-  },
-  {
-    "id": "https://github.com/nats-io/nats.go/issues/1662",
-    "queries": [
-      "ordered consumer fetch with DeliverLastPerSubjectPolicy returns duplicate messages per subject",
-      "fetch on ordered consumer not returning unique last message per subject",
-      "JetStream consumer delivers multiple messages for same subject instead of last only"
-    ],
-    "dependencyName": "nats-io/nats.go"
-  },
-  {
-    "id": "https://github.com/nats-io/nats.go/issues/1752",
-    "queries": [
-      "nil pointer dereference panic when closing uninitialized channel in Go",
-      "defer statement causes nil pointer dereference after nil check returns early",
-      "panic closing channel that was never initialized in concurrent code"
-    ],
-    "dependencyName": "nats-io/nats.go"
-  },
-  {
-    "id": "https://github.com/google/uuid/issues/131",
-    "queries": [
-      "UUID parser accepts strings with extra leading or trailing dashes without error",
-      "invalid UUID with extra characters not returning parse error",
-      "UUID validation passes for strings with surrounding quotes or wrong length"
-    ],
-    "dependencyName": "google/uuid"
-  },
-  {
-    "id": "https://github.com/google/uuid/issues/184",
-    "queries": [
-      "undefined xtob symbol when building Go package on arm64 Linux",
-      "compile error undefined function in uuid package on Ubuntu arm64",
-      "Go build fails with undefined symbols on ARM64 architecture"
-    ],
-    "dependencyName": "google/uuid"
-  },
-  {
-    "id": "https://github.com/google/uuid/issues/159",
-    "queries": [
-      "UUID v6 generated with incorrect leading zero prefix in timestamp",
-      "uuidv6 implementation not following RFC 4122 spec produces wrong format",
-      "generated v6 UUID does not match expected RFC standard format"
-    ],
-    "dependencyName": "google/uuid"
-  },
-  {
-    "id": "https://github.com/google/uuid/issues/199",
-    "queries": [
-      "UUID v6 time not monotonically increasing causes panic",
-      "version 6 UUID timestamp goes backwards when comparing consecutive values",
-      "UUIDv6 sixth byte reset by version field breaks time ordering"
-    ],
-    "dependencyName": "google/uuid"
-  },
-  {
-    "id": "https://github.com/google/uuid/issues/114",
-    "queries": [
-      "panic invalid UUID length 0 when parsing empty string",
-      "application crashes with uuid parse error invalid length 0",
-      "runtime panic parsing UUID with zero length input"
-    ],
-    "dependencyName": "google/uuid"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/297",
-    "queries": [
-      "log wait strategy not waiting for all occurrences before continuing",
-      "WithOccurrence set to multiple times but container starts after first match",
-      "log strategy occurrence count ignored only one match needed to proceed"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2917",
-    "queries": [
-      "container terminate returns error removal already in progress",
-      "Terminate() function reports daemon error even though container was removed successfully",
-      "error response from daemon container removal already in progress when stopping test container"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2179",
-    "queries": [
-      "bind mounts stopped working after upgrading to newer version",
-      "container volume bind mount not working throws error on upgrade",
-      "bind mount broken after updating testcontainers version"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3263",
-    "queries": [
-      "PostgreSQL snapshot restore failing with multiple errors in tests",
-      "error when restoring postgres database snapshot in test container",
-      "snapshot restore not working correctly for postgres testcontainer"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2074",
-    "queries": [
-      "Ryuk container terminates immediately after starting on MacOS colima",
-      "testcontainers reaper exits right away on Apple Silicon with colima docker",
-      "resource reaper stops unexpectedly on ARM Mac colima setup"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/173",
-    "queries": [
-      "network not removed after test containers cleaned up",
-      "reaper fails to delete custom network when multiple containers attached",
-      "docker network persists after test suite finishes running"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3310",
-    "queries": [
-      "DOCKER_AUTH_CONFIG env variable format not working same as Docker CLI",
-      "docker auth config environment variable format mismatch causes authentication failures",
-      "registry auth works with docker CLI but fails when using env variable for container auth"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3483",
-    "queries": [
-      "UDP port mapping returns 0 instead of actual host port",
-      "container MappedPort returns wrong value for UDP exposed ports",
-      "getting port 0 when calling mapped port for UDP protocol"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3635",
-    "queries": [
-      "containers cannot communicate with each other on newer kernel versions",
-      "inter-container networking broken after kernel upgrade",
-      "containers fail to reach each other on Linux kernel 6.x"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2609",
-    "queries": [
-      "environment variable TESTCONTAINERS_HOST_OVERRIDE not being read or applied",
-      "custom host override env var ignored when configuring container connections",
-      "config not parsing host override environment variables at runtime"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/620",
-    "queries": [
-      "exec command output contains random garbage characters at the start",
-      "io.Reader from container exec has unexpected bytes prepended to output",
-      "container command execution returns corrupted output with strange characters"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3555",
-    "queries": [
-      "version mismatch between moby docker client and docker compose version parsing",
-      "testcontainers fails with docker version incompatibility error on startup",
-      "docker compose integration breaks due to mismatched client version detection"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3127",
-    "queries": [
-      "kafka container SASL authentication options not recognized",
-      "testcontainers kafka module ignores SASL configuration settings",
-      "kafka container fails to start with SASL security protocol options"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2915",
-    "queries": [
-      "MongoDB container fails to start when both replica set and authentication are enabled",
-      "testcontainer MongoDB replicaset with auth not starting",
-      "container startup hangs or errors with MongoDB authentication and replica set configured together"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2457",
-    "queries": [
-      "AmqpsURL function returns amqp instead of amqps protocol in URL",
-      "secure AMQP URL has wrong scheme prefix not using amqps",
-      "RabbitMQ container returns incorrect protocol scheme for TLS connection URL"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/1702",
-    "queries": [
-      "RabbitMQ container connection fails with username or password not allowed 403",
-      "cannot dial AMQP URL from testcontainer getting authentication error",
-      "RabbitMQ module admin account only accessible from localhost connection refused"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/338",
-    "queries": [
-      "HTTP POST body empty on retry after failed status code",
-      "subsequent HTTP requests missing body after first request fails",
-      "POST request body not sent on second attempt in wait strategy"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2748",
-    "queries": [
-      "Kafka container regression after upgrading testcontainers version",
-      "Kafka testcontainer fails to start on ARM Mac after update",
-      "Kafka container broken on Apple Silicon with latest version"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/763",
-    "queries": [
-      "cannot locate Dockerfile when building container from custom Dockerfile path",
-      "FromDockerfile fails with file not found error on Windows",
-      "specified Dockerfile not found when running tests on Windows host"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/485",
-    "queries": [
-      "context deadline exceeded failed to start container docker sock exec json",
-      "host port waiting failed postgres container timeout context deadline exceeded",
-      "docker container startup fails with context deadline exceeded on exec inspect"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/3631",
-    "queries": [
-      "error response from daemon could not find plugin bridge in v1 plugin registry",
-      "docker plugin not found error when running containers on Windows",
-      "testcontainers failing with bridge plugin registry error on Windows host"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2542",
-    "queries": [
-      "postgres testcontainer init scripts only first script runs multiple scripts ignored",
-      "WithInitScripts multiple SQL files not executed only one runs",
-      "testcontainer postgres initialization with several scripts fails second script not applied"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/232",
-    "queries": [
-      "container creation fails with unsupported transfer encoding identity error",
-      "HTTP transport connection broken unsupported transfer encoding identity after Go upgrade",
-      "reaper container fails to start with exec endpoint transfer encoding error"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/329",
-    "queries": [
-      "docker-compose wait strategy fails when no ports exposed",
-      "cannot apply wait strategy to container without exposed ports",
-      "wait for container times out when port mapping not defined in compose"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2813",
-    "queries": [
-      "TerminateContainer function not found when using testcontainers package",
-      "undefined function TerminateContainer error in Go testcontainers",
-      "testcontainers container cleanup function missing or not recognized at runtime"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/43",
-    "queries": [
-      "cannot use type from vendor package as type in return argument golang",
-      "go get fails with type mismatch between vendor and non-vendor package paths",
-      "multiple-value function used in single-value context compile error after go get"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/404",
-    "queries": [
-      "container rename uses wrong separator between compose v1 and v2",
-      "hardcoded underscore separator breaks container naming in docker compose go version",
-      "container name format mismatch after upgrading compose from python to go"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/testcontainers/testcontainers-go/issues/2655",
-    "queries": [
-      "CI test failing with timeout in Weaviate client integration test",
-      "Weaviate container test times out during client connection",
-      "TestWeaviate test suite failing with timeout error in CI pipeline"
-    ],
-    "dependencyName": "testcontainers/testcontainers-go"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/185",
-    "queries": [
-      "EqualError shows expected and actual values swapped in output",
-      "error assertion output labels actual as expected and expected as actual",
-      "EqualError test failure message has wrong values for expected vs actual"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1179",
-    "queries": [
-      "mock.On panics when function parameter is passed as argument",
-      "testify mock setup crashes with func type in expected parameters",
-      "panic when mocking interface method that takes a closure argument"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/515",
-    "queries": [
-      "assert.Equal output garbled when string contains percent sign",
-      "test failure message shows MISSING when expected value has percentage character",
-      "fmt.Sprintf corrupting assertion output with percent signs in strings"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/280",
-    "queries": [
-      "mock function called more times than expected causing panic",
-      "unexpected method call panic when function called too many times",
-      "test panics after exceeding Once() call limit with confusing error message"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/837",
-    "queries": [
-      "assert.Eventually returns false but test still passes when condition never met",
-      "test does not fail when Eventually times out polling function",
-      "Eventually assertion passes instead of failing after timer expires"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/192",
-    "queries": [
-      "suite T Parallel and T Fatal causes panic in test suite",
-      "panic test executed panic nil or runtime Goexit when calling Fatal in parallel suite test",
-      "calling Fatal inside parallel test suite method triggers unexpected panic"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/981",
-    "queries": [
-      "undefined errors.Is errors.As errors.Unwrap when building with older Go version",
-      "go get testify assert fails with undefined errors.Is on go 1.11",
-      "compilation error undefined errors.Is after updating testify in pre-modules project"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/149",
-    "queries": [
-      "suite.Require() panics with runtime.Goexit when assertion fails",
-      "test panics with nil or runtime.Goexit after failed assertion in loop",
-      "calling Require() on test suite causes panic instead of failing test"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/803",
-    "queries": [
-      "panic interface conversion when comparing custom string type in tests",
-      "test panics with interface conversion error on aliased string comparison",
-      "require.Equal panics with typed string constant not string error"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1298",
-    "queries": [
-      "assert.NoError fails when passing nil pointer to error interface",
-      "custom error struct nil pointer causes NoError assertion to fail unexpectedly",
-      "error interface with nil underlying value not treated as no error in test assertion"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/619",
-    "queries": [
-      "missing ... in args forwarded to printf-like function compile error",
-      "tests failing after Go version upgrade with variadic args error",
-      "printf-like function missing ellipsis error in mock file"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/191",
-    "queries": [
-      "mock AssertExpectations failing even though method was called",
-      "mock.Called() not tracking method invocations on struct receiver",
-      "testify mock expected calls show zero count after method execution"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1813",
-    "queries": [
-      "assert.Equal panics with unexported struct field containing map with array keys",
-      "reflect.Value.Interface cannot return value obtained from unexported field or method panic",
-      "panic comparing structs with unexported map fields using array as map key"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1359",
-    "queries": [
-      "Equal assertion passes when comparing int32 and rune with same value",
-      "type mismatch between int32 and rune not detected by equality check",
-      "assert Equal does not fail when expected rune but got int32"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/984",
-    "queries": [
-      "struct with time.Time field not compared correctly in tests",
-      "reflect.DeepEqual failing for struct containing time.Time",
-      "nested time.Time inside struct causes incorrect equality comparison"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/519",
-    "queries": [
-      "mock panic when using context.Context as parameter in test",
-      "testify mock Called panics with context emptyContext type assertion",
-      "go test panic when mocking function that takes context argument"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1396",
-    "queries": [
-      "require.NoError inside EventuallyWithT panics instead of stopping iteration",
-      "CollectT FailNow causes panic when using require assertions in retry loop",
-      "test crashes with panic when require assertion fails inside EventuallyWithT condition"
-    ],
-    "dependencyName": "stretchr/testify"
-  },
-  {
-    "id": "https://github.com/stretchr/testify/issues/1557",
-    "queries": [
-      "unexpected NUL in input error when importing test suite package",
-      "read huge_test.go unexpected NUL in input error golang",
-      "cannot import package error NUL character in Go source file"
-    ],
-    "dependencyName": "stretchr/testify"
+      "calling nc.Drain() causes micro.Service to stop responding to requests",
+      "defer nc.Drain() makes NATS service return ErrNoResponders on RequestMsgWithContext",
+      "connection drain causes service to not respond before handling incoming requests"
+    ]
   }
 ]
