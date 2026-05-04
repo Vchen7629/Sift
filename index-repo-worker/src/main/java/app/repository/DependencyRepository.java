@@ -137,8 +137,8 @@ public class DependencyRepository {
         return dependencyNameVersions;
     }
 
-    // dim number from: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
-    private static final Integer embeddingDim = 384;
+    // dim number from: https://huggingface.co/BAAI/bge-base-en-v1.5
+    private static final Integer embeddingDim = 768;
 
     /**
      * stores dependency version changelog metadata. One entry per changelog change
