@@ -86,10 +86,11 @@ public class IssueService {
     }
 
     private void addIssueDocument(GHIssue issue, List<Result> issueDocuments, @NotBlank String repoName) throws IOException {
-        //if (!hasRelevantLabel(issue)) return;
+        String rawBody = issue.getBody();
+        if (rawBody == null || rawBody.isBlank()) return; // skip over issues with blank body
 
-        String body = issue.getBody();
-        if (body == null || body.isBlank()) return; // skip over issues with blank body
+        String body = cleanIssueBody(rawBody);
+        if (body.isBlank()) return; // skip issues whose body was only code blocks
 
         List<String> labelList = issue.getLabels().stream()
             .map(GHLabel::getName)
@@ -101,7 +102,7 @@ public class IssueService {
             repoName,
             version,
             issue.getTitle(),
-            cleanIssueBody(body),
+            body,
             issue.getHtmlUrl().toString(),
             labelList,
             issue.getCreatedAt().toString()
