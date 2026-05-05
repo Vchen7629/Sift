@@ -21,6 +21,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-micrometer-tracing-opentelemetry'
 	implementation 'org.kohsuke:github-api:2.0-rc.6'
 	implementation 'com.infradna.tool:bridge-method-annotation:1.31'
 	implementation 'org.opensearch.client:opensearch-java:3.8.0'
@@ -32,10 +33,11 @@ dependencies {
 	implementation 'io.nats:jnats:2.25.2'
 	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.aspectj:aspectjweaver'
 	implementation platform('io.micrometer:micrometer-tracing-bom:latest.release')
 	implementation 'io.micrometer:micrometer-tracing'
-	implementation 'io.micrometer:micrometer-tracing-bridge-otel:1.6.5'
-	implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.61.0'
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
   	runtimeOnly 'ai.djl.pytorch:pytorch-native-cpu'
