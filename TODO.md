@@ -11,15 +11,15 @@
 
 ### Optimizations
 - [x] Swap sentence transformer embedding model with one thats purpose built for RAG
-- [ ] Implement search result reranker with cross encoding, add a threshold so it drops really unrelated issue results
-- [ ] Issue body text chunking so each chunk of the issue has its own embedding, solves token limit of
-      embedding model. 
-      - Need to figure out what my chunk target is, could be dumb like chunking on paragraphs (easy) or smart where it takes into account
-        context (harder)
+- [x] Implement search result reranker with cross encoding, add a threshold so it drops really unrelated issue results
+      * adds around 450 ms per query + improves mrr by around 2% but most importantly allows for the removal of really unrelated search results which potentially will lead to improved llm response
+- [x] Issue body text chunking so each chunk of the issue has its own embedding, 
+      * found out it actually hurt metrics like MRR and NCDG (-5/10%) so gonna drop this
 - [ ] Valkey caching
 - [x] Add check when indexing a new user repo's dependencies to see if the dependency name + version is already indexed so they dont try to refetch issues/changelog again for an already indexed dependency
 - [x] filter out markdown in text ('''Markdown) issue body before inserting to database
 - [x] investigate if search pipeline is used properly in the search query
+- [x] parallelized reranker embedding model reducing reranking of 25 candidates from 1.5 seconds to around 450 ms
 - [ ] look into parallelizing Embedding cpu processing since it takes 64665ms (64.665s) to create text embeddings for 3128 issues
 - [ ] Look into parallelizing Fetch issue query page calls into seperate virtual threads to speed up I/O bottleneck even more
 - [ ] could look into rate limiting the public api

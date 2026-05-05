@@ -22,6 +22,7 @@ func main() {
 	userId := "test-user-1"
 
 	var positions []int
+	totalQueries := 0
 
 	start := time.Now()
 	for id, queries := range issueQueries {
@@ -40,12 +41,14 @@ func main() {
 				}
 			}
 			positions = append(positions, rank)
+			totalQueries += 1
 		}
 	}
 
 	latencyMs := time.Since(start).Milliseconds()
 
 	fmt.Printf("Benchmarking took %d ms\n", latencyMs)
+	fmt.Printf("Average query took: %d ms\n", latencyMs/int64(totalQueries))
 	fmt.Printf("Queries evaluated : %d\n", len(positions))
 	fmt.Printf("MRR 			  : %.4f\n", service.MRR(positions))
 	fmt.Printf("Recall@10 		  : %.4f\n", service.RecallAt10(positions))		
