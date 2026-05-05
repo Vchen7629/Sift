@@ -26,25 +26,29 @@ public class JobStatusRepository {
         this.openSearchClient = openSearchClient;
     }
 
+    private record StatusDoc(String status) {}
+
     @Observed(name="jobstatus.upsert.repository")
     public void upsert(@Valid JobStatusDocument jobStatus) {
         try {
             openSearchClient.update(r -> r
                 .index(jobStatusIndexName)
-                .id(jobStatus.repoName())
-                .doc(new JobStatusDocument(jobStatus.repoName(), jobStatus.status()))
+                .id(jobStatus.userId() + ":" + jobStatus.repoName())
+                .doc(new StatusDoc(jobStatus.status()))
                 .docAsUpsert(true)
                 , JobStatusDocument.class
             );
             log.debug("upserted job status to {}", 
                 jobStatus.status(), 
                 kv("index", jobStatusIndexName),
+                kv("userId", jobStatus.userId()),
                 kv("repoName", jobStatus.repoName()));
 
         } catch (IOException e) { 
             log.error("failed to upsert job status to {}", 
                 jobStatus.status(), 
                 kv("index", jobStatusIndexName),
+                kv("userId", jobStatus.userId()),
                 kv("repoName", jobStatus.repoName()));
         }
     }

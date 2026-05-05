@@ -101,7 +101,7 @@ public class DependencyRepository {
             .aggregations("byDependency", a -> a
                 .terms(t -> t.field("dependencyName").size(maxUniqueDependencies))
                 .aggregations("version", va -> va
-                    .terms(vt -> vt.field("version").size(1))
+                    .terms(vt -> vt.field("version").size(maxUniqueDependencies))
                 )
             ),
             Void.class
@@ -114,11 +114,11 @@ public class DependencyRepository {
         }
         
         Set<DependencyDocument> dependencyNameVersions = byDependency.sterms().buckets().array().stream()
-            .map(depBucket -> {
+            .flatMap(depBucket -> {
                 String name = depBucket.key();
                 Aggregate versionAgg = depBucket.aggregations().get("version");
-                String version = versionAgg.sterms().buckets().array().get(0).key();
-                return new DependencyDocument(name, version);
+                return versionAgg.sterms().buckets().array().stream()
+                    .map(versionBucket -> new DependencyDocument(name, versionBucket.key()));
             })
             .collect(Collectors.toSet());
         

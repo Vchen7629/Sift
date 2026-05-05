@@ -90,7 +90,7 @@ public class ConsumerService {
         this.propagator = propagator;
     }
 
-    private record RepoIndexMsg(@NotBlank String repoName) {};
+    private record RepoIndexMsg(@NotBlank String userId, @NotBlank String repoName) {};
     private static final Duration MAX_FETCH_WAIT = Duration.ofSeconds(5);
     private static final int POLL_DELAY_MS = 100;
 
@@ -110,18 +110,20 @@ public class ConsumerService {
                 log.debug("recived index repo msg for processing");
 
                 try {
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "processing"));
+
                     Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
                     if (dependenciesByLanguage.isEmpty()) continue;
 
-                    processRepoDependencies(dependenciesByLanguage, payload.repoName);
+                    processRepoDependencies(dependenciesByLanguage, payload.repoName, payload.userId);
 
                     msg.ack();
-                    jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "processed"));
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "processed"));
 
-                    log.debug("fully processed all issues for repo: {}", payload.repoName);
+                    log.debug("fully processed all issues", kv("repoName", payload.repoName), kv("userId", payload.userId));
                 } catch (Exception e) {
                     log.error("failed to process index repo msg", e);
-                    jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "failed"));
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "failed"));
                     msg.nak();
                 }
             } finally {
@@ -138,9 +140,9 @@ public class ConsumerService {
         Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(payload.repoName).join();
 
         if (dependenciesByLanguage.isEmpty()) {
-            jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "Dependencies Not Found"));
+            jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "Dependencies Not Found"));
                 
-            log.warn("no dependencies found for the repo: {}", payload.repoName);
+            log.warn("no dependencies found for the repo", kv("repoName", payload.repoName), kv("userId", payload.userId));
             msg.ack();
             return Map.of();
         }
@@ -150,13 +152,12 @@ public class ConsumerService {
 
     private void processRepoDependencies(
         Map<String, List<Dependency>> dependenciesByLanguage,
-        @NotBlank String repoName
+        @NotBlank String repoName,
+        @NotBlank String userId
     ) throws TranslateException, IOException, InterruptedException, ExecutionException {
         List<ProcessedGithubIssue> issueList = new ArrayList<>();
         List<GithubChangeLogResponse> changeLogs = new ArrayList<>();
         Map<String, String> libraryMap = new HashMap<>();
-
-        jobStatusRepository.upsert(new JobStatusDocument(repoName, "processing"));
 
         Set<DependencyDocument> indexedDependencies = dependencyRepository.list();
 
@@ -194,14 +195,14 @@ public class ConsumerService {
             }
 
             log.debug("fetched all {} issue chunks", issueList.size());
-            
-            // dependency versions whose changelogs are already fetched
-            Set<String> indexedDepVersions = indexedDependencies.stream()
-                .map(DependencyDocument::version)
-                .collect(Collectors.toSet());
 
+            // name+version pairs already indexed (to avoid false positives from independent sets)
+            Set<String> indexedDepNameVersionPairs = indexedDependencies.stream()
+                .map(d -> d.dependencyName() + "@" + d.version())
+                .collect(Collectors.toSet());
+            
             for (Dependency dependency : dependencies) {
-                if (indexedDepNames.contains(dependency.repoName()) && indexedDepVersions.contains(dependency.version())) {
+                if (indexedDepNameVersionPairs.contains(dependency.repoName() + "@" + dependency.version())) {
                     log.debug("changelog already indexed, skipping...", 
                         kv("name", dependency.name()),
                         kv("version", dependency.version()));
