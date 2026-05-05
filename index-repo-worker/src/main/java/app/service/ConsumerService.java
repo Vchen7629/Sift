@@ -7,15 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -45,14 +41,9 @@ import app.service.githubRepo.DependencyService;
 import app.service.githubRepo.IssueService;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
-import io.micrometer.observation.annotation.Observed;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
-import io.nats.client.impl.Headers;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapGetter;
 
 @Service
 @Validated
@@ -68,7 +59,8 @@ public class ConsumerService {
     private final JetStreamSubscription jetStreamSubscription; 
     private final ObjectMapper objectMapper;
     private final ObservationRegistry observationRegistry;
-    private final OpenTelemetry openTelemetry;
+    private final io.micrometer.tracing.Tracer tracer;
+    private final io.micrometer.tracing.propagation.Propagator propagator;
 
     public ConsumerService(
         DependencyService dependencyService,
@@ -81,7 +73,8 @@ public class ConsumerService {
         JetStreamSubscription jetStreamSubscription,
         ObjectMapper objectMapper,
         ObservationRegistry observationRegistry,
-        OpenTelemetry openTelemetry
+        io.micrometer.tracing.Tracer tracer,
+        io.micrometer.tracing.propagation.Propagator propagator
     ) {
         this.dependencyService = dependencyService;
         this.changelogService = changelogService;
@@ -93,7 +86,8 @@ public class ConsumerService {
         this.jetStreamSubscription = jetStreamSubscription;
         this.objectMapper = objectMapper;
         this.observationRegistry = observationRegistry;
-        this.openTelemetry = openTelemetry;
+        this.tracer = tracer;
+        this.propagator = propagator;
     }
 
     private record RepoIndexMsg(@NotBlank String repoName) {};
@@ -101,12 +95,17 @@ public class ConsumerService {
     private static final int POLL_DELAY_MS = 100;
 
     @Scheduled(fixedDelay = POLL_DELAY_MS)
-    @Observed(name="consumer.pollindexjobs.service")
     public void pollIndexJobs() throws StreamReadException, DatabindException, IOException {
         List<Message> messages = jetStreamSubscription.fetch(10, MAX_FETCH_WAIT);
 
         for (Message msg : messages) {
-            try (io.opentelemetry.context.Scope otelScope = extractContext(msg).makeCurrent()) {
+            io.micrometer.tracing.Span span = propagator
+                .extract(msg.getHeaders(), (carrier, key) -> carrier == null ? null : carrier.getFirst(key))
+                .name("consumer.pollindexjobs.service")
+                .kind(io.micrometer.tracing.Span.Kind.CONSUMER)
+                .start();
+
+            try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(span)) {
                 RepoIndexMsg payload = objectMapper.readValue(msg.getData(), RepoIndexMsg.class);
                 log.debug("recived index repo msg for processing");
 
@@ -125,6 +124,8 @@ public class ConsumerService {
                     jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "failed"));
                     msg.nak();
                 }
+            } finally {
+                span.end();
             }
         }
     }
@@ -237,28 +238,5 @@ public class ConsumerService {
         }
 
         userRepoRepository.insert(new UserRepoDocument("test-user-1", repoName, libraryMap, Instant.now()));
-    }
-
-    private Context extractContext(Message msg) {
-        Context contextCurrent = Objects.requireNonNull(Context.current());
-        Context context = openTelemetry.getPropagators().getTextMapPropagator().extract(
-            contextCurrent, 
-            msg.getHeaders(), 
-            new TextMapGetter<Headers>() {
-                @Override
-                public Iterable<String> keys(@Nonnull Headers carrier) {
-                    return carrier.keySet();
-                }
-
-                @Override
-                public String get(@Nullable Headers carrier, @Nonnull String key) {
-                    return carrier == null ? null : carrier.getFirst(key);
-                }
-            }
-        );
-
-        log.debug("extracting trace context from nats headers", kv("headers", msg.getHeaders() != null ? msg.getHeaders().toString() : "null"));
-
-        return context;
     }
 }
