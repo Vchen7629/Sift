@@ -24,10 +24,10 @@ public class IssueServiceUT {
     @Test
     void cleanIssueBody_RemovesMarkdownText() throws IOException, URISyntaxException {
         String unProcessedText = Files.readString(
-            Path.of(getClass().getClassLoader().getResource("service/issue_body.txt").toURI())
+            Path.of(getClass().getClassLoader().getResource("service/clean_issue_body_raw.txt").toURI())
         );
         String processedText = Files.readString(
-            Path.of(getClass().getClassLoader().getResource("service/processed_body.txt").toURI())
+            Path.of(getClass().getClassLoader().getResource("service/clean_issue_body_processed.txt").toURI())
         );
         String result = issueService.cleanIssueBody(unProcessedText);
 
@@ -35,5 +35,4 @@ public class IssueServiceUT {
         assertEquals(result, processedText);
         assertFalse(result.contains("```"));
     }
-
 }
