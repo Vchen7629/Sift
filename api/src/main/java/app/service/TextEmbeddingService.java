@@ -1,5 +1,6 @@
 package app.service;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -11,7 +12,7 @@ import ai.djl.translate.TranslateException;
 public class TextEmbeddingService {
     private final ZooModel<String, float[]> embeddingModel;
 
-    public TextEmbeddingService(ZooModel<String, float[]> embeddingModel) {
+    public TextEmbeddingService(@Qualifier("embeddingModel") ZooModel<String, float[]> embeddingModel) {
         this.embeddingModel = embeddingModel;
     }
 
