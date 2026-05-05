@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import ai.djl.translate.TranslateException;
 import app.component.parser.DependencyParserStrategy.Dependency;
+import app.dto.DependencyDocument;
 import app.dto.GithubChangeLogResponse;
 import app.dto.IndexableDocuments;
 import app.dto.JobStatusDocument;
@@ -38,9 +43,16 @@ import app.repository.UserRepoRepository;
 import app.service.githubRepo.ChangelogService;
 import app.service.githubRepo.DependencyService;
 import app.service.githubRepo.IssueService;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.annotation.Observed;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
+import io.nats.client.impl.Headers;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.propagation.TextMapGetter;
 
 @Service
 @Validated
@@ -55,6 +67,8 @@ public class ConsumerService {
     private final UserRepoRepository userRepoRepository;
     private final JetStreamSubscription jetStreamSubscription; 
     private final ObjectMapper objectMapper;
+    private final ObservationRegistry observationRegistry;
+    private final OpenTelemetry openTelemetry;
 
     public ConsumerService(
         DependencyService dependencyService,
@@ -65,7 +79,9 @@ public class ConsumerService {
         DependencyRepository dependencyRepository,
         UserRepoRepository userRepoRepository,
         JetStreamSubscription jetStreamSubscription,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        ObservationRegistry observationRegistry,
+        OpenTelemetry openTelemetry
     ) {
         this.dependencyService = dependencyService;
         this.changelogService = changelogService;
@@ -76,36 +92,39 @@ public class ConsumerService {
         this.userRepoRepository = userRepoRepository;
         this.jetStreamSubscription = jetStreamSubscription;
         this.objectMapper = objectMapper;
+        this.observationRegistry = observationRegistry;
+        this.openTelemetry = openTelemetry;
     }
 
-    private record RepoIndexMsg(@NotBlank String repoName, @NotBlank String requestId) {};
+    private record RepoIndexMsg(@NotBlank String repoName) {};
     private static final Duration MAX_FETCH_WAIT = Duration.ofSeconds(5);
     private static final int POLL_DELAY_MS = 100;
 
     @Scheduled(fixedDelay = POLL_DELAY_MS)
+    @Observed(name="consumer.pollindexjobs.service")
     public void pollIndexJobs() throws StreamReadException, DatabindException, IOException {
         List<Message> messages = jetStreamSubscription.fetch(10, MAX_FETCH_WAIT);
 
         for (Message msg : messages) {
-            RepoIndexMsg payload = objectMapper.readValue(msg.getData(), RepoIndexMsg.class);
-            log.debug("recived index repo msg for processing", kv("requestId", payload.requestId));
+            try (io.opentelemetry.context.Scope otelScope = extractContext(msg).makeCurrent()) {
+                RepoIndexMsg payload = objectMapper.readValue(msg.getData(), RepoIndexMsg.class);
+                log.debug("recived index repo msg for processing");
 
-            try {
-                Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
-                if (dependenciesByLanguage.isEmpty()) continue;
+                try {
+                    Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
+                    if (dependenciesByLanguage.isEmpty()) continue;
 
-                processRepoDependencies(dependenciesByLanguage, payload.repoName, payload.requestId);
+                    processRepoDependencies(dependenciesByLanguage, payload.repoName);
 
-                msg.ack();
-                jobStatusRepository.upsertJobStatus(
-                    new JobStatusDocument(payload.repoName, "processed"), 
-                    payload.requestId);
+                    msg.ack();
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "processed"));
 
-                log.debug("fully processed all issues for repo: {}", payload.repoName);
-            } catch (Exception e) {
-                log.error("failed to process index repo msg", kv("requestId", payload.requestId), e);
-                jobStatusRepository.upsertJobStatus(new JobStatusDocument(payload.repoName, "failed"), payload.requestId);
-                msg.nak();
+                    log.debug("fully processed all issues for repo: {}", payload.repoName);
+                } catch (Exception e) {
+                    log.error("failed to process index repo msg", e);
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "failed"));
+                    msg.nak();
+                }
             }
         }
     }
@@ -113,16 +132,14 @@ public class ConsumerService {
     private Map<String, List<Dependency>> fetchAllRepoDependencies(
         Message msg, @Valid RepoIndexMsg payload
     ) throws JetStreamApiException, TranslateException, IOException {
-        log.info("processMsg called", kv("requestId", payload.requestId));
+        log.info("processMsg called");
 
-        Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(payload.repoName, payload.requestId).join();
+        Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(payload.repoName).join();
 
         if (dependenciesByLanguage.isEmpty()) {
-            jobStatusRepository.upsertJobStatus(
-                new JobStatusDocument(payload.repoName, "Dependencies Not Found"), 
-                payload.requestId);
+            jobStatusRepository.upsert(new JobStatusDocument(payload.repoName, "Dependencies Not Found"));
                 
-            log.warn("no dependencies found for the repo: {}", payload.repoName, kv("requestId", payload.requestId));
+            log.warn("no dependencies found for the repo: {}", payload.repoName);
             msg.ack();
             return Map.of();
         }
@@ -132,24 +149,18 @@ public class ConsumerService {
 
     private void processRepoDependencies(
         Map<String, List<Dependency>> dependenciesByLanguage,
-        @NotBlank String repoName,
-        @NotBlank String requestId
+        @NotBlank String repoName
     ) throws TranslateException, IOException, InterruptedException, ExecutionException {
         List<ProcessedGithubIssue> issueList = new ArrayList<>();
         List<GithubChangeLogResponse> changeLogs = new ArrayList<>();
         Map<String, String> libraryMap = new HashMap<>();
 
-        jobStatusRepository.upsertJobStatus(
-            new JobStatusDocument(repoName, "processing"),
-            requestId
-        );
+        jobStatusRepository.upsert(new JobStatusDocument(repoName, "processing"));
 
-        Set<DependencyRepository.DependencyNameVersion> indexedDependencies = dependencyRepository.listDependencyNameVersion(requestId);
+        Set<DependencyDocument> indexedDependencies = dependencyRepository.list();
 
         for (Map.Entry<String, List<Dependency>> entry : dependenciesByLanguage.entrySet()) {
             List<Dependency> dependencies = entry.getValue();
-
-            long start = System.currentTimeMillis();
 
             // the amount of threads to spawn in for fetching issues, one per repo
             Set<String> uniqueRepos = dependencies.stream()
@@ -158,14 +169,22 @@ public class ConsumerService {
 
             // dependency names whose issues are already fetched
             Set<String> indexedDepNames = indexedDependencies.stream()
-                .map(DependencyRepository.DependencyNameVersion::dependencyName)
+                .map(DependencyDocument::dependencyName)
                 .collect(Collectors.toSet());
+
+            Observation currentObservation = observationRegistry.getCurrentObservation();
 
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 List<Future<List<ProcessedGithubIssue>>> futures = uniqueRepos.stream()
                     .filter(dep -> !indexedDepNames.contains(dep))
-                    .map(dependencyName -> executor.submit(() -> 
-                        issueService.fetchDependencyIssues(dependencyName, requestId).join()))
+                    .map(dependencyName -> executor.submit(() -> {
+                        if (currentObservation != null) {
+                            try (Observation.Scope scope = currentObservation.openScope()) {
+                                return issueService.fetch(dependencyName);
+                            }
+                        }
+                        return issueService.fetch(dependencyName);
+                    }))
                     .toList();
                 
                 for (Future<List<ProcessedGithubIssue>> future : futures) {
@@ -173,29 +192,25 @@ public class ConsumerService {
                 }
             }
 
-            long elapsed = System.currentTimeMillis() - start;
-            log.debug("fetched all {} issue chunks in {}ms ({}s)", 
-                issueList.size(), elapsed, elapsed / 1000.0,
-                kv("requestId", requestId));
+            log.debug("fetched all {} issue chunks", issueList.size());
             
             // dependency versions whose changelogs are already fetched
             Set<String> indexedDepVersions = indexedDependencies.stream()
-                .map(DependencyRepository.DependencyNameVersion::version)
+                .map(DependencyDocument::version)
                 .collect(Collectors.toSet());
 
             for (Dependency dependency : dependencies) {
                 if (indexedDepNames.contains(dependency.repoName()) && indexedDepVersions.contains(dependency.version())) {
                     log.debug("changelog already indexed, skipping...", 
                         kv("name", dependency.name()),
-                        kv("version", dependency.version()),
-                        kv("requestId", requestId));
+                        kv("version", dependency.version()));
 
                     libraryMap.put(dependency.name(), dependency.version());
 
                     continue;
                 }
 
-                GithubChangeLogResponse changeLog = changelogService.fetchChangeLogForVersion(
+                GithubChangeLogResponse changeLog = changelogService.fetchForVersion(
                     dependency.repoName(), dependency.version()
                 ).join();
 
@@ -208,23 +223,42 @@ public class ConsumerService {
         }
 
         if (!issueList.isEmpty()) {
-            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
-            dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
+            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.generateIssue(issueList);
+            dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName);
 
-            log.info("inserted new issue documents into openSearch successfully!", 
-                kv("requestId", requestId), kv("repoName", repoName)
-            );
+            log.info("inserted new issue documents into openSearch successfully!", kv("repoName", repoName));
         }
 
         if (!changeLogs.isEmpty()) {
-            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
-            dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
+            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.generateChangeLog(changeLogs);
+            dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName);
 
-            log.info("inserted new changelog documents into openSearch successfully!", 
-                kv("requestId", requestId), kv("repoName", repoName)
-            );
+            log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
         }
 
-        userRepoRepository.insertDocument(new UserRepoDocument("test-user-1", repoName, libraryMap, Instant.now()));
+        userRepoRepository.insert(new UserRepoDocument("test-user-1", repoName, libraryMap, Instant.now()));
+    }
+
+    private Context extractContext(Message msg) {
+        Context contextCurrent = Objects.requireNonNull(Context.current());
+        Context context = openTelemetry.getPropagators().getTextMapPropagator().extract(
+            contextCurrent, 
+            msg.getHeaders(), 
+            new TextMapGetter<Headers>() {
+                @Override
+                public Iterable<String> keys(@Nonnull Headers carrier) {
+                    return carrier.keySet();
+                }
+
+                @Override
+                public String get(@Nullable Headers carrier, @Nonnull String key) {
+                    return carrier == null ? null : carrier.getFirst(key);
+                }
+            }
+        );
+
+        log.debug("extracting trace context from nats headers", kv("headers", msg.getHeaders() != null ? msg.getHeaders().toString() : "null"));
+
+        return context;
     }
 }

@@ -14,9 +14,9 @@ import org.opensearch.client.opensearch.core.bulk.BulkOperation;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import app.dto.DependencyDocument;
 import app.dto.IndexableDocuments;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -42,10 +42,10 @@ public class DependencyRepository {
         createIssueIndexIfNotExist();
     }
 
+    @Observed(name="dependency.bulkinsertdocuments.repository")
     public <T extends IndexableDocuments.Base> void bulkInsertDocuments(
         @NotEmpty List<T> documents,
-        @NotBlank String indexName,
-        @NotBlank String requestId
+        @NotBlank String indexName
     ) throws IOException {
         List<BulkOperation> operations = new ArrayList<>();
 
@@ -66,10 +66,7 @@ public class DependencyRepository {
                 .operations(batch)
             );
 
-            log.debug("bulk added {} documents",
-                batch.size(),
-                kv("index", indexName),
-                kv("requestId", requestId));
+            log.debug("bulk added {} documents", batch.size(), kv("index", indexName));
 
             if (bulkRes.errors()) {
                 List<String> failures = bulkRes.items().stream()
@@ -81,26 +78,20 @@ public class DependencyRepository {
                     })
                     .toList();
 
-                log.error("failed to bulk insert documents",
-                    kv("index", indexName),
-                    kv("error", failures),
-                    kv("requestId", requestId));
+                log.error("failed to bulk insert documents", kv("index", indexName), kv("error", failures));
 
                 throw new RuntimeException("Bulk index had failures: " + failures);
             }
         }
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record DependencyNameVersion(String dependencyName, String version) {}
-
     /**
      * fetches all dependencies (name and version) already indexed so it doesnt refetch issues and changelogs
-     * @param requestId used just for tracking request in logs
      * @return a set containing records containing the dependency name and version pairs
      * @throws IOException from openSearchClient.search
      */
-    public Set<DependencyNameVersion> listDependencyNameVersion(@NotBlank String requestId) throws IOException {
+    @Observed(name="dependency.list.repository")
+    public Set<DependencyDocument> list() throws IOException {
         final int maxUniqueDependencies = 100000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
@@ -118,21 +109,20 @@ public class DependencyRepository {
 
         Aggregate byDependency = searchRes.aggregations().get("byDependency");
         if (byDependency == null || !byDependency.isSterms()) {
-            log.warn("no dependencies from changelogs found", kv("requestId", requestId));
+            log.warn("no dependencies from changelogs found");
             return Set.of();
         }
         
-        Set<DependencyNameVersion> dependencyNameVersions = byDependency.sterms().buckets().array().stream()
+        Set<DependencyDocument> dependencyNameVersions = byDependency.sterms().buckets().array().stream()
             .map(depBucket -> {
                 String name = depBucket.key();
                 Aggregate versionAgg = depBucket.aggregations().get("version");
                 String version = versionAgg.sterms().buckets().array().get(0).key();
-                return new DependencyNameVersion(name, version);
+                return new DependencyDocument(name, version);
             })
             .collect(Collectors.toSet());
         
-        log.debug("Successfully fetched {} dependencies via changelog", dependencyNameVersions.size(), 
-            kv("requestId", requestId));
+        log.debug("Successfully fetched {} dependencies via changelog", dependencyNameVersions.size());
         
         return dependencyNameVersions;
     }

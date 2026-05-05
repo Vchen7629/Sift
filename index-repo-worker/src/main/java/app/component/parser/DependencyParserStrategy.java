@@ -9,7 +9,7 @@ import app.model.DependencyFileEnum;
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 public interface DependencyParserStrategy {
-    public record Dependency(String name, String version, String repoName) {};
+    public record Dependency(String name, String version, String repoName) {}; // name is suspicious
 
     List<Dependency> parse(
         DependencyFileEnum fileType, 

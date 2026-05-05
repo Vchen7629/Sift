@@ -3,7 +3,6 @@ package app.controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +16,7 @@ import app.dto.IssueSearchResponse;
 import app.repository.SearchRepository;
 import app.repository.UserRepoRepository;
 import app.service.RerankingService;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -54,21 +54,20 @@ public class SearchController {
      * @throws IOException from both userRepoRepository.findRepoDependency and searchRepository.findRelevantIssues
      */
     @PostMapping("/new")
+    @Observed(name="search.new.controller")
     public ResponseEntity<?> searchRelevantIssues(
         @RequestBody @Valid searchIssueRequest request
     ) throws TranslateException, IOException {
-        String requestId = UUID.randomUUID().toString();
+        log.info("recieved hybrid search request", kv("query", request.searchQuery));
 
-        log.info("recieved hybrid search request", kv("query", request.searchQuery), kv("requestId", requestId));
-
-        Map<String, String> userRepoDependencies = userRepoRepository.listAllDependencies(requestId, request.userId);
+        Map<String, String> userRepoDependencies = userRepoRepository.listAllDependencies(request.userId);
         if (userRepoDependencies.isEmpty()) {
-            log.debug("no dependencies found for user", kv("userId", request.userId), kv("requestId", requestId));
+            log.debug("no dependencies found for user", kv("userId", request.userId));
             return ResponseEntity.status(404).body("No dependencies found for the userId");
         }
 
         List<IssueSearchResponse> issueResults = searchRepository.findRelevantIssues(
-            userRepoDependencies, request.searchQuery, requestId
+            userRepoDependencies, request.searchQuery
         );
 
         long start = System.currentTimeMillis();

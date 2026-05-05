@@ -7,6 +7,7 @@ import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,8 @@ public class JobStatusRepository {
 
     private record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
 
-    public String findJobStatus(@NotBlank String repoName) throws IOException {
+    @Observed(name="jobstatus.findstatus.repository")
+    public String findStatus(@NotBlank String repoName) throws IOException {
         SearchResponse<JobStatus> searchRes = openSearchClient.search(r -> r
             .index(jobStatusIndexName)
             .timeout("30s")

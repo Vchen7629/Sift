@@ -14,6 +14,7 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import ai.djl.util.StringPair;
 import app.dto.IssueSearchResponse;
+import io.micrometer.observation.annotation.Observed;
 
 @Service
 public class RerankingService {
@@ -29,6 +30,8 @@ public class RerankingService {
         Runtime.getRuntime().availableProcessors() / 2
     );
 
+    // this is an async method so prob have to capture scope to propagate or whatever properly
+    @Observed(name="reranking.rerank.service")
     public List<IssueSearchResponse> rerank(String searchQuery, List<IssueSearchResponse> searchRes) {
         List<CompletableFuture<float[]>> futures = searchRes.stream()
             .map(issue -> CompletableFuture.supplyAsync(() -> {

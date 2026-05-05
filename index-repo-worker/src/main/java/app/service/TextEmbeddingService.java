@@ -12,14 +12,13 @@ import app.dto.GithubChangeLogResponse;
 import app.dto.IndexableDocuments;
 import app.dto.IndexableDocuments.ChangeLog;
 import app.dto.IndexableDocuments.Issue;
+import io.micrometer.observation.annotation.Observed;
 import app.dto.ProcessedGithubIssue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.validation.Valid;
-import static net.logstash.logback.argument.StructuredArguments.kv;
-import jakarta.validation.constraints.NotBlank;
 
 @Service
 @Validated
@@ -31,14 +30,12 @@ public class TextEmbeddingService {
         this.embeddingModel = embeddingModel;
     }
 
-    public List<IndexableDocuments.ChangeLog> generateChangeLogEmbeddings(
-        @NotEmpty @Valid List<GithubChangeLogResponse> changeLogs,
-        @NotBlank String requestId
+    @Observed(name="textembedding.generatechangelog.service")
+    public List<IndexableDocuments.ChangeLog> generateChangeLog(
+        @NotEmpty @Valid List<GithubChangeLogResponse> changeLogs
     ) throws TranslateException {
         List<List<GithubChangeLogResponse>> batches = partition(changeLogs, 32);
         List<IndexableDocuments.ChangeLog> changeLogDocuments = new ArrayList<>();
-
-        long start = System.currentTimeMillis();
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<GithubChangeLogResponse> batch : batches) {
@@ -49,7 +46,7 @@ public class TextEmbeddingService {
 
                 List<float[]> changeEmbeddings = predictor.batchPredict(changeList);
 
-                log.debug("changelog embeddings for batch", kv("requestId", requestId));
+                log.debug("changelog embeddings for batch");
             
                 for (int i = 0; i < urls.size(); i++) {
                     changeLogDocuments.add(
@@ -60,28 +57,23 @@ public class TextEmbeddingService {
                     );
                 }
 
-                log.debug("added changelog document to result list", kv("requestId", requestId));
+                log.debug("added changelog document to result list");
             }
         }
 
-        long elapsed = System.currentTimeMillis() - start;
-        log.debug("processed {} changelogs in {}ms ({}s)", 
-                changeLogDocuments.size(), elapsed, elapsed / 1000.0,
-                kv("requestId", requestId));
+        log.debug("processed {} changelogs", changeLogDocuments.size());
     
         return changeLogDocuments;
     }
     
-    public List<IndexableDocuments.Issue> generateIssueEmbeddings(
-        @NotEmpty @Valid List<ProcessedGithubIssue> issueDocuments,
-        @NotBlank String requestId
+    @Observed(name="textembedding.generateissue.service")
+    public List<IndexableDocuments.Issue> generateIssue(
+        @NotEmpty @Valid List<ProcessedGithubIssue> issueDocuments
     ) throws TranslateException {
         List<List<ProcessedGithubIssue>> batches = partition(issueDocuments, 32);
         List<IndexableDocuments.Issue> embeddingDocuments = new ArrayList<>();
 
-        log.debug("created {} batches", batches.size(), kv("requestId", requestId));
-
-        long start = System.currentTimeMillis();
+        log.debug("created {} batches", batches.size());
 
         try (var predictor = embeddingModel.newPredictor()) {
             for (List<ProcessedGithubIssue> batch : batches) {
@@ -108,10 +100,7 @@ public class TextEmbeddingService {
             }
         }
 
-        long elapsed = System.currentTimeMillis() - start;
-        log.debug("processed {} issues in {}ms ({}s)", 
-                embeddingDocuments.size(), elapsed, elapsed / 1000.0,
-                kv("requestId", requestId));
+        log.debug("processed {} issues", embeddingDocuments.size());
     
         return embeddingDocuments;
     }

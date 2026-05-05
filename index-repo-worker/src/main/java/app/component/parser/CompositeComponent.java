@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import app.model.DependencyFileEnum;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.micrometer.observation.annotation.Observed;
 
 @Primary
 @Component
@@ -29,7 +30,9 @@ public class CompositeComponent implements DependencyParserStrategy {
             .collect(Collectors.toSet());
     }
 
+    // Todo: Investigate if i can observe the individual parsers
     @Override
+    @Observed(name="composite.parse.component")
     public List<Dependency> parse(
         DependencyFileEnum fileType, String nonLockFileContent, @Nullable String lockFileContent
     ) throws JsonProcessingException {

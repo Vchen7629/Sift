@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import app.dto.GithubChangeLogResponse;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.constraints.NotBlank;
 
 @Service
@@ -24,7 +25,8 @@ public class ChangelogService {
     }
 
     @Async
-    public CompletableFuture<GithubChangeLogResponse> fetchChangeLogForVersion(
+    @Observed(name="changelog.fetchforversion.service")
+    public CompletableFuture<GithubChangeLogResponse> fetchForVersion(
         @NotBlank String repoName, @NotBlank String version
     ) {
         try {

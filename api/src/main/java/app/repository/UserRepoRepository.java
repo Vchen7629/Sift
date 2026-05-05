@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -33,7 +34,8 @@ public class UserRepoRepository {
         this.openSearchClient = openSearchClient;
     }
 
-    public void delete(@NotBlank String userId, @NotBlank String repoName, @NotBlank String requestId) throws IOException {
+    @Observed(name="userrepo.delete.repository")
+    public void delete(@NotBlank String userId, @NotBlank String repoName) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
             .index(indexedRepoIndexName)
             .query(q -> q
@@ -44,14 +46,10 @@ public class UserRepoRepository {
             )
         );
 
-        log.debug("successfully deleted track Repo", 
-            kv("repoName", repoName), 
-            kv("requestId", requestId));
+        log.debug("successfully deleted track Repo", kv("repoName", repoName));
 
         if (deleteRes.deleted() == 0) {
-            log.warn("No repo found in db to delete", 
-                kv("repoName", repoName),
-                kv("requestId", requestId));
+            log.warn("No repo found in db to delete", kv("repoName", repoName));
 
             throw new NoSuchElementException("No repo found to delete");
         }
@@ -62,15 +60,13 @@ public class UserRepoRepository {
 
     /**
      * fetches all dependencies across the user's indexed repo for search filtering on
-     * @param requestId used just for tracking request in logs
      * @param userId used to decide which user to fetch for
      * @return a map containing the dependency name and version pairs
      * @throws IOException from openSearchClient.search
      */
-    public Map<String, String> listAllDependencies(@NotBlank String requestId, @NotBlank String userId) throws IOException {
+    @Observed(name="userrepo.listalldependencies.repository")
+    public Map<String, String> listAllDependencies(@NotBlank String userId) throws IOException {
         final int maxUniqueDependencies = 1000;
-
-        long start = System.currentTimeMillis();
 
         SearchResponse<UserRepoDepDoc> searchRes = openSearchClient.search(r -> r
             .index(indexedRepoIndexName)
@@ -88,24 +84,20 @@ public class UserRepoRepository {
             .filter(Objects::nonNull)
             .forEach(doc -> repoDependencies.putAll(doc.dependencies()));
 
-        long elapsed = System.currentTimeMillis() - start;
 
-         log.debug("fetched {} dependencies in {}ms ({}s)", 
-                repoDependencies.size(), elapsed, elapsed / 1000.0,
-                kv("userId", userId),
-                kv("requestId", requestId));
+        log.debug("fetched {} dependencies", repoDependencies.size(), kv("userId", userId));
 
         return repoDependencies;
     }
 
     /**
      * fetch all indexed repos belonging to the user
-     * @param requestId used to track the original request for logging
      * @param userId the user to fetch the indexed repos for
      * @return a list of repos indexed for the user
      * @throws IOException from openSearchClient.search
      */
-    public List<String> listAll(@NotBlank String requestId, @NotBlank String userId) throws IOException {
+    @Observed(name="userrepo.listall.repository")
+    public List<String> listAll(@NotBlank String userId) throws IOException {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
@@ -124,7 +116,7 @@ public class UserRepoRepository {
 
         Aggregate repoNameAgg = searchRes.aggregations().get("repoNames");
         if (repoNameAgg == null || !repoNameAgg.isSterms()) {
-            log.debug("found no indexed repos in the db", kv("requestId", requestId));
+            log.debug("found no indexed repos in the db");
             return List.of(); // return empty list instead of throwing an exception
         }
 
@@ -135,12 +127,12 @@ public class UserRepoRepository {
             .map(StringTermsBucket::key)
             .toList();
 
-        log.debug("Successfully fetched {} indexed repos", indexedRepos.size(), 
-            kv("requestId", requestId));
+        log.debug("Successfully fetched {} indexed repos", indexedRepos.size());
 
         return indexedRepos;
     }
 
+    @Observed(name="userrepo.isrepoindexed.repository")
     public boolean isRepoIndexed(String repoName) throws IOException{
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
             .index(indexedRepoIndexName)

@@ -1,7 +1,6 @@
 package app.controller;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import org.kohsuke.github.GitHub;
 import org.springframework.http.HttpStatus;
@@ -16,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import ai.djl.translate.TranslateException;
 import app.repository.UserRepoRepository;
+import app.dto.IndexRepoMsg;
 import app.repository.JobStatusRepository;
 import app.service.ProducerService;
+import io.micrometer.observation.annotation.Observed;
 import io.nats.client.JetStreamApiException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -50,41 +51,33 @@ public class IndexRepoController {
     private record IndexRepoRequest(@NotBlank String repoName) {}
 
     @PostMapping("/add")
+    @Observed(name="indexrepo.addNewRepo.controller")
     public ResponseEntity<String> addNewRepo(
         @RequestBody @Valid IndexRepoRequest request
     ) throws IOException, JetStreamApiException, TranslateException { 
-        String requestId = UUID.randomUUID().toString();
+        log.info("recieved add new repo request", kv("repoName", request.repoName()));
 
-        log.info("recieved add new repo request", 
-            kv("repoName", request.repoName), 
-            kv("requestId", requestId));
+        githubClient.getRepository(request.repoName()); 
 
-        githubClient.getRepository(request.repoName); 
-
-        if (indexedRepoRepository.isRepoIndexed(request.repoName)) {
-            log.warn("repo already indexed, cant add it again", kv("repoName", request.repoName));
+        if (indexedRepoRepository.isRepoIndexed(request.repoName())) {
+            log.warn("repo already indexed, cant add it again", kv("repoName", request.repoName()));
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }      
 
-        producerService.PublishIndexRepoJobRequest(new ProducerService.RepoIndexMsg(request.repoName, requestId));
+        producerService.PublishIndexRepoJobRequest(new IndexRepoMsg(request.repoName()));
         
-        return ResponseEntity.accepted().body("added " + request.repoName + " to processing");
+        return ResponseEntity.accepted().body("added " + request.repoName() + " to processing");
     }
 
     @GetMapping("/get_status/{repoName}")
+    @Observed(name="indexrepo.getStatus.controller")
     public ResponseEntity<String> getStatus(@NotBlank @PathVariable String repoName) throws IOException {
-        String requestId = UUID.randomUUID().toString();
+        log.info("recieved get repo index job status request", kv("repoName", repoName));
 
-        log.info("recieved get repo index job status request", 
-            kv("repoName", repoName),
-            kv("requestId", requestId));
-
-        String jobStatus = jobStatusRepository.findJobStatus(repoName);
+        String jobStatus = jobStatusRepository.findStatus(repoName);
 
         if (jobStatus.equals(null)) {
-            log.warn("repo hasn't been added to db yet", 
-                kv("repoName", repoName),
-                kv("requestId", requestId));
+            log.warn("repo hasn't been added to db yet", kv("repoName", repoName));
                 
             return ResponseEntity.status(404).body("repo status not found, add it for processing first");
         }

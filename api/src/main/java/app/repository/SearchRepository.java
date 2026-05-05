@@ -20,10 +20,10 @@ import org.springframework.validation.annotation.Validated;
 import ai.djl.translate.TranslateException;
 import app.dto.IssueSearchResponse;
 import app.service.TextEmbeddingService;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
-import static net.logstash.logback.argument.StructuredArguments.kv;
 
 
 @Repository
@@ -47,10 +47,10 @@ public class SearchRepository {
         createSearchPipelineIfNotExist();
     }
 
+    @Observed(name="search.findrelevantissues.repository")
     public List<IssueSearchResponse> findRelevantIssues(
         Map<String, String> dependencyFilterList,
-        @NotBlank String searchQuery,
-        @NotBlank String requestId
+        @NotBlank String searchQuery
     ) throws TranslateException, IOException {
         Query keywordQuery = Query.of(q -> q
             .multiMatch(m -> m
@@ -114,7 +114,7 @@ public class SearchRepository {
 
         SearchResponse<IssueSearchResponse> searchRes = openSearchClient.search(searchRequest, IssueSearchResponse.class);
 
-        log.debug("search returned {} hits", searchRes.hits().hits().size(), kv("requestId", requestId));
+        log.debug("search returned {} hits", searchRes.hits().hits().size());
 
         return searchRes.hits().hits().stream()
             .map(hit -> hit.source())

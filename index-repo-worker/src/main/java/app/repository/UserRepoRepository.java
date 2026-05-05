@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
 import app.dto.UserRepoDocument;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +33,8 @@ public class UserRepoRepository {
         createIndexIfNotExist();
     }
 
-    public void insertDocument(
-        @Valid UserRepoDocument document
-    ) throws IOException {
+    @Observed(name = "userrepo.insert.repository")
+    public void insert(@Valid UserRepoDocument document) throws IOException {
         IndexResponse insertRes = openSearchClient.index(r -> r
             .index(indexName).id(document.repoName()).document(document)
         );

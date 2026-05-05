@@ -7,11 +7,11 @@ import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
 import app.dto.JobStatusDocument;
+import io.micrometer.observation.annotation.Observed;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
@@ -26,7 +26,8 @@ public class JobStatusRepository {
         this.openSearchClient = openSearchClient;
     }
 
-    public void upsertJobStatus(@Valid JobStatusDocument jobStatus, @NotBlank String requestId) {
+    @Observed(name="jobstatus.upsert.repository")
+    public void upsert(@Valid JobStatusDocument jobStatus) {
         try {
             openSearchClient.update(r -> r
                 .index(jobStatusIndexName)
@@ -38,15 +39,13 @@ public class JobStatusRepository {
             log.debug("upserted job status to {}", 
                 jobStatus.status(), 
                 kv("index", jobStatusIndexName),
-                kv("repoName", jobStatus.repoName()),
-                kv("requestId", requestId));
+                kv("repoName", jobStatus.repoName()));
 
         } catch (IOException e) { 
             log.error("failed to upsert job status to {}", 
                 jobStatus.status(), 
                 kv("index", jobStatusIndexName),
-                kv("repoName", jobStatus.repoName()),
-                kv("requestId", requestId));
+                kv("repoName", jobStatus.repoName()));
         }
     }
 

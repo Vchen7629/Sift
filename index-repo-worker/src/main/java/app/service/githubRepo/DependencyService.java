@@ -24,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import app.model.DependencyFileEnum;
+import io.micrometer.observation.annotation.Observed;
 import app.component.parser.DependencyParserStrategy;
 import app.component.parser.DependencyParserStrategy.Dependency;
 import jakarta.validation.constraints.NotBlank;
@@ -47,14 +48,11 @@ public class DependencyService {
     }
 
     @Async
-    public CompletableFuture<Map<String, List<Dependency>>> fetchRepoDependencies(
-        @NotBlank String repoName, @NotBlank String requestId
-    ) {
+    @Observed(name="dependency.fetchrepodependencies.service")
+    public CompletableFuture<Map<String, List<Dependency>>> fetchRepoDependencies(@NotBlank String repoName) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
             
-            long start = System.currentTimeMillis();
-
             Map<String, List<Dependency>> dependenciesByLanguage = new HashMap<>();
 
             GHTree tree = repo.getTreeRecursive("HEAD", 1);
@@ -69,26 +67,19 @@ public class DependencyService {
                 dependenciesByLanguage.put(language, languageDependencies.get());
             }
 
-            long elapsed = System.currentTimeMillis() - start;
-
-            log.debug("fetched dependencies in {}ms ({}s)", 
-                elapsed, elapsed / 1000.0,
-                kv("repoName", repoName),
-                kv("requestId", requestId));
+            log.debug("fetched dependencies", kv("repoName", repoName));
 
             return CompletableFuture.completedFuture(dependenciesByLanguage);
         } catch (GHFileNotFoundException e) {
             log.error("Repo not found", 
                 kv("repoName", repoName), 
-                kv("error", e.getMessage()),
-                kv("requestId", requestId));
+                kv("error", e.getMessage()));
 
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
             log.error("Unknown error fetching issues", 
                 kv("repoName", repoName), 
-                kv("error", e.getMessage()),
-                kv("requestId", requestId));
+                kv("error", e.getMessage()));
 
             return CompletableFuture.failedFuture(e);
         }
