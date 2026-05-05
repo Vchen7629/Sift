@@ -2,11 +2,9 @@ package app.repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
@@ -19,14 +17,11 @@ import org.opensearch.client.opensearch.search_pipeline.ScoreNormalizationTechni
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import ai.djl.translate.TranslateException;
+import app.dto.IssueSearchResponse;
 import app.service.TextEmbeddingService;
 import jakarta.annotation.PostConstruct;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -37,7 +32,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 public class SearchRepository {
     private final OpenSearchClient openSearchClient;
     private final TextEmbeddingService textEmbeddingService;
-    private final static String issuesIndexName = "dependency-issue";
+    private final static String issueIndexName = "dependency-issues";
 
     public SearchRepository(
         OpenSearchClient openSearchClient,
@@ -52,10 +47,7 @@ public class SearchRepository {
         createSearchPipelineIfNotExist();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static record IssueSearchResult(String url, String title, String body) {};
-
-    public List<IssueSearchResult> findRelevantIssues(
+    public List<IssueSearchResponse> findRelevantIssues(
         Map<String, String> dependencyFilterList,
         @NotBlank String searchQuery,
         @NotBlank String requestId
@@ -110,53 +102,24 @@ public class SearchRepository {
 
         var resultAmount = 10;
         SearchRequest searchRequest = SearchRequest.of(s -> s
-            .index(issuesIndexName)
+            .index(issueIndexName)
             .query(hybridQuery)
             .size(resultAmount)
             .timeout("30s")
             .searchPipeline("hybrid-search-pipeline")
+            .collapse(c -> c.field("url"))
             .postFilter(dependencyNameFilter)
         );
 
-        SearchResponse<IssueSearchResult> searchRes = openSearchClient.search(searchRequest, IssueSearchResult.class);
+        SearchResponse<IssueSearchResponse> searchRes = openSearchClient.search(searchRequest, IssueSearchResponse.class);
 
         log.debug("search returned {} hits", searchRes.hits().hits().size(), kv("requestId", requestId));
 
-        return deduplicateSearchResults((searchRes.hits().hits().stream()
+        return searchRes.hits().hits().stream()
             .map(hit -> hit.source())
             .filter(Objects::nonNull)
-            .toList()
-        ), requestId);
+            .toList();
     }
-
-    // opensearch returns duplicate issues sometimes, using url to deduplicate
-    // since each issue has a unique url.
-    private final List<IssueSearchResult> deduplicateSearchResults(
-        @NotEmpty @Valid List<IssueSearchResult> searchResults,
-        @NotBlank String requestId
-    ) {
-        List<IssueSearchResult> deduplicatedList = new ArrayList<>();
-        Set<String> seenIds = new HashSet<>();
-
-        int deduplicatedCount = 0;
-
-        for (IssueSearchResult issue : searchResults) {
-            boolean notSeen = seenIds.add(issue.url());
-
-            if (notSeen) {
-                deduplicatedList.add(issue);
-            } else {
-                deduplicatedCount++;
-            }
-        }
-
-        log.debug("deduplicated search results", 
-            kv("requestId", requestId), 
-            kv("duplicatesRemoved", deduplicatedCount));
-
-        return deduplicatedList;
-    }
-
     
     private void createSearchPipelineIfNotExist() throws IOException {
         boolean exists = !openSearchClient.searchPipeline()
