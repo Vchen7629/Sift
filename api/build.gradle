@@ -32,6 +32,10 @@ dependencies {
 	implementation 'io.nats:jnats:2.25.2'
 	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation platform('io.micrometer:micrometer-tracing-bom:latest.release')
+	implementation 'io.micrometer:micrometer-tracing'
+	implementation 'io.micrometer:micrometer-tracing-bridge-otel:1.6.5'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.61.0'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
   	runtimeOnly 'ai.djl.pytorch:pytorch-native-cpu'
