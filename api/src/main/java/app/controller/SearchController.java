@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ai.djl.translate.TranslateException;
+import app.dto.IssueSearchResponse;
 import app.repository.SearchRepository;
 import app.repository.UserRepoRepository;
+import app.service.RerankingService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +29,16 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 public class SearchController {
     private final SearchRepository searchRepository;
     private final UserRepoRepository userRepoRepository;
+    private final RerankingService rerankingService;
 
     public SearchController(
         SearchRepository searchRepository,
-        UserRepoRepository userRepoRepository
+        UserRepoRepository userRepoRepository,
+        RerankingService rerankingService
     ) {
         this.searchRepository = searchRepository;
         this.userRepoRepository = userRepoRepository;
+        this.rerankingService = rerankingService;
     }
 
     private record searchIssueRequest(
@@ -62,10 +67,16 @@ public class SearchController {
             return ResponseEntity.status(404).body("No dependencies found for the userId");
         }
 
-        List<SearchRepository.IssueSearchResult> issueResult = searchRepository.findRelevantIssues(
+        List<IssueSearchResponse> issueResults = searchRepository.findRelevantIssues(
             userRepoDependencies, request.searchQuery, requestId
         );
 
-        return ResponseEntity.ok().body(issueResult);
+        long start = System.currentTimeMillis();
+        List<IssueSearchResponse> rerankedResults = rerankingService.rerank(request.searchQuery, issueResults);
+        long elapsed = System.currentTimeMillis() - start;
+
+        log.debug("reranking took {} ms", elapsed);
+
+        return ResponseEntity.ok().body(rerankedResults);
     }
 }

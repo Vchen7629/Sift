@@ -76,11 +76,13 @@ public class SearchRepository {
             )
         );
 
+        int totalCandidates = 25;
+
         Query titleSemQuery = Query.of(q -> q
             .knn(k -> k
                 .field("titleEmbedding")
                 .vector(searchVector)
-                .k(10)
+                .k(totalCandidates)
                 .filter(dependencyNameFilter)
             )
         );
@@ -89,7 +91,7 @@ public class SearchRepository {
             .knn(k -> k
                 .field("bodyEmbedding")
                 .vector(searchVector)
-                .k(10)
+                .k(totalCandidates)
                 .filter(dependencyNameFilter)
             )
         );
@@ -100,11 +102,10 @@ public class SearchRepository {
             )
         );
 
-        var resultAmount = 10;
         SearchRequest searchRequest = SearchRequest.of(s -> s
             .index(issueIndexName)
             .query(hybridQuery)
-            .size(resultAmount)
+            .size(totalCandidates)
             .timeout("30s")
             .searchPipeline("hybrid-search-pipeline")
             .collapse(c -> c.field("url"))
