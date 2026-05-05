@@ -12,4 +12,9 @@ public class OpensearchExceptionHandler {
     public ResponseEntity<String> noElementFound(NoSuchElementException e) {
         return ResponseEntity.status(404).body(e.getMessage());
     }
+
+    @ExceptionHandler(JobAlreadyProcessingException.class)
+    public ResponseEntity<String> JobAlreadyProcessing(JobAlreadyProcessingException e) {
+        return ResponseEntity.accepted().build();
+    }
 }

@@ -9,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import app.dto.IndexRepoMsg;
+import app.exception.JobAlreadyProcessingException;
+import app.repository.JobStatusRepository;
 import io.micrometer.observation.annotation.Observed;
 import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;
@@ -16,7 +18,6 @@ import io.nats.client.Message;
 import io.nats.client.api.PublishAck;
 import io.nats.client.impl.Headers;
 import io.nats.client.impl.NatsMessage;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import jakarta.validation.Valid;
@@ -33,21 +34,34 @@ public class ProducerService {
     private final JetStream js;
     private final ObjectMapper objectMapper;
     private final OpenTelemetry openTelemetry;
+    private final JobStatusRepository jobStatusRepository;
 
-    public ProducerService(JetStream js, ObjectMapper objectMapper, OpenTelemetry openTelemetry) {
+    public ProducerService(
+        JetStream js, 
+        ObjectMapper objectMapper, 
+        OpenTelemetry openTelemetry,
+        JobStatusRepository jobStatusRepository
+    ) {
         this.js = js;
         this.objectMapper = objectMapper;
         this.openTelemetry = openTelemetry;
+        this.jobStatusRepository = jobStatusRepository;
     }
 
     // todo: pass span trace id and pass it into nats message as header so it travels across service boundaries
     @Observed(name="producer.publishindexrepojobrequest.service")
     public void PublishIndexRepoJobRequest(@Valid IndexRepoMsg indexRepoMsg) throws JetStreamApiException, IOException {
+        String jobStatus = jobStatusRepository.findStatus(indexRepoMsg.userId(), indexRepoMsg.repoName());
+        if ("processing".equals(jobStatus)) {
+            log.warn("repo is already processing, skipping...", 
+                kv("userId", indexRepoMsg.userId()), kv("repoName", indexRepoMsg.repoName())
+            );
+            throw new JobAlreadyProcessingException();
+        }
+
         byte[] data = objectMapper.writeValueAsBytes(indexRepoMsg);
 
         Headers headers = new Headers();
-        headers.add("Nats-Msg-Id", indexRepoMsg.repoName());
-
         Context context = Objects.requireNonNull(Context.current());
         openTelemetry.getPropagators().getTextMapPropagator().inject(
             context, 

@@ -3,7 +3,7 @@ package app.repository;
 import java.io.IOException;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.GetResponse;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
@@ -28,23 +28,24 @@ public class JobStatusRepository {
         createIndexIfNotExist();
     }
 
-    private record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
+    private record JobStatus(@NotBlank String status) {}
 
     @Observed(name="jobstatus.findstatus.repository")
-    public String findStatus(@NotBlank String repoName) throws IOException {
-        SearchResponse<JobStatus> searchRes = openSearchClient.search(r -> r
+    public String findStatus(
+        @NotBlank String userId,
+        @NotBlank String repoName
+    ) throws IOException {
+        GetResponse<JobStatus> getRes = openSearchClient.get(r -> r
             .index(jobStatusIndexName)
-            .timeout("30s")
-            .query(q -> q
-                .term(t -> t
-                    .field("repoName")
-                    .value(v -> v.stringValue(repoName))
-                )
-            ), JobStatus.class
+            .id(userId + ":" + repoName)
+            , JobStatus.class
         );
-        
-        JobStatus dbRes = searchRes.hits().hits().get(0).source();
-        
+
+        if (!getRes.found()) {
+            return null;
+        }
+
+        JobStatus dbRes = getRes.source();
         return dbRes != null ? dbRes.status() : null;
     }
 
@@ -57,7 +58,7 @@ public class JobStatusRepository {
             openSearchClient.indices().create(r -> r
                 .index(jobStatusIndexName)
                 .mappings(m -> m
-                    .properties("repoName", p -> p.keyword(k -> k))
+                    .properties("id", p -> p.keyword(k -> k))
                     .properties("status", p -> p.keyword(k -> k))
                 )
             );

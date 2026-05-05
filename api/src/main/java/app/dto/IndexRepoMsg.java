@@ -2,4 +2,7 @@ package app.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record IndexRepoMsg(@NotBlank String repoName) {};
+public record IndexRepoMsg(
+    @NotBlank String userId, 
+    @NotBlank String repoName
+) {};

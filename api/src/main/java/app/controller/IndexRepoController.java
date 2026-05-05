@@ -48,7 +48,7 @@ public class IndexRepoController {
         this.producerService = producerService;
     }
     
-    private record IndexRepoRequest(@NotBlank String repoName) {}
+    private record IndexRepoRequest(@NotBlank String userId, @NotBlank String repoName) {}
 
     @PostMapping("/add")
     @Observed(name="indexrepo.addNewRepo.controller")
@@ -64,20 +64,23 @@ public class IndexRepoController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Repository already indexed");
         }      
 
-        producerService.PublishIndexRepoJobRequest(new IndexRepoMsg(request.repoName()));
+        producerService.PublishIndexRepoJobRequest(new IndexRepoMsg(request.userId(), request.repoName()));
         
         return ResponseEntity.accepted().body("added " + request.repoName() + " to processing");
     }
 
-    @GetMapping("/get_status/{repoName}")
+    @GetMapping("/get_status/{userId}/{repoName}")
     @Observed(name="indexrepo.getStatus.controller")
-    public ResponseEntity<String> getStatus(@NotBlank @PathVariable String repoName) throws IOException {
-        log.info("recieved get repo index job status request", kv("repoName", repoName));
+    public ResponseEntity<String> getStatus(
+        @NotBlank @PathVariable String userId,
+        @NotBlank @PathVariable String repoName
+    ) throws IOException {
+        log.info("recieved get repo index job status request", kv("userId", userId), kv("repoName", repoName));
 
-        String jobStatus = jobStatusRepository.findStatus(repoName);
+        String jobStatus = jobStatusRepository.findStatus(userId, repoName);
 
         if (jobStatus.equals(null)) {
-            log.warn("repo hasn't been added to db yet", kv("repoName", repoName));
+            log.warn("repo hasn't been added to db yet", kv("userId", userId), kv("repoName", repoName));
                 
             return ResponseEntity.status(404).body("repo status not found, add it for processing first");
         }

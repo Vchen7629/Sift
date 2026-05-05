@@ -105,8 +105,7 @@ public class UserRepoRepository {
             .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
             .timeout("30s")
             .query(q -> q
-                .term(t -> t.field("userId").value(v -> v.stringValue(userId))
-                )
+                .term(t -> t.field("userId").value(v -> v.stringValue(userId)))
             )
             .aggregations("repoNames", a -> a
                 .terms(t -> t.field("repoName").size(maxUniqueRepos))
