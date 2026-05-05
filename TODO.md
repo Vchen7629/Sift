@@ -43,8 +43,8 @@ symptom queries per issue (3 - 5 ), manually label the dataset, and benchmark:
       - NDCG@10
 - [ ] Prometheus metrics
 - [ ] Replace all timing logs with Micrometer spans
-- [ ] Add otel bridge in micrometer to convert tracing api calls into OTEL SDK calls
-- [ ] Add a exporter library like opentelemetry-exporter-otlp to send the spans to the storage
+- [x] Add otel bridge in micrometer to convert tracing api calls into OTEL SDK calls
+- [x] Add a exporter library like opentelemetry-exporter-otlp to send the spans to the storage
 - [ ] Add grafana tempo to store spans
 - [ ] Grafana metrics and span visualization
 
