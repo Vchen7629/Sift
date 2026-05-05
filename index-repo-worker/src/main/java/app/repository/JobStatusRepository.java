@@ -5,6 +5,9 @@ import java.io.IOException;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
+
+import app.dto.JobStatusDocument;
+
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import jakarta.validation.Valid;
@@ -23,28 +26,26 @@ public class JobStatusRepository {
         this.openSearchClient = openSearchClient;
     }
 
-    public record JobStatus(@NotBlank String repoName, @NotBlank String status) {}
-
-    public void upsertJobStatus(@Valid JobStatus jobStatus, @NotBlank String requestId) {
+    public void upsertJobStatus(@Valid JobStatusDocument jobStatus, @NotBlank String requestId) {
         try {
             openSearchClient.update(r -> r
                 .index(jobStatusIndexName)
-                .id(jobStatus.repoName)
-                .doc(new JobStatus(jobStatus.repoName, jobStatus.status))
+                .id(jobStatus.repoName())
+                .doc(new JobStatusDocument(jobStatus.repoName(), jobStatus.status()))
                 .docAsUpsert(true)
-                , JobStatus.class
+                , JobStatusDocument.class
             );
             log.debug("upserted job status to {}", 
-                jobStatus.status, 
+                jobStatus.status(), 
                 kv("index", jobStatusIndexName),
-                kv("repoName", jobStatus.repoName),
+                kv("repoName", jobStatus.repoName()),
                 kv("requestId", requestId));
 
         } catch (IOException e) { 
             log.error("failed to upsert job status to {}", 
-                jobStatus.status, 
+                jobStatus.status(), 
                 kv("index", jobStatusIndexName),
-                kv("repoName", jobStatus.repoName),
+                kv("repoName", jobStatus.repoName()),
                 kv("requestId", requestId));
         }
     }

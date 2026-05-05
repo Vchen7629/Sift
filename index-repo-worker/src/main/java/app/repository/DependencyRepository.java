@@ -16,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import app.service.TextEmbeddingService.IndexableDocument;
+import app.dto.IndexableDocuments;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -28,7 +28,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Slf4j
 public class DependencyRepository {
     public final static String changeLogIndexName = "dependency-changelog";
-    public final static String issuesIndexName = "dependency-issue";
+    public final static String issuesIndexName = "dependency-issues";
 
     private final OpenSearchClient openSearchClient;
 
@@ -42,7 +42,7 @@ public class DependencyRepository {
         createIssueIndexIfNotExist();
     }
 
-    public <T extends IndexableDocument> void bulkInsertDocuments(
+    public <T extends IndexableDocuments.Base> void bulkInsertDocuments(
         @NotEmpty List<T> documents,
         @NotBlank String indexName,
         @NotBlank String requestId
@@ -56,7 +56,7 @@ public class DependencyRepository {
             );
         }
 
-        int BATCH_SIZE = 500;
+        int BATCH_SIZE = 750;
 
         for (int i = 0; i < operations.size(); i += BATCH_SIZE) {
             List<BulkOperation> batch = operations.subList(i, Math.min(i + BATCH_SIZE, operations.size()));

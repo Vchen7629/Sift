@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import app.dto.GithubChangeLogResponse;
 import jakarta.validation.constraints.NotBlank;
 
 @Service
@@ -22,15 +23,8 @@ public class ChangelogService {
         this.githubClient = githubClient;
     }
 
-    public record Result(
-        @NotBlank String dependencyName,
-        @NotBlank String version, 
-        @NotBlank String changes,
-        @NotBlank String url
-    ) {};
-
     @Async
-    public CompletableFuture<Result> fetchChangeLogForVersion(
+    public CompletableFuture<GithubChangeLogResponse> fetchChangeLogForVersion(
         @NotBlank String repoName, @NotBlank String version
     ) {
         try {
@@ -39,13 +33,13 @@ public class ChangelogService {
 
             if (release == null) {
                 return CompletableFuture.completedFuture(
-                    new Result(repoName, version, "no-release", "no-url")
+                    new GithubChangeLogResponse(repoName, version, "no-release", "no-url")
                 );
             }
 
             // todo: chunk the release notes into a list of individual updates instead of one giant string for all updates
             return CompletableFuture.completedFuture(
-                new Result(repoName, version, release.getBody(), release.getHtmlUrl().toString())
+                new GithubChangeLogResponse(repoName, version, release.getBody(), release.getHtmlUrl().toString())
             );
         } catch (GHFileNotFoundException e) {
             return CompletableFuture.failedFuture(e);

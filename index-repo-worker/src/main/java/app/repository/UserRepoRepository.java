@@ -1,8 +1,6 @@
 package app.repository;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Map;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.Result;
@@ -10,12 +8,9 @@ import org.opensearch.client.opensearch.core.IndexResponse;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import app.dto.UserRepoDocument;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -37,25 +32,18 @@ public class UserRepoRepository {
         createIndexIfNotExist();
     }
 
-    public static record UserRepo(
-        @NotBlank String userId,
-        @NotBlank String repoName,
-        @NotEmpty Map<String, String> dependencies,
-        @JsonSerialize(using = ToStringSerializer.class) Instant lastIndexed
-    ) {};
-
     public void insertDocument(
-        @Valid UserRepo document
+        @Valid UserRepoDocument document
     ) throws IOException {
         IndexResponse insertRes = openSearchClient.index(r -> r
-            .index(indexName).id(document.repoName).document(document)
+            .index(indexName).id(document.repoName()).document(document)
         );
 
         if (insertRes.result() == Result.Created || insertRes.result() == Result.Updated) {
-            log.debug("indexed repo metadata for user", kv("repoName", document.repoName));
+            log.debug("indexed repo metadata for user", kv("repoName", document.repoName()));
         } else {
             throw new RuntimeException(
-                "Failed to index document: " + document.repoName + ", result: " + insertRes.result()
+                "Failed to index document: " + document.repoName() + ", result: " + insertRes.result()
             );
         }
     }

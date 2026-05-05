@@ -8,8 +8,11 @@ import org.springframework.validation.annotation.Validated;
 
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
-import app.service.githubRepo.ChangelogService;
-import app.service.githubRepo.IssueService;
+import app.dto.GithubChangeLogResponse;
+import app.dto.IndexableDocuments;
+import app.dto.IndexableDocuments.ChangeLog;
+import app.dto.IndexableDocuments.Issue;
+import app.dto.ProcessedGithubIssue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -28,29 +31,17 @@ public class TextEmbeddingService {
         this.embeddingModel = embeddingModel;
     }
 
-    public interface IndexableDocument {
-        @NotBlank String url();
-    }
-
-    public static record ChangeLogDocument(
-        @NotBlank String dependencyName,
-        @NotBlank String version,
-        @NotBlank String changes,
-        @NotBlank String url,
-        @NotEmpty float[] changeEmbedding
-    ) implements IndexableDocument {}
-
-    public List<ChangeLogDocument> generateChangeLogEmbeddings(
-        @NotEmpty @Valid List<ChangelogService.Result> changeLogs,
+    public List<IndexableDocuments.ChangeLog> generateChangeLogEmbeddings(
+        @NotEmpty @Valid List<GithubChangeLogResponse> changeLogs,
         @NotBlank String requestId
     ) throws TranslateException {
-        List<List<ChangelogService.Result>> batches = partition(changeLogs, 32);
-        List<ChangeLogDocument> changeLogDocuments = new ArrayList<>();
+        List<List<GithubChangeLogResponse>> batches = partition(changeLogs, 32);
+        List<IndexableDocuments.ChangeLog> changeLogDocuments = new ArrayList<>();
 
         long start = System.currentTimeMillis();
 
         try (var predictor = embeddingModel.newPredictor()) {
-            for (List<ChangelogService.Result> batch : batches) {
+            for (List<GithubChangeLogResponse> batch : batches) {
                 List<String> dependencyNames = batch.stream().map(doc -> doc.dependencyName()).toList();
                 List<String> versions = batch.stream().map(doc -> doc.version()).toList();
                 List<String> changeList = batch.stream().map(doc -> doc.changes()).toList();
@@ -62,7 +53,7 @@ public class TextEmbeddingService {
             
                 for (int i = 0; i < urls.size(); i++) {
                     changeLogDocuments.add(
-                        new ChangeLogDocument(
+                        new ChangeLog(
                             dependencyNames.get(i), versions.get(i), changeList.get(i), urls.get(i),
                             changeEmbeddings.get(i)
                         )
@@ -80,34 +71,20 @@ public class TextEmbeddingService {
     
         return changeLogDocuments;
     }
-
-
-    public static record IssueDocument(
-        @NotBlank String dependencyName, 
-        @NotBlank String version, 
-        @NotBlank String title, 
-        @NotBlank String body,
-        @NotBlank String url,
-        @NotNull List<String> labelList,
-        @NotNull String createdOn,
-        @NotEmpty float[] titleEmbedding,
-        @NotEmpty float[] bodyEmbedding
-    ) implements IndexableDocument {} 
-
     
-    public List<IssueDocument> generateIssueEmbeddings(
-        @NotEmpty @Valid List<IssueService.Result> issueDocuments,
+    public List<IndexableDocuments.Issue> generateIssueEmbeddings(
+        @NotEmpty @Valid List<ProcessedGithubIssue> issueDocuments,
         @NotBlank String requestId
     ) throws TranslateException {
-        List<List<IssueService.Result>> batches = partition(issueDocuments, 32);
-        List<IssueDocument> embeddingDocuments = new ArrayList<>();
+        List<List<ProcessedGithubIssue>> batches = partition(issueDocuments, 32);
+        List<IndexableDocuments.Issue> embeddingDocuments = new ArrayList<>();
 
         log.debug("created {} batches", batches.size(), kv("requestId", requestId));
 
         long start = System.currentTimeMillis();
 
         try (var predictor = embeddingModel.newPredictor()) {
-            for (List<IssueService.Result> batch : batches) {
+            for (List<ProcessedGithubIssue> batch : batches) {
                 List<String> dependencyNames = batch.stream().map(doc -> doc.dependencyName()).toList();
                 List<String> versions = batch.stream().map(doc -> doc.version()).toList();
                 List<String> titles = batch.stream().map(doc -> doc.title()).toList();
@@ -117,21 +94,17 @@ public class TextEmbeddingService {
                 List<String> createdOnList = batch.stream().map(doc -> doc.createdOn()).toList();
 
                 List<float[]> titleEmbeddings = predictor.batchPredict(titles);
-                List<float[]> bodyEmbeddings = predictor.batchPredict(bodies);
-
-                log.debug("embeddings for batch", kv("requestId", requestId));
+                List<float[]> chunkEmbeddings = predictor.batchPredict(bodies);
 
                 for (int i = 0; i < urls.size(); i++) {
                     embeddingDocuments.add(
-                        new IssueDocument(
-                            dependencyNames.get(i), versions.get(i), titles.get(i), bodies.get(i), 
+                        new Issue(
+                            dependencyNames.get(i), versions.get(i), titles.get(i), bodies.get(i),
                             urls.get(i), labelLists.get(i), createdOnList.get(i),
-                            titleEmbeddings.get(i), bodyEmbeddings.get(i)
+                            titleEmbeddings.get(i), chunkEmbeddings.get(i)
                         )
                     );
                 }
-
-                log.debug("added embedding document to result list", kv("requestId", requestId));
             }
         }
 

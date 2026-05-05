@@ -16,8 +16,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import app.dto.ProcessedGithubIssue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -32,18 +32,8 @@ public class IssueService {
         this.githubClient = githubClient;
     }
 
-    public static record Result(
-        @NotBlank String dependencyName, 
-        @NotBlank String version,
-        @NotBlank String title, 
-        @NotBlank String body,
-        @NotBlank String url, 
-        @NotNull List<String> labelList,
-        @NotBlank String createdOn
-    ) {}
-
     @Async
-    public CompletableFuture<List<Result>> fetchDependencyIssues(
+    public CompletableFuture<List<ProcessedGithubIssue>> fetchDependencyIssues(
         @NotBlank String dependencyName, @NotBlank String requestId
     ) {
         try {
@@ -62,7 +52,7 @@ public class IssueService {
                 kv("dependencyName", dependencyName),
                 kv("requestId", requestId));
             
-            List<Result> issueDocuments = new ArrayList<>();
+            List<ProcessedGithubIssue> issueDocuments = new ArrayList<>();
             for (GHIssue issue: issues) {
                 addIssueDocument(issue, issueDocuments, dependencyName);
             }
@@ -85,7 +75,9 @@ public class IssueService {
         }
     }
 
-    private void addIssueDocument(GHIssue issue, List<Result> issueDocuments, @NotBlank String repoName) throws IOException {
+    private void addIssueDocument(
+        GHIssue issue, List<ProcessedGithubIssue> issueDocuments, @NotBlank String repoName
+    ) throws IOException {
         String rawBody = issue.getBody();
         if (rawBody == null || rawBody.isBlank()) return; // skip over issues with blank body
 
@@ -98,7 +90,7 @@ public class IssueService {
         
         String version = "no version";
 
-        issueDocuments.add(new Result(
+        issueDocuments.add(new ProcessedGithubIssue(
             repoName,
             version,
             issue.getTitle(),
@@ -109,7 +101,7 @@ public class IssueService {
         ));
     }
 
-    String cleanIssueBody(String body) {
+    protected String cleanIssueBody(String body) {
         return body.replaceAll("(?s)```.*?```", "").trim();
     }
 }

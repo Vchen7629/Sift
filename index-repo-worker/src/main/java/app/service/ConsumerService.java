@@ -27,6 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import ai.djl.translate.TranslateException;
 import app.component.parser.DependencyParserStrategy.Dependency;
+import app.dto.GithubChangeLogResponse;
+import app.dto.IndexableDocuments;
+import app.dto.JobStatusDocument;
+import app.dto.ProcessedGithubIssue;
+import app.dto.UserRepoDocument;
 import app.repository.DependencyRepository;
 import app.repository.JobStatusRepository;
 import app.repository.UserRepoRepository;
@@ -93,13 +98,13 @@ public class ConsumerService {
 
                 msg.ack();
                 jobStatusRepository.upsertJobStatus(
-                    new JobStatusRepository.JobStatus(payload.repoName, "processed"), 
+                    new JobStatusDocument(payload.repoName, "processed"), 
                     payload.requestId);
 
                 log.debug("fully processed all issues for repo: {}", payload.repoName);
             } catch (Exception e) {
                 log.error("failed to process index repo msg", kv("requestId", payload.requestId), e);
-                jobStatusRepository.upsertJobStatus(new JobStatusRepository.JobStatus(payload.repoName, "failed"), payload.requestId);
+                jobStatusRepository.upsertJobStatus(new JobStatusDocument(payload.repoName, "failed"), payload.requestId);
                 msg.nak();
             }
         }
@@ -114,7 +119,7 @@ public class ConsumerService {
 
         if (dependenciesByLanguage.isEmpty()) {
             jobStatusRepository.upsertJobStatus(
-                new JobStatusRepository.JobStatus(payload.repoName, "Dependencies Not Found"), 
+                new JobStatusDocument(payload.repoName, "Dependencies Not Found"), 
                 payload.requestId);
                 
             log.warn("no dependencies found for the repo: {}", payload.repoName, kv("requestId", payload.requestId));
@@ -130,12 +135,12 @@ public class ConsumerService {
         @NotBlank String repoName,
         @NotBlank String requestId
     ) throws TranslateException, IOException, InterruptedException, ExecutionException {
-        List<IssueService.Result> issueList = new ArrayList<>();
-        List<ChangelogService.Result> changeLogs = new ArrayList<>();
+        List<ProcessedGithubIssue> issueList = new ArrayList<>();
+        List<GithubChangeLogResponse> changeLogs = new ArrayList<>();
         Map<String, String> libraryMap = new HashMap<>();
 
         jobStatusRepository.upsertJobStatus(
-            new JobStatusRepository.JobStatus(repoName, "processing"),
+            new JobStatusDocument(repoName, "processing"),
             requestId
         );
 
@@ -157,19 +162,19 @@ public class ConsumerService {
                 .collect(Collectors.toSet());
 
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-                List<Future<List<IssueService.Result>>> futures = uniqueRepos.stream()
+                List<Future<List<ProcessedGithubIssue>>> futures = uniqueRepos.stream()
                     .filter(dep -> !indexedDepNames.contains(dep))
                     .map(dependencyName -> executor.submit(() -> 
                         issueService.fetchDependencyIssues(dependencyName, requestId).join()))
                     .toList();
                 
-                for (Future<List<IssueService.Result>> future : futures) {
+                for (Future<List<ProcessedGithubIssue>> future : futures) {
                     issueList.addAll(future.get());
                 }
             }
 
             long elapsed = System.currentTimeMillis() - start;
-            log.debug("fetched all {} issues in {}ms ({}s)", 
+            log.debug("fetched all {} issue chunks in {}ms ({}s)", 
                 issueList.size(), elapsed, elapsed / 1000.0,
                 kv("requestId", requestId));
             
@@ -190,7 +195,7 @@ public class ConsumerService {
                     continue;
                 }
 
-                ChangelogService.Result changeLog = changelogService.fetchChangeLogForVersion(
+                GithubChangeLogResponse changeLog = changelogService.fetchChangeLogForVersion(
                     dependency.repoName(), dependency.version()
                 ).join();
 
@@ -203,7 +208,7 @@ public class ConsumerService {
         }
 
         if (!issueList.isEmpty()) {
-            List<TextEmbeddingService.IssueDocument> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
+            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.generateIssueEmbeddings(issueList, requestId);
             dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, requestId);
 
             log.info("inserted new issue documents into openSearch successfully!", 
@@ -212,7 +217,7 @@ public class ConsumerService {
         }
 
         if (!changeLogs.isEmpty()) {
-            List<TextEmbeddingService.ChangeLogDocument> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
+            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.generateChangeLogEmbeddings(changeLogs, requestId);
             dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, requestId);
 
             log.info("inserted new changelog documents into openSearch successfully!", 
@@ -220,6 +225,6 @@ public class ConsumerService {
             );
         }
 
-        userRepoRepository.insertDocument(new UserRepoRepository.UserRepo("test-user-1", repoName, libraryMap, Instant.now()));
+        userRepoRepository.insertDocument(new UserRepoDocument("test-user-1", repoName, libraryMap, Instant.now()));
     }
 }

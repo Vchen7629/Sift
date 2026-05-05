@@ -46,7 +46,6 @@ public class DependencyService {
         this.dependencyParserStrategy = dependencyParserStrategy;
     }
 
-
     @Async
     public CompletableFuture<Map<String, List<Dependency>>> fetchRepoDependencies(
         @NotBlank String repoName, @NotBlank String requestId
