@@ -45,8 +45,8 @@ symptom queries per issue (3 - 5 ), manually label the dataset, and benchmark:
 - [x] Replace all timing logs with Micrometer spans
 - [x] Add otel bridge in micrometer to convert tracing api calls into OTEL SDK calls
 - [x] Add a exporter library like opentelemetry-exporter-otlp to send the spans to the storage
-- [ ] Add grafana tempo to store spans
-- [ ] Grafana metrics and span visualization
+- [x] Add grafana tempo to store spans
+- [x] Grafana metrics and span visualization
 
 ### Deployment
 - [ ] look into spring security to lock down sensitive routes
