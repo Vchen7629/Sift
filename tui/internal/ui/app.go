@@ -46,6 +46,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.statusBar.SetSize(msg.Width, 2)
 
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -71,5 +72,5 @@ func (m model) View() tea.View {
 
 	statusBar := m.statusBar.View()
 
-	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, main, statusBar))
+	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, main, statusBar.Content))
 }
