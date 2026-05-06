@@ -1,19 +1,62 @@
 package views
 
-import tea "charm.land/bubbletea/v2"
+import (
+	"strings"
+	"tui/internal/ui/components"
+	"tui/internal/ui/context"
+
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
+)
 
 type UserRepoModel struct {
-	width, height int
+	Ctx 		 *context.App
+	RepoList	 *components.UserRepoListModel
 }
 
 func (m UserRepoModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.RepoList.Update(msg)
 	return m, nil
 }
 
-func (m UserRepoModel) View() tea.View {
-	return tea.NewView("IF OUR LOVEEEEEEE IS TRAGEDY WHY ARE YOU MY REMEDYYYYYYYYY")
+func (m *UserRepoModel) View() tea.View {
+	if m.Ctx.Width == 0 {
+		return tea.NewView("")
+	}
+
+	dividerLine := strings.Repeat("│\n", m.Ctx.ViewPortHeight-1) + "│"
+	divider := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#444444")).
+		Render(dividerLine)
+
+	content := lipgloss.JoinHorizontal(lipgloss.Left, m.RepoList.View().Content, divider)
+
+	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, 
+		m.userActionBar().Content, 
+		content,
+	))
+}
+
+func (m UserRepoModel) userActionBar() tea.View {
+	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
+
+	navBtnTextStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#444444")).
+		Bold(true)
+
+	btn1 := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
+	btn2 := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
+	btn3 := navBtnStyle.Render(navBtnTextStyle.Render("[a] add repo"))
+	btn4 := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
+
+	return tea.NewView(lipgloss.NewStyle().
+          BorderBottom(true).
+          BorderStyle(lipgloss.ThickBorder()).
+          BorderBottomForeground(lipgloss.Color("#444444")).
+          Width(m.Ctx.Width - 2).
+          Render(lipgloss.JoinHorizontal(lipgloss.Left, btn1, btn2, btn3, btn4)))
 }
