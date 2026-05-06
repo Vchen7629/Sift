@@ -1,9 +1,13 @@
 package views
 
-import tea "charm.land/bubbletea/v2"
+import (
+	tea "charm.land/bubbletea/v2"
+
+	"tui/internal/ui/context"
+)
 
 type AuthModel struct {
-	width, height int
+	Ctx *context.App
 }
 
 func (m AuthModel) Init() tea.Cmd {
