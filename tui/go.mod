@@ -1,4 +1,4 @@
-module tui-client
+module tui
 
 go 1.26.2
 

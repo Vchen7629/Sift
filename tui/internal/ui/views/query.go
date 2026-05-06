@@ -2,19 +2,19 @@ package views
 
 import tea "charm.land/bubbletea/v2"
 
-type AuthModel struct {
+type QueryModel struct {
 	width, height int
 }
 
-func (m AuthModel) Init() tea.Cmd {
+func (m QueryModel) Init() tea.Cmd {
 	return nil
 }
 
 // user actions
-func (m AuthModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m QueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m AuthModel) View() tea.View {
+func (m QueryModel) View() tea.View {
 	return tea.NewView("IF OUR LOVEEEEEEE IS TRAGEDY WHY ARE YOU MY REMEDYYYYYYYYY")
 }
