@@ -13,8 +13,7 @@ type Theme struct {
 }
 
 var (
-	Background  = lipgloss.Color("#0d0d0d")
-	Surface	    = lipgloss.Color("#141414")
+	Footer	    = lipgloss.ANSIColor(236)
 	BorderFocus = lipgloss.Color("#2a2a2a")
 	TextPrimary = lipgloss.Color("#d0d0d0")
 	TextMuted   = lipgloss.Color("#555555")
