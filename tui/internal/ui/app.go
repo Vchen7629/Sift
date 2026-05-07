@@ -5,6 +5,7 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/components"
+	"tui/internal/ui/components/rag_query"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/views"
@@ -23,7 +24,10 @@ func New() model {
 		ctx: ctx,
 		pages: map[context.Page]tea.Model{
 			context.AuthPage:	   views.AuthModel{Ctx: ctx},
-			context.QueryPage: 	   views.RagQueryModel{Ctx: ctx},
+			context.QueryPage: 	   views.RagQueryModel{
+				Ctx: ctx,
+				Searchbar: rag_query.NewRagQuerySearchBar(ctx),
+			},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
 				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
