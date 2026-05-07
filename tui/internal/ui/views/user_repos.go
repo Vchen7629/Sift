@@ -20,9 +20,9 @@ func (m UserRepoModel) Init() tea.Cmd {
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	m.RepoList.Update(msg)
-	cmd := m.SearchBar.Update(msg)
-	return m, cmd
+	_, repoListCmd := m.RepoList.Update(msg)
+	searchBarCmd := m.SearchBar.Update(msg)
+	return m, tea.Batch(repoListCmd, searchBarCmd)
 }
 
 func (m *UserRepoModel) View() tea.View {
