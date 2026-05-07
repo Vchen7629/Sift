@@ -30,7 +30,7 @@ func (m *UserRepoModel) View() tea.View {
 		return tea.NewView("")
 	}
 
-	dividerLine := strings.Repeat("│\n", m.Ctx.ViewPortHeight-1) + "│"
+	dividerLine := strings.Repeat("│\n", m.Ctx.RepoListHeight-1) + "│"
 	divider := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#444444")).
 		Render(dividerLine)

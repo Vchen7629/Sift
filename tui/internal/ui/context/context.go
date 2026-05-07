@@ -14,7 +14,7 @@ const (
 
 type App struct {
 	Width, Height int
-	ViewPortWidth, ViewPortHeight int
+	RepoListWidth, RepoListHeight int
 	Username	  string
 	Theme		  styles.Theme
 	CurrentPage   Page
