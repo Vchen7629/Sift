@@ -117,7 +117,7 @@ func (m *RagQueryResponseModel) source() tea.View {
 	}
 
 	m.viewport.SetWidth(m.ctx.MainWidth - 2)
-	m.viewport.SetHeight(4)
+	m.viewport.SetHeight(6)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, sources...))
 	return tea.NewView(m.viewport.View())
 }
@@ -131,7 +131,7 @@ func (m *RagQueryResponseModel) sourceCard(dependency source) string {
 
 	dependencyText := lipgloss.NewStyle().Foreground(textColor)
 
-	id := lipgloss.NewStyle().PaddingRight(2).Render(strconv.Itoa(dependency.id))
+	id := lipgloss.NewStyle().PaddingRight(2).Render(strconv.Itoa(dependency.id + 1))
 	name := lipgloss.NewStyle().Width(45).Render(dependency.link)
 	version := lipgloss.NewStyle().Width(10).Render(dependency.version)
 	label := lipgloss.NewStyle().Render(fmt.Sprintf("· %s", dependency.label))

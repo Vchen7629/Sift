@@ -75,7 +75,13 @@ func (m model) View() tea.View {
 	pageContent := m.pages[m.ctx.CurrentPage].View()
 	footer := m.footer.View()
 
-	content := lipgloss.JoinVertical(lipgloss.Left, pageContent.Content, footer.Content)
+	footerHeight := lipgloss.Height(footer.Content)
+	constrainedPage := lipgloss.NewStyle().
+		Height(m.ctx.WindowHeight - footerHeight).
+		MaxHeight(m.ctx.WindowHeight - footerHeight).
+		Render(pageContent.Content)
+
+	content := lipgloss.JoinVertical(lipgloss.Left, constrainedPage, footer.Content)
 
 	padding := lipgloss.NewStyle().
 		PaddingLeft(1).
