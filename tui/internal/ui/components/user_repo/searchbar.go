@@ -2,6 +2,7 @@ package user_repo
 
 import (
 	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -17,6 +18,9 @@ type SearchBarModel struct {
 func NewUserRepoSearchBar(ctx *context.App) *SearchBarModel {
 	ti := textinput.New()
 	ti.Placeholder = "Search Your Repositories..."
+	s := ti.Styles()
+	s.Focused.Text = lipgloss.NewStyle().Foreground(styles.Warm.AccentBright)
+	ti.SetStyles(s)
 
 	return &SearchBarModel{
 		ctx: 	   ctx,
@@ -53,15 +57,16 @@ func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *SearchBarModel) View() string {
-	// border (2) + padding (2) + margin (2) = 6
-	m.textInput.SetWidth(m.ctx.MainWidth - 6)
+	m.textInput.SetWidth(m.ctx.MainWidth - 10)
+
+	borderColor := lipgloss.Color("#444444")
+	if m.focused {
+		borderColor = styles.Warm.AccentMid
+	}
 
 	style := lipgloss.NewStyle().
-		MarginLeft(2).
-		Width(m.ctx.MainWidth - 4).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#444444")).
-		Padding(0, 1)
+		MarginLeft(2).Width(m.ctx.MainWidth - 4).Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).BorderForeground(borderColor)
 
 	return style.Render(m.textInput.View())
 }
