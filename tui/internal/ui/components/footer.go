@@ -8,21 +8,21 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type StatusBarModel struct {
+type FooterModel struct {
 	height, width int
 	Ctx *context.App
 }
 
-func (m *StatusBarModel) SetSize(width, height int) {
+func (m *FooterModel) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 }
 
-func (m StatusBarModel) Init() tea.Cmd {
+func (m FooterModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m StatusBarModel) Update(msg tea.Msg) tea.Cmd {
+func (m FooterModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -39,41 +39,40 @@ func (m StatusBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m StatusBarModel) View() tea.View {
+func (m FooterModel) View() tea.View {
 	appName := lipgloss.NewStyle().
-		PaddingLeft(2).
-		PaddingRight(1).
-		BorderRight(true).                                                                                                                                                                          
-		BorderStyle(lipgloss.MarkdownBorder()).
-		Background(styles.Footer).
-		Foreground(styles.Cold.AccentMid).      
+		PaddingLeft(2).PaddingRight(1).
+		Background(styles.Footer).Foreground(styles.Cold.AccentMid).      
 		Render("Sift")    
 
-	background := lipgloss.NewStyle().
-		Background(styles.Footer).
-		Width(m.width)
+	background := lipgloss.NewStyle().Background(styles.Footer).Width(m.width)
 
 	content := background.Render(lipgloss.JoinHorizontal(lipgloss.Left, appName, m.navButtons()))
 
 	return tea.NewView(content)
 }
 
-func (m StatusBarModel) navButtons() string {
-	navBtnStyle := lipgloss.NewStyle().
-		PaddingLeft(1).
-		PaddingRight(1).
-		BorderRight(true).
-		Background(styles.Footer).
-		BorderStyle(lipgloss.MarkdownBorder())
+func (m FooterModel) navButtons() string {
+	navBtnStyle := lipgloss.NewStyle().PaddingLeft(1).PaddingRight(1).Background(styles.Footer)
+	selectedStyle := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).Bold(true)
 
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(styles.Warm.AccentBright).
-		Background(styles.Footer). 
-		Bold(true)
+	buttons := []struct {
+		label string
+		page  context.Page
+	}{
+		{"[1] repos", context.UserReposPage},
+		{"[2] search issue", context.QueryPage},
+		{"[3] theme", context.ThemePage},
+	}
 
-	btn1 := navBtnStyle.Render(navBtnTextStyle.Render("[1] repos"))
-	btn2 := navBtnStyle.Render(navBtnTextStyle.Render("[2] search issue"))
-	btn3 := navBtnStyle.Render(navBtnTextStyle.Render("[3] theme"))
+	rendered := make([]string, len(buttons))
+	for i, btn := range buttons {
+		label := btn.label
+		if m.Ctx.CurrentPage == btn.page {
+			label = selectedStyle.Render(label)
+		}
+		rendered[i] = navBtnStyle.Render(label)
+	}
 
-	return lipgloss.JoinHorizontal(lipgloss.Left, btn1, btn2, btn3)
+	return lipgloss.JoinHorizontal(lipgloss.Left, rendered...)
 }

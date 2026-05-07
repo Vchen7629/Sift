@@ -14,7 +14,7 @@ import (
 type model struct {
 	ctx 		  *context.App
 	pages		  map[context.Page]tea.Model
-	statusBar 	  components.StatusBarModel
+	footer 	     components.FooterModel
 }
 
 // constructor to initialize the pages map
@@ -23,7 +23,6 @@ func New() model {
 	return model{ 
 		ctx: ctx,
 		pages: map[context.Page]tea.Model{
-			context.AuthPage:	   views.AuthModel{Ctx: ctx},
 			context.QueryPage: 	   views.RagQueryModel{
 				Ctx: ctx,
 				SelectedRepo: "Sift",
@@ -37,7 +36,7 @@ func New() model {
 				Sidebar: user_repo.NewSidebar(ctx),
 			},
 		},
-		statusBar:  components.StatusBarModel{Ctx: ctx},
+		footer:  components.FooterModel{Ctx: ctx},
 	}
 }
 
@@ -53,7 +52,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ctx.MainWidth = msg.Width - 55
 		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
 		m.ctx.MainHeight = msg.Height - 3
-		m.statusBar.SetSize(msg.Width - 2, 1)
+		m.footer.SetSize(msg.Width - 2, 1)
 
 		return m, nil
 
@@ -64,7 +63,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	sbCmd := m.statusBar.Update(msg)
+	sbCmd := m.footer.Update(msg)
 
 	updated, cmd := m.pages[m.ctx.CurrentPage].Update(msg)
 	m.pages[m.ctx.CurrentPage] = updated
@@ -74,9 +73,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() tea.View {
 	pageContent := m.pages[m.ctx.CurrentPage].View()
-	statusBar := m.statusBar.View()
+	footer := m.footer.View()
 
-	content := lipgloss.JoinVertical(lipgloss.Left, pageContent.Content, statusBar.Content)
+	content := lipgloss.JoinVertical(lipgloss.Left, pageContent.Content, footer.Content)
 
 	padding := lipgloss.NewStyle().
 		PaddingLeft(1).

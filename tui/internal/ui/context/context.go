@@ -7,9 +7,9 @@ import (
 type Page int
 
 const (
-	AuthPage Page = iota
-	QueryPage
+	QueryPage Page = iota
 	UserReposPage
+	ThemePage
 )
 
 type App struct {
