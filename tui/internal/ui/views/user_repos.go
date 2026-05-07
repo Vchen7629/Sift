@@ -21,8 +21,8 @@ func (m UserRepoModel) Init() tea.Cmd {
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.RepoList.Update(msg)
-	m.SearchBar.Update(msg)
-	return m, nil
+	cmd := m.SearchBar.Update(msg)
+	return m, cmd
 }
 
 func (m *UserRepoModel) View() tea.View {
