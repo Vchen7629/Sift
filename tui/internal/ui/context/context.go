@@ -9,14 +9,16 @@ type Page int
 const (
 	QueryPage Page = iota
 	UserReposPage
-	ThemePage
 )
 
 type App struct {
-	WindowWidth, WindowHeight, MainWidth, MainHeight, SidebarWidth int
-	Username	  string
-	Theme		  styles.Theme
-	CurrentPage   Page
+	WindowWidth, WindowHeight int
+	MainWidth, MainHeight     int
+	SidebarWidth 		      int
+	Username	  			  string
+	Theme		  	   	 	  styles.Theme
+	CurrentPage   			  Page
+	ThemeSelectorOpen		  bool
 }
 
 func NewApp() *App {

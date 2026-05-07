@@ -4,7 +4,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"tui/internal/ui/components"
+	"tui/internal/ui/components/footer"
 	"tui/internal/ui/components/rag_query"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
@@ -14,7 +14,7 @@ import (
 type model struct {
 	ctx 		  *context.App
 	pages		  map[context.Page]tea.Model
-	footer 	     components.FooterModel
+	footer 	     footer.BaseModel
 }
 
 // constructor to initialize the pages map
@@ -36,7 +36,11 @@ func New() model {
 				Sidebar: user_repo.NewSidebar(ctx),
 			},
 		},
-		footer:  components.FooterModel{Ctx: ctx},
+		footer:  footer.BaseModel{
+			Ctx: ctx,
+			NavButtons: footer.NewNavButtons(ctx),
+			ThemeSelector: footer.NewThemeSelector(ctx),
+		},
 	}
 }
 
