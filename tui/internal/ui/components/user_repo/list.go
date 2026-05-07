@@ -9,6 +9,7 @@ import (
 
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
+	"tui/internal/service"
 )
 
 type ListModel struct {
@@ -42,6 +43,8 @@ func (m ListModel) Init() tea.Cmd {
 }
 
 func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	cardHeight := lipgloss.Height(m.repoCard(m.FocusedRepo.userRepo))                                                                                                             
+
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -49,13 +52,13 @@ func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.FocusedRepo.index < len(m.FetchedRepos) - 1 {
 				m.FocusedRepo.index++
 				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
-				m.scrollToFocused()
+    			service.ScrollToFocused(&m.viewport, m.FocusedRepo.index, cardHeight)
 			}
 		case "up":
 			if m.FocusedRepo.index > 0 {
 				m.FocusedRepo.index--
 				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
-				m.scrollToFocused()
+				service.ScrollToFocused(&m.viewport, m.FocusedRepo.index, cardHeight)
 			}
 		}
 	}
@@ -108,26 +111,6 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 		Render("")
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
-}
-
-func (m *ListModel) scrollToFocused() {
-	card := m.repoCard(m.FocusedRepo.userRepo)                                                                                                              
-    cardHeight := lipgloss.Height(card)
-
-	// this is to calculate the lines the curr focused card occupies
-	itemTop    := m.FocusedRepo.index * cardHeight                                                                                                       
-	itemBottom := itemTop + cardHeight
-
-	viewTop    := m.viewport.YOffset()
-	viewBottom := viewTop + m.viewport.Height()
-
-	if itemBottom > viewBottom {
-		// item went below visible area, scroll down just enough
-		m.viewport.SetYOffset(itemBottom - m.viewport.Height())
-	} else if itemTop < viewTop {
-		// item went above visible area, scroll up just enough
-		m.viewport.SetYOffset(itemTop)
-	}
 }
 
 func (m *ListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
