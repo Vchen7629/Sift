@@ -28,6 +28,7 @@ func New() model {
 				Ctx: ctx,
 				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
 				RepoList: user_repo.NewUserRepoList(ctx),
+				FocusedSidebar: user_repo.NewFocusedSidebar(ctx),
 			},
 		},
 		statusBar:  components.StatusBarModel{Ctx: ctx},
@@ -44,6 +45,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ctx.Width = msg.Width
 		m.ctx.Height = msg.Height
 		m.ctx.RepoListWidth = msg.Width - 55
+		m.ctx.SidebarWidth = m.ctx.Width - m.ctx.RepoListWidth - 2
 		m.ctx.RepoListHeight = msg.Height - 3
 		m.statusBar.SetSize(msg.Width - 2, 1)
 

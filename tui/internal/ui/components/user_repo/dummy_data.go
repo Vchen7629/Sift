@@ -173,4 +173,9 @@ var dummyData = []UserRepo{
 			{name: "sweetalert2", version: "v11.10.8", status: "healthy"},
 		},
 	},
+	{
+		id: "id16", Name: "no dependencies", Status: "pending", LastIndexed: "0", TotalLibs: "5",
+		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
+		Libraries: []LibraryStatus{},
+	},
 }
