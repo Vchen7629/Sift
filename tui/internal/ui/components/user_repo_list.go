@@ -8,12 +8,19 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 )
 
 type UserRepoListModel struct {
 	ctx 		 *context.App
 	FetchedRepos []UserRepo
+	FocusedRepo  FocusedRepo
 	viewport 	 viewport.Model
+}
+
+type FocusedRepo struct {
+	index    int
+	userRepo UserRepo
 }
 
 type UserRepo struct {
@@ -21,7 +28,7 @@ type UserRepo struct {
 }
 
 func NewUserRepoList(ctx *context.App) *UserRepoListModel {
-	return &UserRepoListModel{
+	m := &UserRepoListModel{
 		ctx: ctx,
 		FetchedRepos: []UserRepo{
 			{id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
@@ -41,6 +48,8 @@ func NewUserRepoList(ctx *context.App) *UserRepoListModel {
 			{id: "id15", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
 		},
 	}
+	m.FocusedRepo = FocusedRepo{index: 0, userRepo: m.FetchedRepos[0]}
+	return m
 }
 
 func (m UserRepoListModel) Init() tea.Cmd {
@@ -52,9 +61,17 @@ func (m *UserRepoListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "down":
-			m.viewport.ScrollDown(2)
+			if m.FocusedRepo.index < len(m.FetchedRepos) - 1 {
+				m.FocusedRepo.index++
+				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
+				m.scrollToFocused()
+			}
 		case "up":
-			m.viewport.ScrollUp(2)
+			if m.FocusedRepo.index > 0 {
+				m.FocusedRepo.index--
+				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
+				m.scrollToFocused()
+			}
 		}
 	}
 
@@ -68,8 +85,8 @@ func (m *UserRepoListModel) View() tea.View {
 		cards = append(cards, m.repoCard(repo))
 	}
 
-	m.viewport.SetWidth(m.ctx.ViewPortWidth)
-	m.viewport.SetHeight(m.ctx.ViewPortHeight - 4)
+	m.viewport.SetWidth(m.ctx.RepoListWidth)
+	m.viewport.SetHeight(m.ctx.RepoListHeight - 4)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 	return tea.NewView(m.viewport.View())
 }
@@ -77,21 +94,23 @@ func (m *UserRepoListModel) View() tea.View {
 func (m *UserRepoListModel) repoCard(repo UserRepo) string {
 	header := m.repoCardHeader(repo)
 
-	background := lipgloss.NewStyle().Background(color.Transparent)
+	borderColor, _ := m.focusedStyle(repo)
 		
-	card := background.Render(lipgloss.NewStyle().
-		Width(m.ctx.ViewPortWidth).
+	card := lipgloss.NewStyle().
+		Width(m.ctx.RepoListWidth).
 		PaddingLeft(2).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#444444")).
+		BorderForeground(borderColor).
 		Padding(0, 1).
-		Render(header))
+		Render(header)
 
 	return card
 }
 
 func (m *UserRepoListModel) repoCardHeader(repo UserRepo) string {
-	repoName := lipgloss.NewStyle().Render(repo.Name)
+	_, textColor := m.focusedStyle(repo)
+
+	repoName := lipgloss.NewStyle().Foreground(textColor).Render(repo.Name)
 
 	indexStatus := lipgloss.NewStyle().Width(8).Align(lipgloss.Right).Render(repo.Status)                                                                       
 	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
@@ -100,8 +119,40 @@ func (m *UserRepoListModel) repoCardHeader(repo UserRepo) string {
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalLibs)
 
 	spacer := lipgloss.NewStyle().
-		Width(m.ctx.ViewPortWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
+		Width(m.ctx.RepoListWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
 		Render("")
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
+}
+
+func (m *UserRepoListModel) scrollToFocused() {
+	card := m.repoCard(m.FocusedRepo.userRepo)                                                                                                              
+    cardHeight := lipgloss.Height(card)
+
+	// this is to calculate the lines the curr focused card occupies
+	itemTop    := m.FocusedRepo.index * cardHeight                                                                                                       
+	itemBottom := itemTop + cardHeight
+
+	viewTop    := m.viewport.YOffset()
+	viewBottom := viewTop + m.viewport.Height()
+
+	if itemBottom > viewBottom {
+		// item went below visible area, scroll down just enough
+		m.viewport.SetYOffset(itemBottom - m.viewport.Height())
+	} else if itemTop < viewTop {
+		// item went above visible area, scroll up just enough
+		m.viewport.SetYOffset(itemTop)
+	}
+}
+
+func (m *UserRepoListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
+	borderColor := lipgloss.Color("#444444")
+	textColor := lipgloss.Color("#ffffff")
+
+	if m.FocusedRepo.userRepo.id == repo.id {
+		borderColor = styles.Warm.AccentMid
+		textColor = styles.Warm.AccentBright
+	}
+
+	return borderColor, textColor
 }
