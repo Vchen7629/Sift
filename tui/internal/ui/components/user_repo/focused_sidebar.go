@@ -16,7 +16,7 @@ type FocusedSidebar struct {
 	FocusedRepo  FocusedRepo
 }
 
-type LibraryStatus struct {
+type DependencyStatus struct {
 	name, version, status string
 }
 
@@ -58,7 +58,7 @@ func (m *FocusedSidebar) focusedHeader() string {
 	repoName := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).Render(m.FocusedRepo.userRepo.Name)
 
 	totalLibs := lipgloss.NewStyle().Foreground(styles.TextDim).MarginRight(1).
-		Render(fmt.Sprintf("%s total dependencies", m.FocusedRepo.userRepo.TotalLibs))
+		Render(fmt.Sprintf("%s total dependencies", m.FocusedRepo.userRepo.TotalDependencies))
 	lastIndexed := lipgloss.NewStyle().Foreground(styles.TextDim).
 		Render(fmt.Sprintf("· %s ago", m.FocusedRepo.userRepo.LastIndexed))
 	rightBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
@@ -76,13 +76,13 @@ func (m *FocusedSidebar) focusedHeader() string {
 func (m *FocusedSidebar) repoDependencyList() tea.View {
 	var libraryCards []string
 
-	if len(m.FocusedRepo.userRepo.Libraries) == 0 {
+	if len(m.FocusedRepo.userRepo.Dependencies) == 0 {
 		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("No dependencies indexed for this repo")
 
 		return tea.NewView(text)
 	}
 
-	for _, library := range m.FocusedRepo.userRepo.Libraries {
+	for _, library := range m.FocusedRepo.userRepo.Dependencies {
 		libraryCards = append(libraryCards, m.libraryCard(library))
 	}
 
@@ -92,7 +92,7 @@ func (m *FocusedSidebar) repoDependencyList() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *FocusedSidebar) libraryCard(library LibraryStatus) string {
+func (m *FocusedSidebar) libraryCard(library DependencyStatus) string {
 	name := lipgloss.NewStyle().Render(library.name)
 
 	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).

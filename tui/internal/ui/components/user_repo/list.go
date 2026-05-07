@@ -24,8 +24,8 @@ type FocusedRepo struct {
 }
 
 type UserRepo struct {
-	id, Name, Status, LastIndexed, TotalLibs, Description string
-	Libraries []LibraryStatus
+	id, Name, Status, LastIndexed, TotalDependencies, Description string
+	Dependencies []DependencyStatus
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
@@ -99,7 +99,7 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 
 	indexStatus := lipgloss.NewStyle().Width(8).Align(lipgloss.Right).Render(repo.Status)                                                                       
 	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
-	totalLibs   := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalLibs)
+	totalLibs   := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalDependencies)
 
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalLibs)
 

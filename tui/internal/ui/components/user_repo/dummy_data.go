@@ -2,9 +2,9 @@ package user_repo
 
 var dummyData = []UserRepo{
 	{
-		id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42", 
+		id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalDependencies: "42", 
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "axios",       version: "v1.7.2",   status: "healthy"},
 			{name: "lodash",      version: "v4.17.21", status: "deprecated"},
 			{name: "moment",      version: "v2.29.4",  status: "archived"},
@@ -15,18 +15,18 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id2", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "3",
+		id: "id2", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalDependencies: "3",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "zod",      version: "v3.22.4", status: "healthy"},
 			{name: "immer",    version: "v10.0.3", status: "healthy"},
 			{name: "date-fns", version: "v2.30.0", status: "deprecated"},
 		},
 	},
 	{
-		id: "id3", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "9",
+		id: "id3", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalDependencies: "9",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "express",      version: "v4.19.2", status: "healthy"},
 			{name: "dotenv",       version: "v16.4.5", status: "healthy"},
 			{name: "cors",         version: "v2.8.5",  status: "healthy"},
@@ -39,9 +39,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id4", Name: "vue", Status: "indexed", LastIndexed: "1746", TotalLibs: "5",
+		id: "id4", Name: "vue", Status: "indexed", LastIndexed: "1746", TotalDependencies: "5",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "pinia",        version: "v2.1.7",  status: "healthy"},
 			{name: "vue-router",   version: "v4.3.0",  status: "healthy"},
 			{name: "vuelidate",    version: "v2.0.3",  status: "deprecated"},
@@ -50,9 +50,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id5", Name: "svelte", Status: "indexed", LastIndexed: "1745", TotalLibs: "7",
+		id: "id5", Name: "svelte", Status: "indexed", LastIndexed: "1745", TotalDependencies: "7",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "svelte-kit",     version: "v2.5.7",  status: "healthy"},
 			{name: "svelte-query",   version: "v5.0.0",  status: "healthy"},
 			{name: "svelte-forms",   version: "v1.3.2",  status: "deprecated"},
@@ -63,9 +63,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id6", Name: "angular", Status: "pending", LastIndexed: "0", TotalLibs: "4",
+		id: "id6", Name: "angular", Status: "pending", LastIndexed: "0", TotalDependencies: "4",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "rxjs",          version: "v7.8.1",  status: "healthy"},
 			{name: "ngrx",          version: "v17.2.0", status: "healthy"},
 			{name: "angular-forms", version: "v16.0.0", status: "archived"},
@@ -73,9 +73,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id7", Name: "remix", Status: "indexed", LastIndexed: "1746", TotalLibs: "6",
+		id: "id7", Name: "remix", Status: "indexed", LastIndexed: "1746", TotalDependencies: "6",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "prisma",       version: "v5.13.0", status: "healthy"},
 			{name: "zod",          version: "v3.22.4", status: "healthy"},
 			{name: "tailwindcss",  version: "v3.4.3",  status: "healthy"},
@@ -85,18 +85,18 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id8", Name: "astro", Status: "indexed", LastIndexed: "1745", TotalLibs: "3",
+		id: "id8", Name: "astro", Status: "indexed", LastIndexed: "1745", TotalDependencies: "3",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "sharp",       version: "v0.33.3", status: "healthy"},
 			{name: "mdx",         version: "v3.1.0",  status: "healthy"},
 			{name: "nanostores", version: "v0.10.3", status: "deprecated"},
 		},
 	},
 	{
-		id: "id9", Name: "nuxt", Status: "pending", LastIndexed: "0", TotalLibs: "8",
+		id: "id9", Name: "nuxt", Status: "pending", LastIndexed: "0", TotalDependencies: "8",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "pinia",        version: "v2.1.7",  status: "healthy"},
 			{name: "vee-validate",  version: "v4.12.8", status: "deprecated"},
 			{name: "nuxt-auth",    version: "v0.6.7",  status: "archived"},
@@ -108,9 +108,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id10", Name: "solid-js", Status: "indexed", LastIndexed: "1746", TotalLibs: "5",
+		id: "id10", Name: "solid-js", Status: "indexed", LastIndexed: "1746", TotalDependencies: "5",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "solid-router",  version: "v0.13.6", status: "healthy"},
 			{name: "solid-query",   version: "v5.28.0", status: "healthy"},
 			{name: "solid-forms",   version: "v0.4.2",  status: "deprecated"},
@@ -119,9 +119,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id11", Name: "qwik", Status: "indexed", LastIndexed: "1745", TotalLibs: "7",
+		id: "id11", Name: "qwik", Status: "indexed", LastIndexed: "1745", TotalDependencies: "7",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "qwik-city",    version: "v1.5.5",  status: "healthy"},
 			{name: "builder.io",   version: "v2.0.1",  status: "deprecated"},
 			{name: "partytown",    version: "v0.10.2", status: "archived"},
@@ -132,9 +132,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id12", Name: "preact", Status: "pending", LastIndexed: "0", TotalLibs: "4",
+		id: "id12", Name: "preact", Status: "pending", LastIndexed: "0", TotalDependencies: "4",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "preact-router",  version: "v4.1.2",  status: "archived"},
 			{name: "preact-signals", version: "v1.2.3",  status: "healthy"},
 			{name: "preact-iso",     version: "v2.6.2",  status: "healthy"},
@@ -142,9 +142,9 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id13", Name: "lit", Status: "indexed", LastIndexed: "1746", TotalLibs: "6",
+		id: "id13", Name: "lit", Status: "indexed", LastIndexed: "1746", TotalDependencies: "6",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "lit-html",     version: "v3.1.3",  status: "healthy"},
 			{name: "lit-element",  version: "v4.0.4",  status: "healthy"},
 			{name: "haunted",      version: "v4.8.1",  status: "archived"},
@@ -154,18 +154,18 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id14", Name: "ember", Status: "indexed", LastIndexed: "1745", TotalLibs: "3",
+		id: "id14", Name: "ember", Status: "indexed", LastIndexed: "1745", TotalDependencies: "3",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "ember-data",    version: "v5.3.1",  status: "deprecated"},
 			{name: "ember-simple-auth", version: "v6.0.0", status: "archived"},
 			{name: "ember-cli-mirage", version: "v3.0.4", status: "archived"},
 		},
 	},
 	{
-		id: "id15", Name: "alpine", Status: "pending", LastIndexed: "0", TotalLibs: "5",
+		id: "id15", Name: "alpine", Status: "pending", LastIndexed: "0", TotalDependencies: "5",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{
+		Dependencies: []DependencyStatus{
 			{name: "alpinejs",    version: "v3.13.10", status: "healthy"},
 			{name: "alpine-ajax", version: "v0.12.0",  status: "healthy"},
 			{name: "alpine-magic-helpers", version: "v0.9.0", status: "archived"},
@@ -174,8 +174,8 @@ var dummyData = []UserRepo{
 		},
 	},
 	{
-		id: "id16", Name: "no dependencies", Status: "pending", LastIndexed: "0", TotalLibs: "5",
+		id: "id16", Name: "no dependencies", Status: "pending", LastIndexed: "0", TotalDependencies: "5",
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-		Libraries: []LibraryStatus{},
+		Dependencies: []DependencyStatus{},
 	},
 }

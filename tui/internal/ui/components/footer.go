@@ -72,7 +72,7 @@ func (m StatusBarModel) navButtons() string {
 		Bold(true)
 
 	btn1 := navBtnStyle.Render(navBtnTextStyle.Render("[1] repos"))
-	btn2 := navBtnStyle.Render(navBtnTextStyle.Render("[2] search"))
+	btn2 := navBtnStyle.Render(navBtnTextStyle.Render("[2] search issue"))
 	btn3 := navBtnStyle.Render(navBtnTextStyle.Render("[3] theme"))
 
 	return lipgloss.JoinHorizontal(lipgloss.Left, btn1, btn2, btn3)
