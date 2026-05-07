@@ -24,29 +24,14 @@ type FocusedRepo struct {
 }
 
 type UserRepo struct {
-	id, Name, Status, LastIndexed, TotalLibs string
+	id, Name, Status, LastIndexed, TotalLibs, Description string
+	Libraries []LibraryStatus
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
 		ctx: ctx,
-		FetchedRepos: []UserRepo{
-			{id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-			{id: "id2", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-			{id: "id3", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-			{id: "id4", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "420"},
-			{id: "id5", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-			{id: "id6", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-			{id: "id7", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-			{id: "id8", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-			{id: "id9", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-			{id: "id10", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-			{id: "id11", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-			{id: "id12", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-			{id: "id13", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-			{id: "id14", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-			{id: "id15", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-		},
+		FetchedRepos: dummyData,
 	}
 	m.FocusedRepo = FocusedRepo{index: 0, userRepo: m.FetchedRepos[0]}
 	return m
