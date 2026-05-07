@@ -11,15 +11,17 @@ import (
 
 type UserRepoModel struct {
 	Ctx 		 *context.App
+	SearchBar 	 *components.UserRepoSearchBarModel
 	RepoList	 *components.UserRepoListModel
 }
 
 func (m UserRepoModel) Init() tea.Cmd {
-	return nil
+	return m.SearchBar.Init()
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.RepoList.Update(msg)
+	m.SearchBar.Update(msg)
 	return m, nil
 }
 
@@ -33,7 +35,8 @@ func (m *UserRepoModel) View() tea.View {
 		Foreground(lipgloss.Color("#444444")).
 		Render(dividerLine)
 
-	content := lipgloss.JoinHorizontal(lipgloss.Left, m.RepoList.View().Content, divider)
+	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
+	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider)
 
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, 
 		m.userActionBar().Content, 
@@ -54,9 +57,9 @@ func (m UserRepoModel) userActionBar() tea.View {
 	btn4 := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
 
 	return tea.NewView(lipgloss.NewStyle().
-          BorderBottom(true).
-          BorderStyle(lipgloss.ThickBorder()).
-          BorderBottomForeground(lipgloss.Color("#444444")).
-          Width(m.Ctx.Width - 2).
-          Render(lipgloss.JoinHorizontal(lipgloss.Left, btn1, btn2, btn3, btn4)))
+		BorderBottom(true).
+		BorderStyle(lipgloss.ThickBorder()).
+		BorderBottomForeground(lipgloss.Color("#444444")).
+		Width(m.Ctx.Width - 2).
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, btn1, btn2, btn3, btn4)))
 }
