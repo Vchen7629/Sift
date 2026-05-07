@@ -2,7 +2,7 @@ package views
 
 import (
 	"strings"
-	"tui/internal/ui/components"
+	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 
 	tea "charm.land/bubbletea/v2"
@@ -11,8 +11,8 @@ import (
 
 type UserRepoModel struct {
 	Ctx 		 *context.App
-	SearchBar 	 *components.UserRepoSearchBarModel
-	RepoList	 *components.UserRepoListModel
+	SearchBar 	 *user_repo.SearchBarModel
+	RepoList	 *user_repo.ListModel
 }
 
 func (m UserRepoModel) Init() tea.Cmd {

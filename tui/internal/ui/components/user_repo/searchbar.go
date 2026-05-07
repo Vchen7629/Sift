@@ -1,4 +1,4 @@
-package components
+package user_repo
 
 import (
 	"tui/internal/ui/context"
@@ -8,27 +8,27 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type UserRepoSearchBarModel struct {
+type SearchBarModel struct {
 	ctx 	  *context.App
 	textInput textinput.Model
 	focused   bool
 }
 
-func NewUserRepoSearchBar(ctx *context.App) *UserRepoSearchBarModel {
+func NewUserRepoSearchBar(ctx *context.App) *SearchBarModel {
 	ti := textinput.New()
 	ti.Placeholder = "Search Your Repositories..."
 
-	return &UserRepoSearchBarModel{
+	return &SearchBarModel{
 		ctx: 	   ctx,
 		textInput: ti,
 	}
 }
 
-func (m *UserRepoSearchBarModel) Init() tea.Cmd {
+func (m *SearchBarModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *UserRepoSearchBarModel) Update(msg tea.Msg) tea.Cmd {
+func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
 	key, ok := msg.(tea.KeyPressMsg)
 	if ok && key.String() == "enter" {
 		m.focused = !m.focused
@@ -48,7 +48,7 @@ func (m *UserRepoSearchBarModel) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-func (m *UserRepoSearchBarModel) View() string {
+func (m *SearchBarModel) View() string {
 	// border (2) + padding (2) + margin (2) = 6
 	m.textInput.SetWidth(m.ctx.RepoListWidth - 6)
 

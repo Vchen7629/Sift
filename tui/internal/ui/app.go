@@ -5,6 +5,7 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/components"
+	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/views"
 )
@@ -25,8 +26,8 @@ func New() model {
 			context.QueryPage: 	   views.QueryModel{Ctx: ctx},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
-				SearchBar: components.NewUserRepoSearchBar(ctx),
-				RepoList: components.NewUserRepoList(ctx),
+				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
+				RepoList: user_repo.NewUserRepoList(ctx),
 			},
 		},
 		statusBar:  components.StatusBarModel{Ctx: ctx},

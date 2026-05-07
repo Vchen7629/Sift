@@ -1,4 +1,4 @@
-package components
+package user_repo
 
 import (
 	"image/color"
@@ -11,7 +11,7 @@ import (
 	"tui/internal/ui/styles"
 )
 
-type UserRepoListModel struct {
+type ListModel struct {
 	ctx 		 *context.App
 	FetchedRepos []UserRepo
 	FocusedRepo  FocusedRepo
@@ -27,8 +27,8 @@ type UserRepo struct {
 	id, Name, Status, LastIndexed, TotalLibs string
 }
 
-func NewUserRepoList(ctx *context.App) *UserRepoListModel {
-	m := &UserRepoListModel{
+func NewUserRepoList(ctx *context.App) *ListModel {
+	m := &ListModel{
 		ctx: ctx,
 		FetchedRepos: []UserRepo{
 			{id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
@@ -52,11 +52,11 @@ func NewUserRepoList(ctx *context.App) *UserRepoListModel {
 	return m
 }
 
-func (m UserRepoListModel) Init() tea.Cmd {
+func (m ListModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *UserRepoListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -78,7 +78,7 @@ func (m *UserRepoListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *UserRepoListModel) View() tea.View {
+func (m *ListModel) View() tea.View {
 	var cards []string
 
 	for _, repo := range m.FetchedRepos {
@@ -91,7 +91,7 @@ func (m *UserRepoListModel) View() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *UserRepoListModel) repoCard(repo UserRepo) string {
+func (m *ListModel) repoCard(repo UserRepo) string {
 	header := m.repoCardHeader(repo)
 
 	borderColor, _ := m.focusedStyle(repo)
@@ -107,7 +107,7 @@ func (m *UserRepoListModel) repoCard(repo UserRepo) string {
 	return card
 }
 
-func (m *UserRepoListModel) repoCardHeader(repo UserRepo) string {
+func (m *ListModel) repoCardHeader(repo UserRepo) string {
 	_, textColor := m.focusedStyle(repo)
 
 	repoName := lipgloss.NewStyle().Foreground(textColor).Render(repo.Name)
@@ -125,7 +125,7 @@ func (m *UserRepoListModel) repoCardHeader(repo UserRepo) string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
 }
 
-func (m *UserRepoListModel) scrollToFocused() {
+func (m *ListModel) scrollToFocused() {
 	card := m.repoCard(m.FocusedRepo.userRepo)                                                                                                              
     cardHeight := lipgloss.Height(card)
 
@@ -145,7 +145,7 @@ func (m *UserRepoListModel) scrollToFocused() {
 	}
 }
 
-func (m *UserRepoListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
+func (m *ListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
 	borderColor := lipgloss.Color("#444444")
 	textColor := lipgloss.Color("#ffffff")
 
