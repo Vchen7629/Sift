@@ -74,7 +74,7 @@ func (m *FocusedSidebar) focusedHeader() string {
 
 // todo: refactor this into reusable func since both list and this file use same style to create viewport
 func (m *FocusedSidebar) repoDependencyList() tea.View {
-	var libraryCards []string
+	var dependencyCards []string
 
 	if len(m.FocusedRepo.userRepo.Dependencies) == 0 {
 		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("No dependencies indexed for this repo")
@@ -82,24 +82,24 @@ func (m *FocusedSidebar) repoDependencyList() tea.View {
 		return tea.NewView(text)
 	}
 
-	for _, library := range m.FocusedRepo.userRepo.Dependencies {
-		libraryCards = append(libraryCards, m.libraryCard(library))
+	for _, dependency := range m.FocusedRepo.userRepo.Dependencies {
+		dependencyCards = append(dependencyCards, m.dependencyCard(dependency))
 	}
 
 	m.viewport.SetWidth(m.ctx.RepoListWidth)
 	m.viewport.SetHeight(m.ctx.RepoListHeight - 8)
-	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, libraryCards...))
+	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, dependencyCards...))
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *FocusedSidebar) libraryCard(library DependencyStatus) string {
-	name := lipgloss.NewStyle().Render(library.name)
+func (m *FocusedSidebar) dependencyCard(dependency DependencyStatus) string {
+	name := lipgloss.NewStyle().Render(dependency.name)
 
 	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).
-		Background(lipgloss.Blue).Render(library.version)
+		Background(lipgloss.Blue).Render(dependency.version)
 
 	statusText := lipgloss.White
-	switch library.status {
+	switch dependency.status {
 	case "healthy":
 		statusText = lipgloss.Green
 	case "deprecated":
@@ -108,7 +108,7 @@ func (m *FocusedSidebar) libraryCard(library DependencyStatus) string {
 		statusText = lipgloss.Yellow
 	}
 	
-	status := lipgloss.NewStyle().Foreground(statusText).Width(10).Render(library.status)
+	status := lipgloss.NewStyle().Foreground(statusText).Width(10).Render(dependency.status)
 	rightBlock := lipgloss.JoinHorizontal(lipgloss.Left, version, status)
 
 	spaceBetween := lipgloss.NewStyle().

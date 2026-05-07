@@ -99,9 +99,9 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 
 	indexStatus := lipgloss.NewStyle().Width(8).Align(lipgloss.Right).Render(repo.Status)                                                                       
 	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
-	totalLibs   := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalDependencies)
+	totalDependencies   := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalDependencies)
 
-	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalLibs)
+	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
 
 	spacer := lipgloss.NewStyle().
 		Width(m.ctx.RepoListWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
