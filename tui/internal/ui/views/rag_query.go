@@ -6,19 +6,19 @@ import (
 	"tui/internal/ui/context"
 )
 
-type QueryModel struct {
+type RagQueryModel struct {
 	Ctx *context.App
 }
 
-func (m QueryModel) Init() tea.Cmd {
+func (m RagQueryModel) Init() tea.Cmd {
 	return nil
 }
 
 // user actions
-func (m QueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m QueryModel) View() tea.View {
+func (m RagQueryModel) View() tea.View {
 	return tea.NewView("IF OUR LOVEEEEEEE IS TRAGEDY WHY ARE YOU MY REMEDYYYYYYYYY")
 }

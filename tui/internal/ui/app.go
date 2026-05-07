@@ -23,7 +23,7 @@ func New() model {
 		ctx: ctx,
 		pages: map[context.Page]tea.Model{
 			context.AuthPage:	   views.AuthModel{Ctx: ctx},
-			context.QueryPage: 	   views.QueryModel{Ctx: ctx},
+			context.QueryPage: 	   views.RagQueryModel{Ctx: ctx},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
 				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
