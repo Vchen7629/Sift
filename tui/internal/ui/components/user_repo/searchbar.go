@@ -39,6 +39,10 @@ func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 
+	if m.focused && key.String() == "esc" {
+		m.textInput.Reset()
+	}
+
 	if !m.focused {
 		return nil
 	}

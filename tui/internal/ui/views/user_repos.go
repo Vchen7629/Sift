@@ -71,12 +71,13 @@ func (m *UserRepoModel) View() tea.View {
 	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.FocusedSidebar.View().Content)
 
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, 
-		m.userActionBar().Content, 
+		m.userRepoListActionBar().Content, 
 		content,
 	))
 }
 
-func (m UserRepoModel) userActionBar() tea.View {
+// todo: maybe rename it to something other than btn since the user doesnt really click it
+func (m UserRepoModel) userRepoListActionBar() tea.View {
 	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
 
 	navBtnTextStyle := lipgloss.NewStyle().
@@ -85,6 +86,7 @@ func (m UserRepoModel) userActionBar() tea.View {
 
 	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
 	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
+	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear"))
 	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] swap focus"))
 	reindexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
 
@@ -93,5 +95,5 @@ func (m UserRepoModel) userActionBar() tea.View {
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(lipgloss.Color("#444444")).
 		Width(m.Ctx.Width - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, swapFocusBtn, reindexBtn)))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, reindexBtn)))
 }
