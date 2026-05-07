@@ -10,7 +10,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type FocusedSidebar struct {
+type Sidebar struct {
 	ctx 		 *context.App
 	viewport 	 viewport.Model
 	FocusedRepo  FocusedRepo
@@ -20,18 +20,18 @@ type DependencyStatus struct {
 	name, version, status string
 }
 
-func NewFocusedSidebar(ctx *context.App) *FocusedSidebar {
-	return &FocusedSidebar{
+func NewSidebar(ctx *context.App) *Sidebar {
+	return &Sidebar{
 		ctx: ctx,
 		FocusedRepo: FocusedRepo{},
 	}
 }
 
-func (m FocusedSidebar) Init() tea.Cmd {
+func (m Sidebar) Init() tea.Cmd {
 	return nil
 }
 
-func (m *FocusedSidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Sidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -44,17 +44,17 @@ func (m *FocusedSidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *FocusedSidebar) View() tea.View {
+func (m *Sidebar) View() tea.View {
 	repoDesc := lipgloss.NewStyle().MarginBottom(2).Render(m.FocusedRepo.userRepo.Description)
 
-	content := lipgloss.JoinVertical(lipgloss.Top, m.focusedHeader(), repoDesc, m.repoDependencyList().Content)
+	content := lipgloss.JoinVertical(lipgloss.Top, m.sidebarHeader(), repoDesc, m.repoDependencyList().Content)
 
 	padding := lipgloss.NewStyle().PaddingLeft(2).PaddingRight(2).PaddingTop(1).Width(m.ctx.SidebarWidth)
 
 	return tea.NewView(padding.Render(content))
 }
 
-func (m *FocusedSidebar) focusedHeader() string {
+func (m *Sidebar) sidebarHeader() string {
 	repoName := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).Render(m.FocusedRepo.userRepo.Name)
 
 	totalLibs := lipgloss.NewStyle().Foreground(styles.TextDim).MarginRight(1).
@@ -73,7 +73,7 @@ func (m *FocusedSidebar) focusedHeader() string {
 }
 
 // todo: refactor this into reusable func since both list and this file use same style to create viewport
-func (m *FocusedSidebar) repoDependencyList() tea.View {
+func (m *Sidebar) repoDependencyList() tea.View {
 	var dependencyCards []string
 
 	if len(m.FocusedRepo.userRepo.Dependencies) == 0 {
@@ -92,7 +92,7 @@ func (m *FocusedSidebar) repoDependencyList() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *FocusedSidebar) dependencyCard(dependency DependencyStatus) string {
+func (m *Sidebar) dependencyCard(dependency DependencyStatus) string {
 	name := lipgloss.NewStyle().Render(dependency.name)
 
 	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).

@@ -27,12 +27,13 @@ func New() model {
 			context.QueryPage: 	   views.RagQueryModel{
 				Ctx: ctx,
 				Searchbar: rag_query.NewRagQuerySearchBar(ctx),
+				QueryResponse: rag_query.NewRagQueryResponse(ctx),
 			},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
 				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
 				RepoList: user_repo.NewUserRepoList(ctx),
-				FocusedSidebar: user_repo.NewFocusedSidebar(ctx),
+				Sidebar: user_repo.NewSidebar(ctx),
 			},
 		},
 		statusBar:  components.StatusBarModel{Ctx: ctx},
@@ -46,11 +47,11 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.ctx.Width = msg.Width
-		m.ctx.Height = msg.Height
-		m.ctx.RepoListWidth = msg.Width - 55
-		m.ctx.SidebarWidth = m.ctx.Width - m.ctx.RepoListWidth - 2
-		m.ctx.RepoListHeight = msg.Height - 3
+		m.ctx.WindowWidth = msg.Width
+		m.ctx.WindowHeight = msg.Height
+		m.ctx.MainWidth = msg.Width - 55
+		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
+		m.ctx.MainHeight = msg.Height - 3
 		m.statusBar.SetSize(msg.Width - 2, 1)
 
 		return m, nil
@@ -79,7 +80,7 @@ func (m model) View() tea.View {
 	padding := lipgloss.NewStyle().
 		PaddingLeft(1).
 		PaddingRight(1).
-		Width(m.ctx.Width)
+		Width(m.ctx.WindowWidth)
 
 	v := tea.NewView(padding.Render(content))
 	v.AltScreen = true

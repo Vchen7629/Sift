@@ -20,7 +20,7 @@ type UserRepoModel struct {
 	Ctx 		   *context.App
 	SearchBar 	   *user_repo.SearchBarModel
 	RepoList	   *user_repo.ListModel
-	FocusedSidebar *user_repo.FocusedSidebar
+	Sidebar 	   *user_repo.Sidebar
 	focusedRepo    user_repo.FocusedRepo
 	panelFocus 	   FocusedPanel
 }
@@ -48,11 +48,11 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		_, repoListCmd = m.RepoList.Update(msg)
 		searchBarCmd = m.SearchBar.Update(msg)
 	} else {
-		_, sidebarCmd = m.FocusedSidebar.Update(msg)
+		_, sidebarCmd = m.Sidebar.Update(msg)
 	}
 
 	m.focusedRepo = m.RepoList.FocusedRepo
-	m.FocusedSidebar.FocusedRepo = m.focusedRepo
+	m.Sidebar.FocusedRepo = m.focusedRepo
 
 	return m, tea.Batch(repoListCmd, searchBarCmd, sidebarCmd)
 }
@@ -68,7 +68,7 @@ func (m *UserRepoModel) View() tea.View {
 		Render(dividerLine)
 
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
-	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.FocusedSidebar.View().Content)
+	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.Sidebar.View().Content)
 
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, 
 		m.userRepoListActionBar().Content, 
