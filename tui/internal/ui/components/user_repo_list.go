@@ -1,6 +1,8 @@
 package components
 
 import (
+	"image/color"
+
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -9,13 +11,36 @@ import (
 )
 
 type UserRepoListModel struct {
-	Ctx 		 *context.App
+	ctx 		 *context.App
 	FetchedRepos []UserRepo
 	viewport 	 viewport.Model
 }
 
 type UserRepo struct {
-	Name, Status, LastIndexed, TotalLibs string
+	id, Name, Status, LastIndexed, TotalLibs string
+}
+
+func NewUserRepoList(ctx *context.App) *UserRepoListModel {
+	return &UserRepoListModel{
+		ctx: ctx,
+		FetchedRepos: []UserRepo{
+			{id: "id1", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
+			{id: "id2", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
+			{id: "id3", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
+			{id: "id4", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "420"},
+			{id: "id5", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
+			{id: "id6", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
+			{id: "id7", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
+			{id: "id8", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
+			{id: "id9", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
+			{id: "id10", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
+			{id: "id11", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
+			{id: "id12", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
+			{id: "id13", Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
+			{id: "id14", Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
+			{id: "id15", Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
+		},
+	}
 }
 
 func (m UserRepoListModel) Init() tea.Cmd {
@@ -43,8 +68,8 @@ func (m *UserRepoListModel) View() tea.View {
 		cards = append(cards, m.repoCard(repo))
 	}
 
-	m.viewport.SetWidth(m.Ctx.ViewPortWidth)
-	m.viewport.SetHeight(m.Ctx.ViewPortHeight)
+	m.viewport.SetWidth(m.ctx.ViewPortWidth)
+	m.viewport.SetHeight(m.ctx.ViewPortHeight - 4)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 	return tea.NewView(m.viewport.View())
 }
@@ -52,14 +77,15 @@ func (m *UserRepoListModel) View() tea.View {
 func (m *UserRepoListModel) repoCard(repo UserRepo) string {
 	header := m.repoCardHeader(repo)
 
+	background := lipgloss.NewStyle().Background(color.Transparent)
 		
-	card := lipgloss.NewStyle().
-		Width(m.Ctx.ViewPortWidth).
+	card := background.Render(lipgloss.NewStyle().
+		Width(m.ctx.ViewPortWidth).
 		PaddingLeft(2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#444444")).
 		Padding(0, 1).
-		Render(header)
+		Render(header))
 
 	return card
 }
@@ -74,7 +100,7 @@ func (m *UserRepoListModel) repoCardHeader(repo UserRepo) string {
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalLibs)
 
 	spacer := lipgloss.NewStyle().
-		Width(m.Ctx.ViewPortWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
+		Width(m.ctx.ViewPortWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
 		Render("")
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)

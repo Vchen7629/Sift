@@ -25,26 +25,8 @@ func New() model {
 			context.QueryPage: 	   views.QueryModel{Ctx: ctx},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
-				RepoList: &components.UserRepoListModel{
-					Ctx: ctx,
-					FetchedRepos: []components.UserRepo{
-						{Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-						{Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-						{Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-						{Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "420"},
-						{Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-						{Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-						{Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-						{Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-						{Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-						{Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-						{Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-						{Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-						{Name: "react", Status: "indexed", LastIndexed: "1746", TotalLibs: "42"},
-						{Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalLibs: "18"},
-						{Name: "tailwindcss", Status: "pending", LastIndexed: "0", TotalLibs: "5"},
-					},
-				},
+				SearchBar: components.NewUserRepoSearchBar(ctx),
+				RepoList: components.NewUserRepoList(ctx),
 			},
 		},
 		statusBar:  components.StatusBarModel{Ctx: ctx},
@@ -52,7 +34,7 @@ func New() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.pages[m.ctx.CurrentPage].Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
