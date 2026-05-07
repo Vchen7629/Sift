@@ -13,7 +13,7 @@ const (
 )
 
 type App struct {
-	Width, Height, RepoListWidth, RepoListHeight, SidebarWidth int
+	WindowWidth, WindowHeight, MainWidth, MainHeight, SidebarWidth int
 	Username	  string
 	Theme		  styles.Theme
 	CurrentPage   Page

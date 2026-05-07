@@ -86,8 +86,8 @@ func (m *FocusedSidebar) repoDependencyList() tea.View {
 		dependencyCards = append(dependencyCards, m.dependencyCard(dependency))
 	}
 
-	m.viewport.SetWidth(m.ctx.RepoListWidth)
-	m.viewport.SetHeight(m.ctx.RepoListHeight - 8)
+	m.viewport.SetWidth(m.ctx.MainWidth)
+	m.viewport.SetHeight(m.ctx.MainHeight - 8)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, dependencyCards...))
 	return tea.NewView(m.viewport.View())
 }

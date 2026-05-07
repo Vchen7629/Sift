@@ -70,8 +70,8 @@ func (m *ListModel) View() tea.View {
 		cards = append(cards, m.repoCard(repo))
 	}
 
-	m.viewport.SetWidth(m.ctx.RepoListWidth)
-	m.viewport.SetHeight(m.ctx.RepoListHeight - 4)
+	m.viewport.SetWidth(m.ctx.MainWidth)
+	m.viewport.SetHeight(m.ctx.MainHeight - 4)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 	return tea.NewView(m.viewport.View())
 }
@@ -82,7 +82,7 @@ func (m *ListModel) repoCard(repo UserRepo) string {
 	borderColor, _ := m.focusedStyle(repo)
 		
 	card := lipgloss.NewStyle().
-		Width(m.ctx.RepoListWidth).
+		Width(m.ctx.MainWidth).
 		PaddingLeft(2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(borderColor).
@@ -104,7 +104,7 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
 
 	spacer := lipgloss.NewStyle().
-		Width(m.ctx.RepoListWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
+		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
 		Render("")
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)

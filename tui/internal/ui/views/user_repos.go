@@ -58,11 +58,11 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *UserRepoModel) View() tea.View {
-	if m.Ctx.Width == 0 {
+	if m.Ctx.WindowWidth == 0 {
 		return tea.NewView("")
 	}
 
-	dividerLine := strings.Repeat("│\n", m.Ctx.RepoListHeight-1) + "│"
+	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight - 1) + "│"
 	divider := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#444444")).
 		Render(dividerLine)
@@ -94,6 +94,6 @@ func (m UserRepoModel) userRepoListActionBar() tea.View {
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(lipgloss.Color("#444444")).
-		Width(m.Ctx.Width - 2).
+		Width(m.Ctx.WindowWidth - 2).
 		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, reindexBtn)))
 }

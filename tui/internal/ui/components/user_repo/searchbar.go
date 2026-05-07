@@ -54,11 +54,11 @@ func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
 
 func (m *SearchBarModel) View() string {
 	// border (2) + padding (2) + margin (2) = 6
-	m.textInput.SetWidth(m.ctx.RepoListWidth - 6)
+	m.textInput.SetWidth(m.ctx.MainWidth - 6)
 
 	style := lipgloss.NewStyle().
 		MarginLeft(2).
-		Width(m.ctx.RepoListWidth - 4).
+		Width(m.ctx.MainWidth - 4).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#444444")).
 		Padding(0, 1)

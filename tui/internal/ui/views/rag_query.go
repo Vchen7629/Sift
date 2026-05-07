@@ -9,8 +9,9 @@ import (
 )
 
 type RagQueryModel struct {
-	Ctx *context.App
-	Searchbar *rag_query.SearchBarModel
+	Ctx 		  *context.App
+	Searchbar 	  *rag_query.SearchBarModel
+	QueryResponse *rag_query.RagQueryResponseModel
 }
 
 func (m RagQueryModel) Init() tea.Cmd {
@@ -25,7 +26,9 @@ func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m RagQueryModel) View() tea.View {
-	content := lipgloss.JoinVertical(lipgloss.Top, m.ragQueryActionBar().Content, m.Searchbar.View())
+	content := lipgloss.JoinVertical(
+		lipgloss.Top, m.ragQueryActionBar().Content, m.Searchbar.View(), m.QueryResponse.View().Content,
+	)
 
 	return tea.NewView(content)
 }
@@ -37,14 +40,15 @@ func (m RagQueryModel) ragQueryActionBar() tea.View {
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
 
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
+	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
+	scrollBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
+	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
 	switchRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] switch repo"))
-	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear"))
 
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(lipgloss.Color("#444444")).
-		Width(m.Ctx.Width - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, searchBtn, switchRepoBtn, clearSearchBtn)))
+		Width(m.Ctx.WindowWidth - 2).
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, searchBtn, scrollBtn, switchRepoBtn, openBrowserBtn)))
 }
