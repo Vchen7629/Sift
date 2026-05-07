@@ -51,7 +51,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		_, sidebarCmd = m.Sidebar.Update(msg)
 	}
 
-	m.focusedRepo = m.RepoList.FocusedRepo
+	m.focusedRepo = m.RepoList.Focused
 	m.Sidebar.FocusedRepo = m.focusedRepo
 
 	return m, tea.Batch(repoListCmd, searchBarCmd, sidebarCmd)

@@ -1,16 +1,20 @@
 package views
 
 import (
+	"fmt"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"tui/internal/ui/context"
 	"tui/internal/ui/components/rag_query"
+	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 )
 
 type RagQueryModel struct {
 	Ctx 		  *context.App
 	Searchbar 	  *rag_query.SearchBarModel
+	SelectedRepo  string
 	QueryResponse *rag_query.RagQueryResponseModel
 }
 
@@ -21,8 +25,9 @@ func (m RagQueryModel) Init() tea.Cmd {
 // user actions
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	searchBarCmd := m.Searchbar.Update(msg)
+	_, queryResCmd := m.QueryResponse.Update(msg)
 
-	return m, tea.Batch(searchBarCmd)
+	return m, tea.Batch(searchBarCmd, queryResCmd)
 }
 
 func (m RagQueryModel) View() tea.View {
@@ -40,6 +45,11 @@ func (m RagQueryModel) ragQueryActionBar() tea.View {
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
 
+	selectedRepoText := lipgloss.NewStyle().
+		PaddingRight(1).Foreground(styles.Warm.AccentBright).
+		Render(fmt.Sprintf("Selected Repo: %s", m.SelectedRepo))
+
+	selectedRepo := navBtnStyle.Render(selectedRepoText)
 	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
 	scrollBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
 	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
@@ -50,5 +60,5 @@ func (m RagQueryModel) ragQueryActionBar() tea.View {
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(lipgloss.Color("#444444")).
 		Width(m.Ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, searchBtn, scrollBtn, switchRepoBtn, openBrowserBtn)))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepo, searchBtn, scrollBtn, switchRepoBtn, openBrowserBtn)))
 }

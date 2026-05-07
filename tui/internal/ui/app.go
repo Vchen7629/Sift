@@ -26,6 +26,7 @@ func New() model {
 			context.AuthPage:	   views.AuthModel{Ctx: ctx},
 			context.QueryPage: 	   views.RagQueryModel{
 				Ctx: ctx,
+				SelectedRepo: "Sift",
 				Searchbar: rag_query.NewRagQuerySearchBar(ctx),
 				QueryResponse: rag_query.NewRagQueryResponse(ctx),
 			},

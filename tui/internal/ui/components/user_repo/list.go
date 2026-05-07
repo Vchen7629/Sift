@@ -15,7 +15,7 @@ import (
 type ListModel struct {
 	ctx 		 *context.App
 	FetchedRepos []UserRepo
-	FocusedRepo  FocusedRepo
+	Focused      FocusedRepo
 	viewport 	 viewport.Model
 }
 
@@ -34,7 +34,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		ctx: ctx,
 		FetchedRepos: dummyData,
 	}
-	m.FocusedRepo = FocusedRepo{index: 0, userRepo: m.FetchedRepos[0]}
+	m.Focused = FocusedRepo{index: 0, userRepo: m.FetchedRepos[0]}
 	return m
 }
 
@@ -43,22 +43,22 @@ func (m ListModel) Init() tea.Cmd {
 }
 
 func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	cardHeight := lipgloss.Height(m.repoCard(m.FocusedRepo.userRepo))                                                                                                             
+	cardHeight := lipgloss.Height(m.repoCard(m.Focused.userRepo))                                                                                                             
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "down":
-			if m.FocusedRepo.index < len(m.FetchedRepos) - 1 {
-				m.FocusedRepo.index++
-				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
-    			service.ScrollToFocused(&m.viewport, m.FocusedRepo.index, cardHeight)
+			if m.Focused.index < len(m.FetchedRepos) - 1 {
+				m.Focused.index++
+				m.Focused.userRepo = m.FetchedRepos[m.Focused.index]
+    			service.ScrollToFocused(&m.viewport, m.Focused.index, cardHeight)
 			}
 		case "up":
-			if m.FocusedRepo.index > 0 {
-				m.FocusedRepo.index--
-				m.FocusedRepo.userRepo = m.FetchedRepos[m.FocusedRepo.index]
-				service.ScrollToFocused(&m.viewport, m.FocusedRepo.index, cardHeight)
+			if m.Focused.index > 0 {
+				m.Focused.index--
+				m.Focused.userRepo = m.FetchedRepos[m.Focused.index]
+				service.ScrollToFocused(&m.viewport, m.Focused.index, cardHeight)
 			}
 		}
 	}
@@ -102,7 +102,7 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 
 	indexStatus := lipgloss.NewStyle().Width(8).Align(lipgloss.Right).Render(repo.Status)                                                                       
 	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
-	totalDependencies   := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalDependencies)
+	totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(repo.TotalDependencies)
 
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
 
@@ -117,7 +117,7 @@ func (m *ListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
 	borderColor := lipgloss.Color("#444444")
 	textColor := lipgloss.Color("#ffffff")
 
-	if m.FocusedRepo.userRepo.id == repo.id {
+	if m.Focused.userRepo.id == repo.id {
 		borderColor = styles.Warm.AccentMid
 		textColor = styles.Warm.AccentBright
 	}
