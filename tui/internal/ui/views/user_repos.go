@@ -21,22 +21,22 @@ type UserRepoModel struct {
 	SearchBar 	   *user_repo.SearchBarModel
 	RepoList	   *user_repo.ListModel
 	FocusedSidebar *user_repo.FocusedSidebar
-	FocusedRepo    user_repo.FocusedRepo
-	PanelFocus 	   FocusedPanel
+	focusedRepo    user_repo.FocusedRepo
+	panelFocus 	   FocusedPanel
 }
 
 func (m UserRepoModel) Init() tea.Cmd {
-	return m.SearchBar.Init()
+	return nil
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if msg.String() == "s" && !m.SearchBar.IsSearching() {
-			if m.PanelFocus == FocusList {
-				m.PanelFocus = FocusSidebar
+			if m.panelFocus == FocusList {
+				m.panelFocus = FocusSidebar
 			} else {
-				m.PanelFocus = FocusList
+				m.panelFocus = FocusList
 			}
 
 			return m, nil
@@ -44,15 +44,15 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	
 	var repoListCmd, searchBarCmd, sidebarCmd tea.Cmd
-	if m.PanelFocus == FocusList {
+	if m.panelFocus == FocusList {
 		_, repoListCmd = m.RepoList.Update(msg)
 		searchBarCmd = m.SearchBar.Update(msg)
 	} else {
 		_, sidebarCmd = m.FocusedSidebar.Update(msg)
 	}
 
-	m.FocusedRepo = m.RepoList.FocusedRepo
-	m.FocusedSidebar.FocusedRepo = m.FocusedRepo
+	m.focusedRepo = m.RepoList.FocusedRepo
+	m.FocusedSidebar.FocusedRepo = m.focusedRepo
 
 	return m, tea.Batch(repoListCmd, searchBarCmd, sidebarCmd)
 }
