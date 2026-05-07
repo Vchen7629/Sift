@@ -32,6 +32,15 @@ func (m FocusedSidebar) Init() tea.Cmd {
 }
 
 func (m *FocusedSidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "down":
+			m.viewport.ScrollDown(2)
+		case "up":
+			m.viewport.ScrollUp(2)
+		}
+	}
 	return m, nil
 }
 
@@ -69,7 +78,7 @@ func (m *FocusedSidebar) repoDependencyList() tea.View {
 
 	if len(m.FocusedRepo.userRepo.Libraries) == 0 {
 		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("No dependencies indexed for this repo")
-		
+
 		return tea.NewView(text)
 	}
 

@@ -9,12 +9,20 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+type FocusedPanel int
+
+const (
+	FocusList FocusedPanel = iota
+	FocusSidebar
+)
+
 type UserRepoModel struct {
 	Ctx 		   *context.App
 	SearchBar 	   *user_repo.SearchBarModel
 	RepoList	   *user_repo.ListModel
 	FocusedSidebar *user_repo.FocusedSidebar
 	FocusedRepo    user_repo.FocusedRepo
+	PanelFocus 	   FocusedPanel
 }
 
 func (m UserRepoModel) Init() tea.Cmd {
@@ -22,13 +30,31 @@ func (m UserRepoModel) Init() tea.Cmd {
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	_, repoListCmd := m.RepoList.Update(msg)
-	searchBarCmd := m.SearchBar.Update(msg)
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		if msg.String() == "s" && !m.SearchBar.IsSearching() {
+			if m.PanelFocus == FocusList {
+				m.PanelFocus = FocusSidebar
+			} else {
+				m.PanelFocus = FocusList
+			}
+
+			return m, nil
+		}
+	}
 	
+	var repoListCmd, searchBarCmd, sidebarCmd tea.Cmd
+	if m.PanelFocus == FocusList {
+		_, repoListCmd = m.RepoList.Update(msg)
+		searchBarCmd = m.SearchBar.Update(msg)
+	} else {
+		_, sidebarCmd = m.FocusedSidebar.Update(msg)
+	}
+
 	m.FocusedRepo = m.RepoList.FocusedRepo
 	m.FocusedSidebar.FocusedRepo = m.FocusedRepo
 
-	return m, tea.Batch(repoListCmd, searchBarCmd)
+	return m, tea.Batch(repoListCmd, searchBarCmd, sidebarCmd)
 }
 
 func (m *UserRepoModel) View() tea.View {
@@ -59,7 +85,7 @@ func (m UserRepoModel) userActionBar() tea.View {
 
 	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
 	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
-	focusDetailsBtn := navBtnStyle.Render(navBtnTextStyle.Render("[d] focus details"))
+	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] swap focus"))
 	reindexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
 
 	return tea.NewView(lipgloss.NewStyle().
@@ -67,5 +93,5 @@ func (m UserRepoModel) userActionBar() tea.View {
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(lipgloss.Color("#444444")).
 		Width(m.Ctx.Width - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, focusDetailsBtn, reindexBtn)))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, swapFocusBtn, reindexBtn)))
 }

@@ -29,7 +29,7 @@ func (m *SearchBarModel) Init() tea.Cmd {
 }
 
 func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
-	key, ok := msg.(tea.KeyPressMsg)
+	key, ok := msg.(tea.KeyPressMsg)	
 	if ok && key.String() == "enter" {
 		m.focused = !m.focused
 		if m.focused {
@@ -60,4 +60,9 @@ func (m *SearchBarModel) View() string {
 		Padding(0, 1)
 
 	return style.Render(m.textInput.View())
+}
+
+// used to disable panel focus swap if user is searching
+func (m *SearchBarModel) IsSearching() bool {
+	return m.focused
 }
