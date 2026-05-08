@@ -25,26 +25,7 @@ func (m BaseModel) Init() tea.Cmd {
 }
 
 func (m BaseModel) Update(msg tea.Msg) tea.Cmd {
-	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
-		switch msg.String() {
-		case "1":
-			m.Ctx.ThemeSelectorOpen = false
-			m.Ctx.CurrentPage = context.UserReposPage
-			return nil
-		
-		case "2": 
-			m.Ctx.ThemeSelectorOpen = false
-			m.Ctx.CurrentPage = context.QueryPage
-			return nil
-
-		case "3":
-			m.Ctx.ThemeSelectorOpen = true
-			return nil
-		}
-	}
-
-	return nil
+	return tea.Batch(m.NavButtons.Update(msg))
 }
 
 func (m BaseModel) View() tea.View {
