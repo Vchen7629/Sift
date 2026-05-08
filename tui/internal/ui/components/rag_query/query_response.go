@@ -126,7 +126,7 @@ func (m *RagQueryResponseModel) sourceCard(dependency source) string {
 	textColor := styles.TextDim
 
 	if m.Focused.id == dependency.id {
-		textColor = styles.Warm.AccentBright
+		textColor = m.ctx.SelectedTheme.AccentBright
 	}
 
 	dependencyText := lipgloss.NewStyle().Foreground(textColor)

@@ -8,7 +8,6 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/context"
-	"tui/internal/ui/styles"
 	"tui/internal/service"
 )
 
@@ -118,8 +117,8 @@ func (m *ListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
 	textColor := lipgloss.Color("#ffffff")
 
 	if m.Focused.userRepo.id == repo.id {
-		borderColor = styles.Warm.AccentMid
-		textColor = styles.Warm.AccentBright
+		borderColor = m.ctx.SelectedTheme.AccentMid
+		textColor = m.ctx.SelectedTheme.AccentBright
 	}
 
 	return borderColor, textColor

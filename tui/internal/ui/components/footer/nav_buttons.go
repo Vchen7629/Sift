@@ -31,10 +31,6 @@ func (m NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
 		case "2":
 			m.ctx.CurrentPage = context.QueryPage
 			return nil
-
-		case "3":
-			m.ctx.ThemeSelectorOpen = !m.ctx.ThemeSelectorOpen
-			return nil
 		}
 	}
 
@@ -61,12 +57,6 @@ func (m NavButtonsModel) View() string {
 		}
 		rendered[i] = navBtnStyle.Render(label)
 	}
-
-	themeLabel := "[3] theme"
-	if m.ctx.ThemeSelectorOpen {
-		themeLabel = selectedStyle.Render(themeLabel)
-	}
-	rendered[len(buttons)] = navBtnStyle.Render(themeLabel)
 
 	return lipgloss.JoinHorizontal(lipgloss.Left, rendered...)
 }

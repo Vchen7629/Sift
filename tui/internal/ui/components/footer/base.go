@@ -25,13 +25,22 @@ func (m BaseModel) Init() tea.Cmd {
 }
 
 func (m BaseModel) Update(msg tea.Msg) tea.Cmd {
-	return tea.Batch(m.NavButtons.Update(msg))
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "3":
+			m.Ctx.ThemeSelectorOpen = !m.Ctx.ThemeSelectorOpen
+			return nil
+		}
+	}
+
+	return tea.Batch(m.NavButtons.Update(msg), m.ThemeSelector.Update(msg))
 }
 
 func (m BaseModel) View() tea.View {
 	appName := lipgloss.NewStyle().
 		PaddingLeft(2).PaddingRight(1).
-		Background(styles.Footer).Foreground(styles.Cold.AccentMid).      
+		Background(styles.Footer).Foreground(m.Ctx.SelectedTheme.AccentMid).      
 		Render("Sift")    
 
 	background := lipgloss.NewStyle().Background(styles.Footer).Width(m.width)
@@ -39,11 +48,26 @@ func (m BaseModel) View() tea.View {
 	var content string
 	if m.Ctx.ThemeSelectorOpen {
 		content = background.Render(lipgloss.JoinHorizontal(
-			lipgloss.Left, appName, m.NavButtons.View(), m.ThemeSelector.View().Content,
+			lipgloss.Left, appName, m.NavButtons.View(), m.themeBtn(), m.ThemeSelector.View().Content,
 		))
 	} else {
-		content = background.Render(lipgloss.JoinHorizontal(lipgloss.Left, appName, m.NavButtons.View()))
+		content = background.Render(lipgloss.JoinHorizontal(lipgloss.Left, appName, m.NavButtons.View(), m.themeBtn()))
 	}
 
 	return tea.NewView(content)
+}
+
+func (m BaseModel) themeBtn() string {
+	themeLabel := "[3] theme"
+	if m.Ctx.ThemeSelectorOpen {
+		themeLabel = lipgloss.NewStyle().
+			PaddingRight(2).
+			Background(styles.Footer).Foreground(m.Ctx.SelectedTheme.AccentBright).Bold(true).
+			Render(themeLabel)
+	}
+
+	return lipgloss.NewStyle().
+		PaddingLeft(1).PaddingRight(1).
+		Background(styles.Footer).
+		Render(themeLabel)
 }

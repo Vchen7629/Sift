@@ -3,7 +3,6 @@ package rag_query
 
 import (
 	"tui/internal/ui/context"
-	"tui/internal/ui/styles"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -19,9 +18,6 @@ type SearchBarModel struct {
 func NewRagQuerySearchBar(ctx *context.App) *SearchBarModel {
 	ti := textinput.New()
 	ti.Placeholder = "Describe Your Issue..."
-	s := ti.Styles()
-	s.Focused.Text = lipgloss.NewStyle().Foreground(styles.Warm.AccentBright)
-	ti.SetStyles(s)
 
 	return &SearchBarModel{
 		ctx: 	   ctx,
@@ -57,12 +53,16 @@ func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
+// Todo: Disable searchbar left right movement when theme is open
 func (m *SearchBarModel) View() string {
 	m.textInput.SetWidth(m.ctx.MainWidth - 10)
+	s := m.textInput.Styles()
+	s.Focused.Text = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
+	m.textInput.SetStyles(s)
 
 	borderColor := lipgloss.Color("#444444")
 	if m.focused {
-		borderColor = styles.Warm.AccentMid
+		borderColor = m.ctx.SelectedTheme.AccentMid
 	}
 
 	style := lipgloss.NewStyle().

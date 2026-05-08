@@ -55,12 +55,17 @@ func (m *Sidebar) View() tea.View {
 }
 
 func (m *Sidebar) sidebarHeader() string {
-	repoName := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).Render(m.FocusedRepo.userRepo.Name)
+	repoName := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Render(m.FocusedRepo.userRepo.Name)
 
-	totalLibs := lipgloss.NewStyle().Foreground(styles.TextDim).MarginRight(1).
+	totalLibs := lipgloss.NewStyle().
+		Foreground(styles.TextDim).
+		MarginRight(1).
 		Render(fmt.Sprintf("%s total dependencies", m.FocusedRepo.userRepo.TotalDependencies))
-	lastIndexed := lipgloss.NewStyle().Foreground(styles.TextDim).
+
+	lastIndexed := lipgloss.NewStyle().
+		Foreground(styles.TextDim).
 		Render(fmt.Sprintf("· %s ago", m.FocusedRepo.userRepo.LastIndexed))
+		
 	rightBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
 	
 	spaceBetween := lipgloss.NewStyle().

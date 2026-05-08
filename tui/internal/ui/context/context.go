@@ -16,14 +16,14 @@ type App struct {
 	MainWidth, MainHeight     int
 	SidebarWidth 		      int
 	Username	  			  string
-	Theme		  	   	 	  styles.Theme
 	CurrentPage   			  Page
 	ThemeSelectorOpen		  bool
+	SelectedTheme			  styles.Theme
 }
 
 func NewApp() *App {
 	return &App{
-		CurrentPage: UserReposPage,
-		Theme:		 styles.Warm,
+		CurrentPage:   UserReposPage,
+		SelectedTheme: styles.Warm,
 	}
 }
