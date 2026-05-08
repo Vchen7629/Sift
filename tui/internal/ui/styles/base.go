@@ -7,9 +7,10 @@ import (
 )
 
 type Theme struct {
-	AccentBright color.Color
-	AccentMid 	 color.Color
-	AccentDim	 color.Color
+	AccentBright  color.Color
+	AccentMid 	  color.Color
+	AccentDim	  color.Color
+	BorderFocused color.Color
 }
 
 var (

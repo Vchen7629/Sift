@@ -88,7 +88,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 
 	contentPos := lipgloss.NewStyle().Width(mainWidth).MarginLeft(2).MarginTop(1).MarginBottom(1)
 	outerBorder := lipgloss.NewStyle().Width(mainWidth - 2).Padding(0, 1).
-		Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#747373"))
+		Border(lipgloss.DoubleBorder()).BorderForeground(m.ctx.SelectedTheme.BorderFocused)
 
 	answerText := lipgloss.NewStyle().
 		PaddingBottom(1).Width(mainWidth).MaxHeight(6).
