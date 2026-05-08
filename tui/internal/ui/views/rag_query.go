@@ -29,12 +29,14 @@ func (m RagQueryModel) Init() tea.Cmd {
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case rag_query.ToggleFocusMsg:
-		m.isSidebarFocused = !m.isSidebarFocused
+		if !m.Searchbar.IsSearching() {
+			m.isSidebarFocused = !m.isSidebarFocused
+		}
 		return m, nil
 	}
 
 	actionBarCmd := m.ActionBar.Update(msg)
-	searchBarCmd := m.Searchbar.Update(msg)
+	searchBarCmd := m.Searchbar.Update(msg, m.isSidebarFocused)
 	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused)
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 

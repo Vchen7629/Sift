@@ -30,7 +30,11 @@ func (m *SearchBarModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *SearchBarModel) Update(msg tea.Msg) tea.Cmd {
+func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+	if isSidebarFocused {
+		return nil
+	}
+
 	key, ok := msg.(tea.KeyPressMsg)	
 	if ok && key.String() == "/" {
 		m.focused = !m.focused
@@ -63,7 +67,7 @@ func (m *SearchBarModel) View() string {
 
 	borderColor := styles.Divider
 	if m.focused {
-		borderColor = m.ctx.SelectedTheme.AccentMid
+		borderColor = m.ctx.SelectedTheme.AccentBright
 	}
 
 	style := lipgloss.NewStyle().
