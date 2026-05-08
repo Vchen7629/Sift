@@ -18,7 +18,7 @@ type RagQueryModel struct {
 	ResponseDisplay *rag_query.RagQueryResponseModel
 	Sidebar			*rag_query.SidebarModel
 	SelectedRepo    string
-	FocusRepoList   bool
+	isRepoListFocus bool
 }
 
 func (m RagQueryModel) Init() tea.Cmd {
@@ -27,10 +27,17 @@ func (m RagQueryModel) Init() tea.Cmd {
 
 // user actions
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	searchBarCmd := m.Searchbar.Update(msg)
-	_, queryResCmd := m.ResponseDisplay.Update(msg)
+	switch msg.(type) {
+	case rag_query.ToggleFocusMsg:
+		m.isRepoListFocus = !m.isRepoListFocus
+		return m, nil
+	}
 
-	return m, tea.Batch(searchBarCmd, queryResCmd)
+	actionBarCmd := m.ActionBar.Update(msg)
+	searchBarCmd := m.Searchbar.Update(msg)
+	queryResCmd := m.ResponseDisplay.Update(msg, m.isRepoListFocus)
+
+	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd)
 }
 
 func (m RagQueryModel) View() tea.View {
@@ -41,7 +48,7 @@ func (m RagQueryModel) View() tea.View {
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
-	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View().Content, mainContent)
+	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isRepoListFocus).Content, mainContent)
 
 	return tea.NewView(screen)
 }

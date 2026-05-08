@@ -14,6 +14,8 @@ type ActionBarModel struct {
 	selectedRepo string
 }
 
+type ToggleFocusMsg struct{}
+
 func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx, selectedRepo: ""}
 }
@@ -22,17 +24,18 @@ func (m ActionBarModel) Init() tea.Msg {
 	return nil
 }
 
-func (m *ActionBarModel) Update() tea.Msg {
+func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "s":
+			return func () tea.Msg { return ToggleFocusMsg{} }
+		}
+	}
 	return nil
 }
 
-func (m ActionBarModel) View() tea.View {
-	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
-
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Bold(true)
-
+func (m ActionBarModel) View(isRepoListFocused bool) tea.View {
 	selectedRepoName := fmt.Sprintf("Selected Repo: %s", m.selectedRepo)
 	if m.selectedRepo == "" {
 		selectedRepoName = "No Repo Selected"
@@ -42,17 +45,35 @@ func (m ActionBarModel) View() tea.View {
 		PaddingRight(1).Foreground(m.ctx.SelectedTheme.AccentBright).
 		Render(selectedRepoName)
 
-	selectedRepo := navBtnStyle.Render(selectedRepoText)
-
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
-	scrollBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll sources"))
-	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
-	switchRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] switch repo"))
+	selectedRepo := lipgloss.NewStyle().PaddingLeft(2).Render(selectedRepoText)
 
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(styles.Divider).
 		Width(m.ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepo, searchBtn, scrollBtn, switchRepoBtn, openBrowserBtn)))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepo, m.actionBarBtns(isRepoListFocused))))
+}
+
+func (m ActionBarModel) actionBarBtns(focusRepoList bool) string {
+	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
+	navBtnTextStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#444444")).
+		Bold(true)
+	
+
+	if focusRepoList {
+		scrollText := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] change selected repo"))
+		switchFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] back to search"))
+		selectRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] select repo"))
+
+		return lipgloss.JoinHorizontal(lipgloss.Left, scrollText, switchFocusBtn, selectRepoBtn)
+	}
+
+	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
+	scrollSourceBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll sources"))
+	switchFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] switch selected repo"))
+	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
+
+	return lipgloss.JoinHorizontal(lipgloss.Left, searchBtn, scrollSourceBtn, switchFocusBtn, openBrowserBtn)
 }

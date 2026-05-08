@@ -56,11 +56,14 @@ func (m RagQueryResponseModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RagQueryResponseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *RagQueryResponseModel) Update(msg tea.Msg, isRepoListFocused bool) tea.Cmd {
 	cardHeight := lipgloss.Height(m.sourceCard(m.Focused))
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
+		if isRepoListFocused {
+			break
+		}
 		switch msg.String() {
 		case "down":
 			if m.Focused.id < len(m.answer.sources) - 1 {
@@ -77,7 +80,7 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	return nil
 }
 
 func (m *RagQueryResponseModel) View() tea.View {
@@ -140,5 +143,3 @@ func (m *RagQueryResponseModel) sourceCard(dependency source) string {
 		lipgloss.Left, id, name, version, label,
 	)))
 }
-
-// Todo: sidebar to show a list of repos to switch
