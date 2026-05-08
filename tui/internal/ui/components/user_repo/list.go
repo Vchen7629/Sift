@@ -42,11 +42,14 @@ func (m ListModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	cardHeight := lipgloss.Height(m.repoCard(m.Focused.userRepo))                                                                                                             
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
+		if isSidebarFocused {
+			break
+		}
 		switch msg.String() {
 		case "down":
 			if m.Focused.index < len(m.FetchedRepos) - 1 {
@@ -63,7 +66,7 @@ func (m *ListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	return nil
 }
 
 func (m *ListModel) View() tea.View {

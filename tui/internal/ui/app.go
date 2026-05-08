@@ -33,6 +33,7 @@ func New() model {
 			},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,
+				ActionBar: user_repo.NewActionBar(ctx),
 				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
 				RepoList: user_repo.NewUserRepoList(ctx),
 				Sidebar: user_repo.NewSidebar(ctx),

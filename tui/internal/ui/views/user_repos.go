@@ -10,20 +10,14 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-type FocusedPanel int
-
-const (
-	FocusList FocusedPanel = iota
-	FocusSidebar
-)
-
 type UserRepoModel struct {
-	Ctx 		   *context.App
-	SearchBar 	   *user_repo.SearchBarModel
-	RepoList	   *user_repo.ListModel
-	Sidebar 	   *user_repo.Sidebar
-	focusedRepo    user_repo.FocusedRepo
-	panelFocus 	   FocusedPanel
+	Ctx 		      *context.App
+	ActionBar         *user_repo.ActionBarModel
+	SearchBar 	      *user_repo.SearchBarModel
+	RepoList	      *user_repo.ListModel
+	Sidebar 	      *user_repo.Sidebar
+	focusedRepo       user_repo.FocusedRepo
+	isSidebarFocused bool
 }
 
 func (m UserRepoModel) Init() tea.Cmd {
@@ -31,31 +25,23 @@ func (m UserRepoModel) Init() tea.Cmd {
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
-		if msg.String() == "s" && !m.SearchBar.IsSearching() {
-			if m.panelFocus == FocusList {
-				m.panelFocus = FocusSidebar
-			} else {
-				m.panelFocus = FocusList
-			}
-
-			return m, nil
+	switch msg.(type) {
+	case user_repo.ToggleFocusMsg:
+		if !m.SearchBar.IsSearching() {
+			m.isSidebarFocused = !m.isSidebarFocused
 		}
+		return m, nil
 	}
-	
-	var repoListCmd, searchBarCmd, sidebarCmd tea.Cmd
-	if m.panelFocus == FocusList {
-		_, repoListCmd = m.RepoList.Update(msg)
-		searchBarCmd = m.SearchBar.Update(msg)
-	} else {
-		_, sidebarCmd = m.Sidebar.Update(msg)
-	}
+
+	actionBarCmd := m.ActionBar.Update(msg)
+	repoListCmd := m.RepoList.Update(msg, m.isSidebarFocused)
+	searchBarCmd := m.SearchBar.Update(msg, m.isSidebarFocused)
+	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
 	m.focusedRepo = m.RepoList.Focused
 	m.Sidebar.FocusedRepo = m.focusedRepo
 
-	return m, tea.Batch(repoListCmd, searchBarCmd, sidebarCmd)
+	return m, tea.Batch(actionBarCmd, repoListCmd, searchBarCmd, sidebarCmd)
 }
 
 func (m *UserRepoModel) View() tea.View {
@@ -69,30 +55,5 @@ func (m *UserRepoModel) View() tea.View {
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
 	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.Sidebar.View().Content)
 
-	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, 
-		m.userRepoListActionBar().Content, 
-		content,
-	))
-}
-
-// todo: maybe rename it to something other than btn since the user doesnt really click it
-func (m UserRepoModel) userRepoListActionBar() tea.View {
-	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
-
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Bold(true)
-
-	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
-	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear"))
-	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] swap focus"))
-	reindexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
-
-	return tea.NewView(lipgloss.NewStyle().
-		BorderBottom(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderBottomForeground(styles.Divider).
-		Width(m.Ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, reindexBtn)))
+	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused).Content, content))
 }

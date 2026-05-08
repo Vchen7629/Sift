@@ -31,9 +31,12 @@ func (m Sidebar) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Sidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
+		if !isSidebarFocused {
+			break
+		}
 		switch msg.String() {
 		case "down":
 			m.viewport.ScrollDown(2)
@@ -41,7 +44,7 @@ func (m *Sidebar) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.ScrollUp(2)
 		}
 	}
-	return m, nil
+	return nil
 }
 
 func (m *Sidebar) View() tea.View {
