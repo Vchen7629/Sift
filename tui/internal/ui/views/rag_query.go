@@ -12,13 +12,13 @@ import (
 )
 
 type RagQueryModel struct {
-	Ctx 		    *context.App
-	ActionBar 	    *rag_query.ActionBarModel
-	Searchbar 	    *rag_query.SearchBarModel
-	ResponseDisplay *rag_query.RagQueryResponseModel
-	Sidebar			*rag_query.SidebarModel
-	SelectedRepo    string
-	isRepoListFocus bool
+	Ctx 		     *context.App
+	ActionBar 	     *rag_query.ActionBarModel
+	Searchbar 	     *rag_query.SearchBarModel
+	ResponseDisplay  *rag_query.RagQueryResponseModel
+	Sidebar			 *rag_query.SidebarModel
+	SelectedRepo     string
+	isSidebarFocused bool
 }
 
 func (m RagQueryModel) Init() tea.Cmd {
@@ -29,15 +29,16 @@ func (m RagQueryModel) Init() tea.Cmd {
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case rag_query.ToggleFocusMsg:
-		m.isRepoListFocus = !m.isRepoListFocus
+		m.isSidebarFocused = !m.isSidebarFocused
 		return m, nil
 	}
 
 	actionBarCmd := m.ActionBar.Update(msg)
 	searchBarCmd := m.Searchbar.Update(msg)
-	queryResCmd := m.ResponseDisplay.Update(msg, m.isRepoListFocus)
+	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused)
+	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
-	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd)
+	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd, sidebarCmd)
 }
 
 func (m RagQueryModel) View() tea.View {
@@ -48,7 +49,7 @@ func (m RagQueryModel) View() tea.View {
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
-	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isRepoListFocus).Content, mainContent)
+	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isSidebarFocused).Content, mainContent)
 
 	return tea.NewView(screen)
 }

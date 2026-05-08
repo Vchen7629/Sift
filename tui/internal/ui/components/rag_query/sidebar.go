@@ -3,6 +3,7 @@ package rag_query
 import (
 	"fmt"
 	"strings"
+	"tui/internal/service"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -15,6 +16,7 @@ type SidebarModel struct {
 	ctx      *context.App
 	repos    []repoStatus
 	viewport viewport.Model
+	focused  repoStatus
 }
 
 type repoStatus struct {
@@ -30,10 +32,11 @@ func NewSidebar(ctx *context.App) *SidebarModel {
 			{id: 1, name: "Atlaxiom", totalDep: 9, lastIndexed: "2"},
 			{id: 2, name: "Cyphria", totalDep: 12, lastIndexed: "1"},
 			{id: 3, name: "Kubernetes", totalDep: 7, lastIndexed: "5"},
-			{id: 5, name: "Docker", totalDep: 26, lastIndexed: "10"},
-			{id: 6, name: "Kafka", totalDep: 3, lastIndexed: "2"},
-			{id: 7, name: "Splice", totalDep: 45, lastIndexed: "3"},
+			{id: 4, name: "Docker", totalDep: 26, lastIndexed: "10"},
+			{id: 5, name: "Kafka", totalDep: 3, lastIndexed: "2"},
+			{id: 6, name: "Splice", totalDep: 45, lastIndexed: "3"},
 		},
+		focused: repoStatus{id: 0, name: "Sift", totalDep: 17, lastIndexed: "19"},
 	}
 }
 
@@ -41,7 +44,27 @@ func (m *SidebarModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *SidebarModel) Update() tea.Cmd {
+func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		if !isSidebarFocused {
+			break
+		}
+		switch msg.String() {
+		case "down":
+			if m.focused.id < len(m.repos) - 1 {
+				m.focused.id++
+				m.focused = m.repos[m.focused.id]
+				service.ScrollToFocused(&m.viewport, m.focused.id, 1)
+			}
+		case "up": 
+			if m.focused.id > 0 {
+				m.focused.id--
+				m.focused = m.repos[m.focused.id]
+				service.ScrollToFocused(&m.viewport, m.focused.id, 1)
+			}
+		}
+	}
 	return nil
 }
 
@@ -69,9 +92,14 @@ func (m *SidebarModel) sideBarList() string {
 	var indexedRepoList []string
 
 	for _, repo := range m.repos {
-		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Render(repo.name)
-		totalDependencies := lipgloss.NewStyle().Width(10).Render(fmt.Sprintf("%d libs", repo.totalDep))
-		lastIndexed := lipgloss.NewStyle().Width(18).Render(fmt.Sprintf("%s days ago", repo.lastIndexed))
+		textColor := m.ctx.SelectedTheme.AccentMid
+		if repo.id == m.focused.id {
+			textColor = m.ctx.SelectedTheme.AccentBright
+		}
+
+		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Foreground(textColor).Render(repo.name)
+		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.totalDep))
+		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(fmt.Sprintf("%s days ago", repo.lastIndexed))
 
 		spaceBelow := lipgloss.NewStyle().MarginBottom(0)
 

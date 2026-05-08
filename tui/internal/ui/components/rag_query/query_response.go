@@ -16,7 +16,7 @@ type RagQueryResponseModel struct {
 	ctx           *context.App
 	mainWidth 	  int
 	answer    	  answerModel
-	Focused 	  source
+	focused 	  source
 	viewport  	  viewport.Model
 }
 
@@ -48,7 +48,7 @@ func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
 				{id: 6, link: "github.com/idk/redux", version: "v4.2.1", label: "changelog"},
 			},
 		},
-		Focused: source{id: 0, link: "github.com/idk/axios", version: "v1.7.2", label: "issue"},
+		focused: source{id: 0, link: "github.com/idk/axios", version: "v1.7.2", label: "issue"},
 	}
 }
 
@@ -56,26 +56,26 @@ func (m RagQueryResponseModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RagQueryResponseModel) Update(msg tea.Msg, isRepoListFocused bool) tea.Cmd {
-	cardHeight := lipgloss.Height(m.sourceCard(m.Focused))
+func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+	cardHeight := lipgloss.Height(m.sourceCard(m.focused))
 
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if isRepoListFocused {
+		if isSidebarFocused {
 			break
 		}
 		switch msg.String() {
 		case "down":
-			if m.Focused.id < len(m.answer.sources) - 1 {
-				m.Focused.id++
-				m.Focused = m.answer.sources[m.Focused.id]
-				service.ScrollToFocused(&m.viewport, m.Focused.id, cardHeight)
+			if m.focused.id < len(m.answer.sources) - 1 {
+				m.focused.id++
+				m.focused = m.answer.sources[m.focused.id]
+				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
 			}
 		case "up":
-			if m.Focused.id > 0 {
-				m.Focused.id--
-				m.Focused = m.answer.sources[m.Focused.id]
-				service.ScrollToFocused(&m.viewport, m.Focused.id, cardHeight)
+			if m.focused.id > 0 {
+				m.focused.id--
+				m.focused = m.answer.sources[m.focused.id]
+				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
 			}
 		}
 	}
@@ -126,9 +126,9 @@ func (m *RagQueryResponseModel) source() tea.View {
 }
 
 func (m *RagQueryResponseModel) sourceCard(dependency source) string {
-	textColor := styles.TextDim
+	textColor := m.ctx.SelectedTheme.AccentMid
 
-	if m.Focused.id == dependency.id {
+	if m.focused.id == dependency.id {
 		textColor = m.ctx.SelectedTheme.AccentBright
 	}
 
