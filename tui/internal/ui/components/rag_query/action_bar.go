@@ -11,13 +11,12 @@ import (
 
 type ActionBarModel struct {
 	ctx 		 *context.App
-	selectedRepo string
 }
 
 type ToggleFocusMsg struct{}
 
 func NewActionBar(ctx *context.App) *ActionBarModel {
-	return &ActionBarModel{ctx: ctx, selectedRepo: ""}
+	return &ActionBarModel{ctx: ctx}
 }
 
 func (m ActionBarModel) Init() tea.Msg {
@@ -35,24 +34,22 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m ActionBarModel) View(isRepoListFocused bool) tea.View {
-	selectedRepoName := fmt.Sprintf("Selected Repo: %s", m.selectedRepo)
-	if m.selectedRepo == "" {
+func (m ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.View {
+	selectedRepoName := fmt.Sprintf("Selected Repo: %s", selectedRepo)
+	if selectedRepo == "" {
 		selectedRepoName = "No Repo Selected"
 	}
 	
 	selectedRepoText := lipgloss.NewStyle().
-		PaddingRight(1).Foreground(m.ctx.SelectedTheme.AccentBright).
+		PaddingRight(1).Foreground(m.ctx.SelectedTheme.AccentBright).PaddingLeft(2).
 		Render(selectedRepoName)
-
-	selectedRepo := lipgloss.NewStyle().PaddingLeft(2).Render(selectedRepoText)
 
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(styles.Divider).
 		Width(m.ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepo, m.actionBarBtns(isRepoListFocused))))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused))))
 }
 
 func (m ActionBarModel) actionBarBtns(focusRepoList bool) string {

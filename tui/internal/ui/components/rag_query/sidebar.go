@@ -24,6 +24,8 @@ type repoStatus struct {
 	name, lastIndexed string
 }
 
+type SelectRepoMsg struct{ RepoName string }
+
 func NewSidebar(ctx *context.App) *SidebarModel {
 	return &SidebarModel{
 		ctx: ctx,
@@ -36,7 +38,6 @@ func NewSidebar(ctx *context.App) *SidebarModel {
 			{id: 5, name: "Kafka", totalDep: 3, lastIndexed: "2"},
 			{id: 6, name: "Splice", totalDep: 45, lastIndexed: "3"},
 		},
-		focused: repoStatus{id: 0, name: "Sift", totalDep: 17, lastIndexed: "19"},
 	}
 }
 
@@ -62,6 +63,11 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 				m.focused.id--
 				m.focused = m.repos[m.focused.id]
 				service.ScrollToFocused(&m.viewport, m.focused.id, 1)
+			}
+		
+		case "enter":
+			return func() tea.Msg { 
+				return SelectRepoMsg{ RepoName: m.focused.name } 
 			}
 		}
 	}

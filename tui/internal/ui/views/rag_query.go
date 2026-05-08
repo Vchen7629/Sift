@@ -21,17 +21,34 @@ type RagQueryModel struct {
 	isSidebarFocused bool
 }
 
+type selectedRepo struct {
+	id, totalDep      int
+	name, lastIndexed string
+	sources			  []source
+}
+
+type source struct {
+	id 					 int
+	link, version, label string 
+}
+
+
 func (m RagQueryModel) Init() tea.Cmd {
 	return nil
 }
 
 // user actions
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case rag_query.ToggleFocusMsg:
 		if !m.Searchbar.IsSearching() {
 			m.isSidebarFocused = !m.isSidebarFocused
 		}
+		return m, nil
+	
+	case rag_query.SelectRepoMsg:
+		m.SelectedRepo = msg.RepoName
+
 		return m, nil
 	}
 
@@ -51,7 +68,7 @@ func (m RagQueryModel) View() tea.View {
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
-	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isSidebarFocused).Content, mainContent)
+	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isSidebarFocused, m.SelectedRepo).Content, mainContent)
 
 	return tea.NewView(screen)
 }
