@@ -39,13 +39,13 @@ func (m NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
 
 func (m NavButtonsModel) View() string {
 	navBtnStyle := lipgloss.NewStyle().PaddingLeft(1).PaddingRight(1).Background(styles.Footer)
-	selectedStyle := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).Bold(true)
+	selectedStyle := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Bold(true)
 
 	buttons := []struct {
 		label string
 		page  context.Page
 	}{
-		{"[1] repos", context.UserReposPage},
+		{"[1] repo index status", context.UserReposPage},
 		{"[2] search issue", context.QueryPage},
 	}
 

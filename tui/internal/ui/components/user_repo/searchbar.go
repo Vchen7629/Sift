@@ -2,6 +2,7 @@ package user_repo
 
 import (
 	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -58,7 +59,7 @@ func (m *SearchBarModel) View() string {
 	s.Focused.Text = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
 	m.textInput.SetStyles(s)
 
-	borderColor := lipgloss.Color("#444444")
+	borderColor := styles.Divider
 	if m.focused {
 		borderColor = m.ctx.SelectedTheme.AccentMid
 	}

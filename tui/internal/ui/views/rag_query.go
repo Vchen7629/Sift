@@ -1,7 +1,7 @@
 package views
 
 import (
-	"fmt"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -12,10 +12,13 @@ import (
 )
 
 type RagQueryModel struct {
-	Ctx 		  *context.App
-	Searchbar 	  *rag_query.SearchBarModel
-	SelectedRepo  string
-	QueryResponse *rag_query.RagQueryResponseModel
+	Ctx 		    *context.App
+	ActionBar 	    *rag_query.ActionBarModel
+	Searchbar 	    *rag_query.SearchBarModel
+	ResponseDisplay *rag_query.RagQueryResponseModel
+	Sidebar			*rag_query.SidebarModel
+	SelectedRepo    string
+	FocusRepoList   bool
 }
 
 func (m RagQueryModel) Init() tea.Cmd {
@@ -25,40 +28,20 @@ func (m RagQueryModel) Init() tea.Cmd {
 // user actions
 func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	searchBarCmd := m.Searchbar.Update(msg)
-	_, queryResCmd := m.QueryResponse.Update(msg)
+	_, queryResCmd := m.ResponseDisplay.Update(msg)
 
 	return m, tea.Batch(searchBarCmd, queryResCmd)
 }
 
 func (m RagQueryModel) View() tea.View {
-	content := lipgloss.JoinVertical(
-		lipgloss.Top, m.ragQueryActionBar().Content, m.Searchbar.View(), m.QueryResponse.View().Content,
-	)
+	leftPanel := lipgloss.JoinVertical(lipgloss.Top, m.Searchbar.View(), m.ResponseDisplay.View().Content)
 
-	return tea.NewView(content)
-}
+	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight - 1) + "│"
+	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
 
-func (m RagQueryModel) ragQueryActionBar() tea.View {
-	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
+	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Bold(true)
+	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View().Content, mainContent)
 
-	selectedRepoText := lipgloss.NewStyle().
-		PaddingRight(1).Foreground(styles.Warm.AccentBright).
-		Render(fmt.Sprintf("Selected Repo: %s", m.SelectedRepo))
-
-	selectedRepo := navBtnStyle.Render(selectedRepoText)
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
-	scrollBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] navigate"))
-	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
-	switchRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] switch repo"))
-
-	return tea.NewView(lipgloss.NewStyle().
-		BorderBottom(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderBottomForeground(lipgloss.Color("#444444")).
-		Width(m.Ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepo, searchBtn, scrollBtn, switchRepoBtn, openBrowserBtn)))
+	return tea.NewView(screen)
 }

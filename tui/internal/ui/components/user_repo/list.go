@@ -7,8 +7,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"tui/internal/ui/context"
 	"tui/internal/service"
+	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 )
 
 type ListModel struct {
@@ -113,7 +114,7 @@ func (m *ListModel) repoCardHeader(repo UserRepo) string {
 }
 
 func (m *ListModel) focusedStyle(repo UserRepo) (color.Color, color.Color) {
-	borderColor := lipgloss.Color("#444444")
+	borderColor := styles.Divider
 	textColor := lipgloss.Color("#ffffff")
 
 	if m.Focused.userRepo.id == repo.id {

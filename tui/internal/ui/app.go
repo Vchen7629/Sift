@@ -26,8 +26,10 @@ func New() model {
 			context.QueryPage: 	   views.RagQueryModel{
 				Ctx: ctx,
 				SelectedRepo: "Sift",
+				ActionBar: rag_query.NewActionBar(ctx),
 				Searchbar: rag_query.NewRagQuerySearchBar(ctx),
-				QueryResponse: rag_query.NewRagQueryResponse(ctx),
+				ResponseDisplay: rag_query.NewRagQueryResponse(ctx),
+				Sidebar: rag_query.NewSidebar(ctx),
 			},
 			context.UserReposPage: &views.UserRepoModel{
 				Ctx: ctx,

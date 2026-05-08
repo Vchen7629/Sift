@@ -4,6 +4,7 @@ import (
 	"strings"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
+	"tui/internal/ui/styles"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -63,9 +64,7 @@ func (m *UserRepoModel) View() tea.View {
 	}
 
 	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight - 1) + "│"
-	divider := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Render(dividerLine)
+	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
 
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
 	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.Sidebar.View().Content)
@@ -93,7 +92,7 @@ func (m UserRepoModel) userRepoListActionBar() tea.View {
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
-		BorderBottomForeground(lipgloss.Color("#444444")).
+		BorderBottomForeground(styles.Divider).
 		Width(m.Ctx.WindowWidth - 2).
 		Render(lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, reindexBtn)))
 }

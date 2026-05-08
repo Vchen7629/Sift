@@ -75,7 +75,7 @@ func (m *ThemeSelectorModel) View() tea.View {
 		themeBtns[i] = label.Render(name)
 	}
 
-	navBtn := lipgloss.NewStyle().Background(styles.Footer).Foreground(m.ctx.SelectedTheme.AccentMid).Render("[◄ ►] navigate")
+	navBtn := lipgloss.NewStyle().Background(styles.Footer).Foreground(m.ctx.SelectedTheme.AccentMid).Render("[◄ ►] switch")
 
 	return tea.NewView(lipgloss.JoinHorizontal(lipgloss.Left, append(themeBtns, navBtn)...))
 }

@@ -88,7 +88,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 		Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#747373"))
 
 	answerText := lipgloss.NewStyle().
-		PaddingBottom(1).Width(mainWidth - 6).MaxHeight(6).
+		PaddingBottom(1).Width(mainWidth).MaxHeight(6).
 		BorderStyle(lipgloss.NormalBorder()).BorderBottom(true).BorderForeground(styles.TextDim).
 		Render(m.answer.text)
 
@@ -99,7 +99,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 
 func (m RagQueryResponseModel) header() string {
 	cardTitle := lipgloss.NewStyle().Bold(true).MarginRight(3).Render("answer")
-	name := lipgloss.NewStyle().Foreground(styles.Warm.AccentBright).MarginRight(1).Render(m.answer.dependencyName)
+	name := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).MarginRight(1).Render(m.answer.dependencyName)
 	numSources := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(fmt.Sprintf("· %d sources", m.answer.numSources))
 
 	padding := lipgloss.NewStyle().PaddingBottom(1)
