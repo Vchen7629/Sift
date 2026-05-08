@@ -14,7 +14,7 @@ import (
 type model struct {
 	ctx 		  *context.App
 	pages		  map[context.Page]tea.Model
-	footer 	     footer.BaseModel
+	footer 	      *footer.BaseModel
 }
 
 // constructor to initialize the pages map
@@ -39,7 +39,7 @@ func New() model {
 				Sidebar: user_repo.NewSidebar(ctx),
 			},
 		},
-		footer:  footer.BaseModel{
+		footer: &footer.BaseModel{
 			Ctx: ctx,
 			NavButtons: footer.NewNavButtons(ctx),
 			ThemeSelector: footer.NewThemeSelector(ctx),
@@ -48,7 +48,10 @@ func New() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return m.pages[m.ctx.CurrentPage].Init()
+	pageCmd := m.pages[m.ctx.CurrentPage].Init()
+	footerCmd := m.footer.Init()
+
+	return tea.Batch(pageCmd, footerCmd)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

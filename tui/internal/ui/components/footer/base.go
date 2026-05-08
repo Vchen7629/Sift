@@ -1,6 +1,8 @@
 package footer
 
 import (
+	"fmt"
+	"tui/internal/github"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -13,6 +15,7 @@ type BaseModel struct {
 	Ctx 		  *context.App
 	NavButtons    *NavButtonsModel
 	ThemeSelector *ThemeSelectorModel
+	gitUsername	  string
 }
 
 func (m *BaseModel) SetSize(width, height int) {
@@ -21,10 +24,10 @@ func (m *BaseModel) SetSize(width, height int) {
 }
 
 func (m BaseModel) Init() tea.Cmd {
-	return nil
+	return fetchUser
 }
 
-func (m BaseModel) Update(msg tea.Msg) tea.Cmd {
+func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -32,32 +35,40 @@ func (m BaseModel) Update(msg tea.Msg) tea.Cmd {
 			m.Ctx.ThemeSelectorOpen = !m.Ctx.ThemeSelectorOpen
 			return nil
 		}
-	}
+	
+	case userFetchedMsg:
+		m.gitUsername = msg.username
+		return nil
+	}	
 
 	return tea.Batch(m.NavButtons.Update(msg), m.ThemeSelector.Update(msg))
 }
 
 func (m BaseModel) View() tea.View {
-	appName := lipgloss.NewStyle().
+	title := "Sift · "
+	if m.gitUsername != "" {
+		title = fmt.Sprintf("Sift · @%s", m.gitUsername)
+	}
+	titleText := lipgloss.NewStyle().
 		PaddingLeft(2).PaddingRight(1).
-		Background(styles.Footer).Foreground(m.Ctx.SelectedTheme.AccentMid).      
-		Render("Sift")    
+		Background(styles.Footer).Foreground(styles.TextPrimary).      
+		Render(title)
 
 	background := lipgloss.NewStyle().Background(styles.Footer).Width(m.width)
 
 	var content string
 	if m.Ctx.ThemeSelectorOpen {
 		content = background.Render(lipgloss.JoinHorizontal(
-			lipgloss.Left, appName, m.NavButtons.View(), m.themeBtn(), m.ThemeSelector.View().Content,
+			lipgloss.Left, titleText, m.NavButtons.View(), m.themeBtns(), m.ThemeSelector.View().Content,
 		))
 	} else {
-		content = background.Render(lipgloss.JoinHorizontal(lipgloss.Left, appName, m.NavButtons.View(), m.themeBtn()))
+		content = background.Render(lipgloss.JoinHorizontal(lipgloss.Left, titleText, m.NavButtons.View(), m.themeBtns()))
 	}
 
 	return tea.NewView(content)
 }
 
-func (m BaseModel) themeBtn() string {
+func (m BaseModel) themeBtns() string {
 	themeLabel := "[3] theme"
 	if m.Ctx.ThemeSelectorOpen {
 		themeLabel = lipgloss.NewStyle().
@@ -70,4 +81,16 @@ func (m BaseModel) themeBtn() string {
 		PaddingLeft(1).PaddingRight(1).
 		Background(styles.Footer).
 		Render(themeLabel)
+}
+
+type userFetchedMsg struct { username string }
+
+// fetches username for git account
+func fetchUser() tea.Msg {
+	user, err := github.CurrentLoginName()
+	if err != nil {
+		return err
+	}
+
+	return userFetchedMsg{ username: user }
 }
