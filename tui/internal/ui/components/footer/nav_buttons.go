@@ -26,10 +26,12 @@ func (m NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "1":
 			m.ctx.CurrentPage = context.UserReposPage
+			m.ctx.ThemeSelectorOpen = false
 			return nil
 		
 		case "2":
 			m.ctx.CurrentPage = context.QueryPage
+			m.ctx.ThemeSelectorOpen = false
 			return nil
 		}
 	}
