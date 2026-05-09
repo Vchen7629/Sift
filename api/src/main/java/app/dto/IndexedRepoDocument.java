@@ -5,7 +5,9 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record IndexedRepoDocument(String repoName, String lastIndexed, int totalDependencies) {
+public record IndexedRepoDocument(
+    String repoName, String lastIndexed, int totalDependencies, Map<String, String> dependencies
+) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Source(String repoName, String lastIndexed, Map<String, String> dependencies) {}
 
@@ -13,7 +15,8 @@ public record IndexedRepoDocument(String repoName, String lastIndexed, int total
         return new IndexedRepoDocument(
             source.repoName(),
             source.lastIndexed(),
-            source.dependencies() != null ? source.dependencies().size() : 0
+            source.dependencies() != null ? source.dependencies().size() : 0,
+            source.dependencies()
         );
     }
 }

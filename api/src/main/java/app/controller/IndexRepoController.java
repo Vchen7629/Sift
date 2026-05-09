@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,12 +47,12 @@ public class IndexRepoController {
         this.producerService = producerService;
     }
     
-    private record IndexRepoRequest(@NotBlank String userId, @NotBlank String repoName) {}
+    private record Request(@NotBlank String userId, @NotBlank String repoName) {}
 
     @PostMapping("/add")
     @Observed(name="indexrepo.addNewRepo.controller")
     public ResponseEntity<String> addNewRepo(
-        @RequestBody @Valid IndexRepoRequest request
+        @RequestBody @Valid Request request
     ) throws IOException, JetStreamApiException, TranslateException { 
         log.info("recieved add new repo request", kv("repoName", request.repoName()));
 
@@ -69,18 +68,17 @@ public class IndexRepoController {
         return ResponseEntity.accepted().body("added " + request.repoName() + " to processing");
     }
 
-    @GetMapping("/get_status/{userId}/{repoName}")
+    @GetMapping("/get_status")
     @Observed(name="indexrepo.getStatus.controller")
     public ResponseEntity<String> getStatus(
-        @NotBlank @PathVariable String userId,
-        @NotBlank @PathVariable String repoName
+        @RequestBody @Valid Request request
     ) throws IOException {
-        log.info("recieved get repo index job status request", kv("userId", userId), kv("repoName", repoName));
+        log.info("recieved get repo index job status request", kv("userId", request.userId), kv("repoName", request.repoName));
 
-        String jobStatus = jobStatusRepository.findStatus(userId, repoName);
+        String jobStatus = jobStatusRepository.findStatus(request.userId, request.repoName);
 
         if (jobStatus.equals(null)) {
-            log.warn("repo hasn't been added to db yet", kv("userId", userId), kv("repoName", repoName));
+            log.warn("repo hasn't been added to db yet", kv("userId", request.userId), kv("repoName", request.repoName));
                 
             return ResponseEntity.status(404).body("repo status not found, add it for processing first");
         }
