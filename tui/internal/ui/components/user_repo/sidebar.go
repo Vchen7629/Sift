@@ -28,6 +28,11 @@ func NewSidebar(ctx *context.App) *Sidebar {
 	}
 }
 
+func (m *Sidebar) ResetFocus() {
+	m.FocusedIdx = 0
+	m.viewport.GotoTop()
+}
+
 func (m Sidebar) Init() tea.Cmd {
 	return nil
 }

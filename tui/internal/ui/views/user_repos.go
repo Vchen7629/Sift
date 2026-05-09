@@ -87,7 +87,11 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
 	if len(m.RepoList.FetchedRepos) > 0 {
-		m.focusedIdx = m.RepoList.FocusedIdx
+		newIdx := m.RepoList.FocusedIdx
+		if newIdx != m.focusedIdx {
+			m.focusedIdx = newIdx
+			m.Sidebar.ResetFocus()
+		}
 		m.Sidebar.FocusedRepo = &m.repos[m.focusedIdx]
 	}
 
