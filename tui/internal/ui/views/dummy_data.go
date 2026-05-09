@@ -4,7 +4,7 @@ import "tui/internal/types"
 
 var dummyData = []types.Repository{
 	{
-		GithubId: 0, Name: "react", Status: "indexed", LastIndexed: "1746", TotalDependencies: 42,
+		GithubId: 0, Name: "react", LastIndexed: "1746", TotalDependencies: 42,
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "axios",       Version: "v1.7.2",   Status: "healthy"},
 			{Id: 2, Name: "lodash",      Version: "v4.17.21", Status: "deprecated"},
@@ -16,7 +16,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 2, Name: "next.js", Status: "indexed", LastIndexed: "1745", TotalDependencies: 3,
+		GithubId: 2, Name: "next.js", LastIndexed: "1745", TotalDependencies: 3,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "zod",      Version: "v3.22.4", Status: "healthy"},
@@ -40,7 +40,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 4, Name: "vue", Status: "indexed", LastIndexed: "1746", TotalDependencies: 5,
+		GithubId: 4, Name: "vue", LastIndexed: "1746", TotalDependencies: 5,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "pinia",        Version: "v2.1.7",  Status: "healthy"},
@@ -51,7 +51,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 5, Name: "svelte", Status: "indexed", LastIndexed: "1745", TotalDependencies: 7,
+		GithubId: 5, Name: "svelte", LastIndexed: "1745", TotalDependencies: 7,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "svelte-kit",     Version: "v2.5.7",  Status: "healthy"},
@@ -74,7 +74,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 7, Name: "remix", Status: "indexed", LastIndexed: "1746", TotalDependencies: 6,
+		GithubId: 7, Name: "remix", LastIndexed: "1746", TotalDependencies: 6,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "prisma",          Version: "v5.13.0", Status: "healthy"},
@@ -86,7 +86,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 8, Name: "astro", Status: "indexed", LastIndexed: "1745", TotalDependencies: 3,
+		GithubId: 8, Name: "astro", LastIndexed: "1745", TotalDependencies: 3,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "sharp",      Version: "v0.33.3", Status: "healthy"},
@@ -109,7 +109,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 10, Name: "solid-js", Status: "indexed", LastIndexed: "1746", TotalDependencies: 5,
+		GithubId: 10, Name: "solid-js", LastIndexed: "1746", TotalDependencies: 5,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "solid-router",  Version: "v0.13.6", Status: "healthy"},
@@ -120,7 +120,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 11, Name: "qwik", Status: "indexed", LastIndexed: "1745", TotalDependencies: 7,
+		GithubId: 11, Name: "qwik", LastIndexed: "1745", TotalDependencies: 7,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "qwik-city",        Version: "v1.5.5",  Status: "healthy"},
@@ -143,7 +143,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 13, Name: "lit", Status: "indexed", LastIndexed: "1746", TotalDependencies: 6,
+		GithubId: 13, Name: "lit", LastIndexed: "1746", TotalDependencies: 6,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "lit-html",       Version: "v3.1.3",  Status: "healthy"},
@@ -155,7 +155,7 @@ var dummyData = []types.Repository{
 		},
 	},
 	{
-		GithubId: 14, Name: "ember", Status: "indexed", LastIndexed: "1745", TotalDependencies: 3,
+		GithubId: 14, Name: "ember", LastIndexed: "1745", TotalDependencies: 3,
 		Description: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
 		Dependencies: []types.DependencyStatus{
 			{Id: 1, Name: "ember-data",        Version: "v5.3.1",  Status: "deprecated"},

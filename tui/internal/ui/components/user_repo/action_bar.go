@@ -12,8 +12,6 @@ type ActionBarModel struct {
 	ctx *context.App
 }
 
-type ToggleFocusMsg struct {}
-
 func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx}
 }
@@ -22,12 +20,17 @@ func (m ActionBarModel) Init() tea.Msg {
 	return nil
 }
 
+type ToggleFocusMsg struct {}
+type IndexRepoRequestMsg struct {}
+
 func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "s":
 			return func() tea.Msg { return ToggleFocusMsg{} }
+		case "r": 
+			return func() tea.Msg { return IndexRepoRequestMsg{} }
 		}
 	}
 
@@ -66,4 +69,3 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused bool) string {
 
 	return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, indexBtn)
 }
-

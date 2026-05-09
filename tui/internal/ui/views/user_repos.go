@@ -45,7 +45,6 @@ func (m *UserRepoModel) SetRepos(repos []types.Repository) {
 	for i, repo := range repos {
 		data, ok := byId[repo.GithubId]
 		if ok {
-			repos[i].Status = data.Status
 			repos[i].LastIndexed = data.LastIndexed
 			repos[i].TotalDependencies = data.TotalDependencies
 			repos[i].Dependencies = data.Dependencies

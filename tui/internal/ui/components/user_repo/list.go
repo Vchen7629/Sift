@@ -1,6 +1,7 @@
 package user_repo
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 
@@ -8,6 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
+	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/types"
 	"tui/internal/ui/context"
@@ -15,16 +17,20 @@ import (
 )
 
 type ListModel struct {
-	ctx 		 *context.App
-	FetchedRepos []types.Repository
-	FocusedIdx   int
-	viewport 	 viewport.Model
+	ctx 		     *context.App
+	FetchedRepos     []types.Repository
+	FocusedIdx       int
+	ProcessingStatus map[int]string
+	viewport 	 	 viewport.Model
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
 		ctx: ctx,
 		FetchedRepos: []types.Repository{},
+		ProcessingStatus: map[int]string{
+			2: "processing",
+		},
 	}
 	m.FocusedIdx = 0
 	return m
@@ -53,6 +59,14 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
 		}
+	// trigger from user pressing r
+	case IndexRepoRequestMsg:                                                                                                                                   
+      	return m.IndexRepo
+	
+	// response from api call
+	case indexRepoMsg:                                                                                                                                          
+		m.ProcessingStatus[msg.idx] = msg.status
+		return nil     
 	}
 
 	return nil
@@ -98,7 +112,12 @@ func (m *ListModel) repoCardHeader(idx int, repo types.Repository) string {
 
 	repoName := lipgloss.NewStyle().Foreground(textColor).Render(repo.Name)
 
-	indexStatus := lipgloss.NewStyle().Width(8).Align(lipgloss.Right).Render(repo.Status)                                                                       
+	repoStatusText := "unindexed"
+	if status, exists := m.ProcessingStatus[idx]; exists {
+		repoStatusText = status
+	} 
+
+	indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(repoStatusText)                                                                       
 	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
 	totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(repo.TotalDependencies))
 
@@ -117,4 +136,17 @@ func (m *ListModel) focusedStyle(idx int) (color.Color, color.Color) {
 	}
 
 	return styles.Divider, lipgloss.Color("#ffffff")
+}
+
+type indexRepoMsg struct { idx int; status string }
+
+func (m *ListModel) IndexRepo() tea.Msg {
+	gitUser := m.ctx.Username
+
+	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.FetchedRepos[m.FocusedIdx].Name))
+	if err != nil {
+		return indexRepoMsg{idx: m.FocusedIdx, status: err.Error()}
+	}
+
+	return indexRepoMsg{idx: m.FocusedIdx, status: "processing"}
 }
