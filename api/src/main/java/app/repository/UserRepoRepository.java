@@ -8,8 +8,6 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.aggregations.Aggregate;
-import org.opensearch.client.opensearch._types.aggregations.StringTermsBucket;
 import org.opensearch.client.opensearch.core.DeleteByQueryResponse;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.springframework.stereotype.Repository;
@@ -17,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import app.dto.IndexedRepoDocument;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
@@ -97,33 +96,23 @@ public class UserRepoRepository {
      * @throws IOException from openSearchClient.search
      */
     @Observed(name="userrepo.listall.repository")
-    public List<String> listAll(@NotBlank String userId) throws IOException {
+    public List<IndexedRepoDocument> listAll(@NotBlank String userId) throws IOException {
         final int maxUniqueRepos = 1000;
 
-        SearchResponse<Void> searchRes = openSearchClient.search(r -> r
+        SearchResponse<IndexedRepoDocument.Source> searchRes = openSearchClient.search(r -> r
             .index(indexedRepoIndexName)
-            .size(0) // need this so we dont return the actual document, use aggregations to return the strings instead
+            .size(maxUniqueRepos)
             .timeout("30s")
             .query(q -> q
                 .term(t -> t.field("userId").value(v -> v.stringValue(userId)))
-            )
-            .aggregations("repoNames", a -> a
-                .terms(t -> t.field("repoName").size(maxUniqueRepos))
             ),
-            Void.class
+            IndexedRepoDocument.Source.class
         );
 
-        Aggregate repoNameAgg = searchRes.aggregations().get("repoNames");
-        if (repoNameAgg == null || !repoNameAgg.isSterms()) {
-            log.debug("found no indexed repos in the db");
-            return List.of(); // return empty list instead of throwing an exception
-        }
-
-        List<String> indexedRepos = repoNameAgg
-            .sterms()
-            .buckets().array()
-            .stream()
-            .map(StringTermsBucket::key)
+        List<IndexedRepoDocument> indexedRepos = searchRes.hits().hits().stream()
+            .map(hit -> hit.source())
+            .filter(Objects::nonNull)
+            .map(IndexedRepoDocument::from)
             .toList();
 
         log.debug("Successfully fetched {} indexed repos", indexedRepos.size());

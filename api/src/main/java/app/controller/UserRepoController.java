@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import app.dto.IndexedRepoDocument;
 import app.repository.UserRepoRepository;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;                                                                                                                                                       
@@ -45,10 +46,10 @@ public class UserRepoController {
 
     @GetMapping("/list/{userId}")
     @Observed(name="userrepo.list.controller")
-    public ResponseEntity<List<String>> listTrackedRepos(@NotBlank @PathVariable String userId) throws IOException {
+    public ResponseEntity<List<IndexedRepoDocument>> listTrackedRepos(@NotBlank @PathVariable String userId) throws IOException {
         log.info("recieved list all tracked repos request");
 
-        List<String> trackedRepos = indexedRepoRepository.listAll(userId);
+        List<IndexedRepoDocument> trackedRepos = indexedRepoRepository.listAll(userId);
 
         return ResponseEntity.ok().body(trackedRepos);
     }
