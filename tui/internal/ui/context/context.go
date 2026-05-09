@@ -1,6 +1,7 @@
 package context
 
 import (
+	"tui/internal/api"
 	"tui/internal/ui/styles"
 )
 
@@ -19,11 +20,18 @@ type App struct {
 	CurrentPage   			  Page
 	ThemeSelectorOpen		  bool
 	SelectedTheme			  styles.Theme
+	GithubApiClient 		  *api.GithubClient
 }
 
-func NewApp() *App {
-	return &App{
-		CurrentPage:   UserReposPage,
-		SelectedTheme: styles.Warm,
+func NewApp() (*App, error) {
+	client, err := api.NewGithubClient()
+	if err != nil {
+		return nil, err
 	}
+
+	return &App{
+		CurrentPage:     UserReposPage,
+		SelectedTheme:   styles.Warm,
+		GithubApiClient: client,
+	}, nil
 }

@@ -2,7 +2,6 @@ package footer
 
 import (
 	"fmt"
-	"tui/internal/github"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -24,7 +23,7 @@ func (m *BaseModel) SetSize(width, height int) {
 }
 
 func (m BaseModel) Init() tea.Cmd {
-	return fetchUser
+	return m.fetchUser
 }
 
 func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
@@ -36,7 +35,7 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 	
-	case userFetchedMsg:
+	case gitUsernameFetchedMsg:
 		m.gitUsername = msg.username
 		return nil
 	}	
@@ -83,14 +82,14 @@ func (m BaseModel) themeBtns() string {
 		Render(themeLabel)
 }
 
-type userFetchedMsg struct { username string }
+type gitUsernameFetchedMsg struct { username string }
 
 // fetches username for git account
-func fetchUser() tea.Msg {
-	user, err := github.CurrentLoginName()
+func (m *BaseModel) fetchUser() tea.Msg {
+	user, err := m.Ctx.GithubApiClient.GithubUsername()
 	if err != nil {
 		return err
 	}
 
-	return userFetchedMsg{ username: user }
+	return gitUsernameFetchedMsg{ username: user }
 }

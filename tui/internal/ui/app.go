@@ -5,52 +5,38 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/components/footer"
-	"tui/internal/ui/components/rag_query"
-	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/views"
 )
 
 type model struct {
-	ctx 		  *context.App
-	pages		  map[context.Page]tea.Model
-	footer 	      *footer.BaseModel
+	ctx    *context.App
+	pages  map[context.Page]tea.Model
+	footer *footer.BaseModel
 }
 
-// constructor to initialize the pages map
-func New() model {
-	ctx := context.NewApp()
-	return model{ 
+func New() (model, error) {
+	ctx, err := context.NewApp()
+	if err != nil {
+		return model{}, err
+	}
+	return model{
 		ctx: ctx,
 		pages: map[context.Page]tea.Model{
-			context.QueryPage: 	   views.RagQueryModel{
-				Ctx: ctx,
-				SelectedRepo: "Sift",
-				ActionBar: rag_query.NewActionBar(ctx),
-				Searchbar: rag_query.NewRagQuerySearchBar(ctx),
-				ResponseDisplay: rag_query.NewRagQueryResponse(ctx),
-				Sidebar: rag_query.NewSidebar(ctx),
-			},
-			context.UserReposPage: &views.UserRepoModel{
-				Ctx: ctx,
-				ActionBar: user_repo.NewActionBar(ctx),
-				SearchBar: user_repo.NewUserRepoSearchBar(ctx),
-				RepoList: user_repo.NewUserRepoList(ctx),
-				Sidebar: user_repo.NewSidebar(ctx),
-			},
+			context.QueryPage:     views.NewRagQuery(ctx),
+			context.UserReposPage: views.NewUserRepo(ctx),
 		},
 		footer: &footer.BaseModel{
-			Ctx: ctx,
-			NavButtons: footer.NewNavButtons(ctx),
+			Ctx:           ctx,
+			NavButtons:    footer.NewNavButtons(ctx),
 			ThemeSelector: footer.NewThemeSelector(ctx),
 		},
-	}
+	}, nil
 }
 
 func (m model) Init() tea.Cmd {
 	pageCmd := m.pages[m.ctx.CurrentPage].Init()
 	footerCmd := m.footer.Init()
-
 	return tea.Batch(pageCmd, footerCmd)
 }
 
@@ -62,21 +48,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ctx.MainWidth = msg.Width - 55
 		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
 		m.ctx.MainHeight = msg.Height - 3
-		m.footer.SetSize(msg.Width - 2, 1)
-
+		m.footer.SetSize(msg.Width-2, 1)
 		return m, nil
 
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-            return m, tea.Quit
+			return m, tea.Quit
 		}
 	}
 
 	sbCmd := m.footer.Update(msg)
 
-	updated, cmd := m.pages[m.ctx.CurrentPage].Update(msg)
-	m.pages[m.ctx.CurrentPage] = updated
+	updatedModel, cmd := m.pages[m.ctx.CurrentPage].Update(msg)
+	m.pages[m.ctx.CurrentPage] = updatedModel
 
 	return m, tea.Batch(sbCmd, cmd)
 }
