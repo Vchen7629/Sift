@@ -8,5 +8,6 @@ type Repository struct {
 }
 
 type DependencyStatus struct {
+	Id					  int
 	Name, Version, Status string
 }

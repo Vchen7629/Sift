@@ -38,11 +38,18 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		if !isSidebarFocused {
 			break
 		}
+		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedRepo.Dependencies[m.FocusedIdx]))
 		switch msg.String() {
 		case "down":
-			m.viewport.ScrollDown(2)
+			if m.FocusedIdx < len(m.FocusedRepo.Dependencies) - 1 {
+				m.FocusedIdx++
+				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
+			}
 		case "up":
-			m.viewport.ScrollUp(2)
+			if m.FocusedIdx > 0 {
+				m.FocusedIdx--
+				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
+			}
 		}
 	}
 	return nil
@@ -104,8 +111,8 @@ func (m *Sidebar) repoDependencyList() tea.View {
 		return tea.NewView(text)
 	}
 
-	for _, dependency := range m.FocusedRepo.Dependencies {
-		dependencyCards = append(dependencyCards, m.dependencyCard(dependency))
+	for i, dependency := range m.FocusedRepo.Dependencies {
+		dependencyCards = append(dependencyCards, m.dependencyCard(i, dependency))
 	}
 
 	m.viewport.SetWidth(m.ctx.MainWidth)
@@ -114,8 +121,13 @@ func (m *Sidebar) repoDependencyList() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *Sidebar) dependencyCard(dependency types.DependencyStatus) string {
-	name := lipgloss.NewStyle().Render(dependency.Name)
+func (m *Sidebar) dependencyCard(idx int, dependency types.DependencyStatus) string {
+	textColor := m.ctx.SelectedTheme.AccentMid
+	if idx == m.FocusedIdx {
+		textColor = m.ctx.SelectedTheme.AccentBright
+	}
+
+	name := lipgloss.NewStyle().Foreground(textColor).Render(dependency.Name)
 
 	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).
 		Background(lipgloss.Blue).Render(dependency.Version)
