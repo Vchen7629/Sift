@@ -103,7 +103,7 @@ func (m *SidebarModel) sideBarList() string {
 
 		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Foreground(textColor).Render(repo.Name)
 		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.TotalDependencies))
-		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(fmt.Sprintf("%s days ago", repo.LastIndexed))
+		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(repo.LastIndexed)
 
 		spaceBelow := lipgloss.NewStyle().MarginBottom(0)
 

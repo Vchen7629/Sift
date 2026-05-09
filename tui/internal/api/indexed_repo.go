@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"tui/internal/service"
 	"tui/internal/types"
 )
 
@@ -43,8 +45,9 @@ func DeleteIndexedRepo(username, repoName string) error {
 }
 
 type fetchIndexedRepoResp struct { 
-	name, lastIndexed string
-	totalDependencies int
+	Name 			  string `json:"repoName"`
+	LastIndexed 	  string `json:"lastIndexed"`
+	TotalDependencies int    `json:"totalDependencies"`
 }
 
 func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
@@ -72,8 +75,9 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 	var indexedRepos []types.IndexedRepo
 	for i, repos := range repos {
 		indexedRepo := types.IndexedRepo{
-			Id: i, TotalDependencies: repos.totalDependencies,
-			Name: repos.name, LastIndexed: repos.lastIndexed,
+			Id: i, TotalDependencies: repos.TotalDependencies,
+			Name: strings.Split(repos.Name, "/")[1],
+			LastIndexed: service.FormatRelativeDate(repos.LastIndexed),
 		}
 
 		indexedRepos = append(indexedRepos, indexedRepo)
