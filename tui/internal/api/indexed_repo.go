@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"tui/internal/types"
 )
 
 var indexedRepoBaseUrl = "http://localhost:8080/user_repo"
@@ -41,10 +42,15 @@ func DeleteIndexedRepo(username, repoName string) error {
 	return nil
 }
 
-func GetAllIndexedRepos(username string) ([]string, error) {
+type fetchIndexedRepoResp struct { 
+	name, lastIndexed string
+	totalDependencies int
+}
+
+func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 	resp, err := client.Get(fmt.Sprintf("%s/list/%s", indexedRepoBaseUrl, username))
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -57,11 +63,21 @@ func GetAllIndexedRepos(username string) ([]string, error) {
 		return nil, err
 	}
 
-	var repos []string
+	var repos []fetchIndexedRepoResp
 	err = json.Unmarshal(res, &repos)
 	if err != nil {
 		return nil, err
 	}
 
-	return repos, nil
+	var indexedRepos []types.IndexedRepo
+	for i, repos := range repos {
+		indexedRepo := types.IndexedRepo{
+			Id: i, TotalDependencies: repos.totalDependencies,
+			Name: repos.name, LastIndexed: repos.lastIndexed,
+		}
+
+		indexedRepos = append(indexedRepos, indexedRepo)
+	}
+
+	return indexedRepos, nil
 }
