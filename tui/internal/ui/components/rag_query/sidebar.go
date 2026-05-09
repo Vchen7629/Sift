@@ -3,11 +3,11 @@ package rag_query
 import (
 	"fmt"
 	"strings"
-	"tui/internal/api"
 	"tui/internal/service"
+	"tui/internal/types"
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
-	"tui/internal/types"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
@@ -31,7 +31,7 @@ func NewSidebar(ctx *context.App) *SidebarModel {
 }
 
 func (m *SidebarModel) Init() tea.Cmd {
-	return m.fetchIndexedRepo
+	return common.FetchIndexedRepo(m.ctx.Username)
 }
 
 func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
@@ -60,8 +60,8 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			}
 		}
 
-	case fetchIndexedRepoMsg:
-		m.indexedRepos = msg.repos
+	case common.FetchIndexedRepoMsg:
+		m.indexedRepos = msg.Repos
 		return nil
 	}
 	return nil
@@ -117,15 +117,4 @@ func (m *SidebarModel) sideBarList() string {
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, indexedRepoList...))
 
 	return m.viewport.View()
-}
-
-type fetchIndexedRepoMsg struct { repos []types.IndexedRepo }
-
-func (m SidebarModel) fetchIndexedRepo() tea.Msg {
-	indexRepos, err := api.GetAllIndexedRepos(m.ctx.Username)
-	if err != nil {
-		return err
-	}
-
-	return fetchIndexedRepoMsg{ repos: indexRepos }
 }
