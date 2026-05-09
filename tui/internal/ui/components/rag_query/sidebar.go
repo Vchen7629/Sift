@@ -3,9 +3,11 @@ package rag_query
 import (
 	"fmt"
 	"strings"
+	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
+	"tui/internal/types"
 
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
@@ -13,15 +15,10 @@ import (
 )
 
 type SidebarModel struct {
-	ctx      *context.App
-	repos    []repoStatus
-	viewport viewport.Model
-	focused  repoStatus
-}
-
-type repoStatus struct {
-	id, totalDep      int
-	name, lastIndexed string
+	ctx          *context.App
+	indexedRepos []types.IndexedRepo
+	viewport     viewport.Model
+	focused      types.IndexedRepo
 }
 
 type SelectRepoMsg struct{ RepoName string }
@@ -29,20 +26,12 @@ type SelectRepoMsg struct{ RepoName string }
 func NewSidebar(ctx *context.App) *SidebarModel {
 	return &SidebarModel{
 		ctx: ctx,
-		repos: []repoStatus{
-			{id: 0, name: "Sift", totalDep: 17, lastIndexed: "19"},
-			{id: 1, name: "Atlaxiom", totalDep: 9, lastIndexed: "2"},
-			{id: 2, name: "Cyphria", totalDep: 12, lastIndexed: "1"},
-			{id: 3, name: "Kubernetes", totalDep: 7, lastIndexed: "5"},
-			{id: 4, name: "Docker", totalDep: 26, lastIndexed: "10"},
-			{id: 5, name: "Kafka", totalDep: 3, lastIndexed: "2"},
-			{id: 6, name: "Splice", totalDep: 45, lastIndexed: "3"},
-		},
+		indexedRepos: []types.IndexedRepo{},
 	}
 }
 
 func (m *SidebarModel) Init() tea.Cmd {
-	return nil
+	return m.fetchIndexedRepo
 }
 
 func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
@@ -53,29 +42,38 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		}
 		switch msg.String() {
 		case "down":
-			if m.focused.id < len(m.repos) - 1 {
-				m.focused.id++
-				m.focused = m.repos[m.focused.id]
-				service.ScrollToFocused(&m.viewport, m.focused.id, 1)
+			if m.focused.Id < len(m.indexedRepos) - 1 {
+				m.focused.Id++
+				m.focused = m.indexedRepos[m.focused.Id]
+				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
 			}
 		case "up": 
-			if m.focused.id > 0 {
-				m.focused.id--
-				m.focused = m.repos[m.focused.id]
-				service.ScrollToFocused(&m.viewport, m.focused.id, 1)
+			if m.focused.Id > 0 {
+				m.focused.Id--
+				m.focused = m.indexedRepos[m.focused.Id]
+				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
 			}
 		
 		case "enter":
 			return func() tea.Msg { 
-				return SelectRepoMsg{ RepoName: m.focused.name } 
+				return SelectRepoMsg{ RepoName: m.focused.Name } 
 			}
 		}
+
+	case fetchIndexedRepoMsg:
+		m.indexedRepos = msg.repos
+		return nil
 	}
 	return nil
 }
 
 func (m *SidebarModel) View() tea.View {
-	content := lipgloss.JoinVertical(lipgloss.Top, m.header(), m.sideBarList())
+	sidebarContent := m.sideBarList()
+	if m.sideBarList() == "" {
+		sidebarContent = lipgloss.NewStyle().Padding(1, 1).Render("No indexed repos, go to Your Repositories to index your repos")
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Top, m.header(), sidebarContent)
 
 	return tea.NewView(content)
 }
@@ -97,15 +95,15 @@ func (m *SidebarModel) header() string {
 func (m *SidebarModel) sideBarList() string {
 	var indexedRepoList []string
 
-	for _, repo := range m.repos {
+	for _, repo := range m.indexedRepos {
 		textColor := m.ctx.SelectedTheme.AccentMid
-		if repo.id == m.focused.id {
+		if repo.Id == m.focused.Id {
 			textColor = m.ctx.SelectedTheme.AccentBright
 		}
 
-		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Foreground(textColor).Render(repo.name)
-		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.totalDep))
-		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(fmt.Sprintf("%s days ago", repo.lastIndexed))
+		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Foreground(textColor).Render(repo.Name)
+		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.TotalDependencies))
+		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(fmt.Sprintf("%s days ago", repo.LastIndexed))
 
 		spaceBelow := lipgloss.NewStyle().MarginBottom(0)
 
@@ -119,4 +117,15 @@ func (m *SidebarModel) sideBarList() string {
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, indexedRepoList...))
 
 	return m.viewport.View()
+}
+
+type fetchIndexedRepoMsg struct { repos []types.IndexedRepo }
+
+func (m SidebarModel) fetchIndexedRepo() tea.Msg {
+	indexRepos, err := api.GetAllIndexedRepos(m.ctx.Username)
+	if err != nil {
+		return err
+	}
+
+	return fetchIndexedRepoMsg{ repos: indexRepos }
 }
