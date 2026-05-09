@@ -116,8 +116,10 @@ services:
       - "/var/tempo"
     volumes:
       - ./tempo-data:/var/tempo
+    networks:
+      - observability-net
     profiles: ["observability"]
-  
+
   tempo:
     image: grafana/tempo:2.10.5
     command: ["-config.file=/etc/tempo.yaml"]
@@ -130,8 +132,10 @@ services:
       - "4318:4318" # otlp http
     depends_on:
       - init-observability
+    networks:
+      - observability-net
     profiles: ["observability"]
-  
+
   grafana:
     image: grafana/grafana:12.3.1@sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f
     volumes:
@@ -144,6 +148,8 @@ services:
       - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
     ports:
       - "3000:3000"
+    networks:
+      - observability-net
     profiles: ["observability"]
 
 volumes:
@@ -152,3 +158,4 @@ volumes:
 
 networks:
   opensearch-net:
+  observability-net:
