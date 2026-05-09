@@ -238,6 +238,6 @@ public class ConsumerService {
             log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
         }
 
-        userRepoRepository.insert(new UserRepoDocument("test-user-1", repoName, libraryMap, Instant.now()));
+        userRepoRepository.insert(new UserRepoDocument(userId, repoName, libraryMap, Instant.now()));
     }
 }
