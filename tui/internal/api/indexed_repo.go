@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-var indexedRepoBaseUrl = "http://localhost:8081/user_repo"
+var indexedRepoBaseUrl = "http://localhost:8080/user_repo"
 
 type DeleteIndexedRepoReq struct {
 	UserId   string `json:"userId"`

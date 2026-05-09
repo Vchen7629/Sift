@@ -55,14 +55,15 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused bool) string {
 		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search repos"))
 		clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))
 		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus sidebar"))
-		reindexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
+		indexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] index"))
 
-		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, reindexBtn)
+		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, indexBtn)
 	}
 
 	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
 	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus repo list"))
-	reindexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
+	indexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
 
-	return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, reindexBtn)
+	return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, indexBtn)
 }
+

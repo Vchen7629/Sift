@@ -11,10 +11,17 @@ import (
 
 type BaseModel struct {
 	height, width int
-	Ctx 		  *context.App
+	ctx 		  *context.App
 	NavButtons    *NavButtonsModel
 	ThemeSelector *ThemeSelectorModel
-	gitUsername	  string
+}
+
+func NewFooterBaseModel(ctx *context.App) *BaseModel {
+	return &BaseModel{
+		ctx:           ctx,
+		NavButtons:    NewNavButtons(ctx),
+		ThemeSelector: NewThemeSelector(ctx),
+	}
 }
 
 func (m *BaseModel) SetSize(width, height int) {
@@ -31,12 +38,12 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "3":
-			m.Ctx.ThemeSelectorOpen = !m.Ctx.ThemeSelectorOpen
+			m.ctx.ThemeSelectorOpen = !m.ctx.ThemeSelectorOpen
 			return nil
 		}
 	
 	case gitUsernameFetchedMsg:
-		m.gitUsername = msg.username
+		m.ctx.Username = msg.username
 		return nil
 	}	
 
@@ -45,8 +52,8 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 
 func (m BaseModel) View() tea.View {
 	title := "Sift · "
-	if m.gitUsername != "" {
-		title = fmt.Sprintf("Sift · @%s", m.gitUsername)
+	if m.ctx.Username != "" {
+		title = fmt.Sprintf("Sift · @%s", m.ctx.Username)
 	}
 	titleText := lipgloss.NewStyle().
 		PaddingLeft(2).PaddingRight(1).
@@ -56,7 +63,7 @@ func (m BaseModel) View() tea.View {
 	background := lipgloss.NewStyle().Background(styles.Footer).Width(m.width)
 
 	var content string
-	if m.Ctx.ThemeSelectorOpen {
+	if m.ctx.ThemeSelectorOpen {
 		content = background.Render(lipgloss.JoinHorizontal(
 			lipgloss.Left, titleText, m.NavButtons.View(), m.themeBtns(), m.ThemeSelector.View().Content,
 		))
@@ -69,10 +76,10 @@ func (m BaseModel) View() tea.View {
 
 func (m BaseModel) themeBtns() string {
 	themeLabel := "[3] theme"
-	if m.Ctx.ThemeSelectorOpen {
+	if m.ctx.ThemeSelectorOpen {
 		themeLabel = lipgloss.NewStyle().
 			PaddingRight(2).
-			Background(styles.Footer).Foreground(m.Ctx.SelectedTheme.AccentBright).Bold(true).
+			Background(styles.Footer).Foreground(m.ctx.SelectedTheme.AccentBright).Bold(true).
 			Render(themeLabel)
 	}
 
@@ -86,7 +93,7 @@ type gitUsernameFetchedMsg struct { username string }
 
 // fetches username for git account
 func (m *BaseModel) fetchUser() tea.Msg {
-	user, err := m.Ctx.GithubApiClient.GithubUsername()
+	user, err := m.ctx.GithubApiClient.GithubUsername()
 	if err != nil {
 		return err
 	}

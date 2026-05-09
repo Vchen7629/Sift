@@ -26,17 +26,14 @@ func New() (model, error) {
 			context.QueryPage:     views.NewRagQuery(ctx),
 			context.UserReposPage: views.NewUserRepo(ctx),
 		},
-		footer: &footer.BaseModel{
-			Ctx:           ctx,
-			NavButtons:    footer.NewNavButtons(ctx),
-			ThemeSelector: footer.NewThemeSelector(ctx),
-		},
+		footer: footer.NewFooterBaseModel(ctx),
 	}, nil
 }
 
 func (m model) Init() tea.Cmd {
-	pageCmd := m.pages[m.ctx.CurrentPage].Init()
 	footerCmd := m.footer.Init()
+	pageCmd := m.pages[m.ctx.CurrentPage].Init()
+
 	return tea.Batch(pageCmd, footerCmd)
 }
 

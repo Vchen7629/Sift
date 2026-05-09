@@ -47,8 +47,8 @@ func (m NavButtonsModel) View() string {
 		label string
 		page  context.Page
 	}{
-		{"[1] repo index status", context.UserReposPage},
-		{"[2] search issue", context.QueryPage},
+		{"[1] Your Repositories", context.UserReposPage},
+		{"[2] Search issue", context.QueryPage},
 	}
 
 	rendered := make([]string, len(buttons)+1)

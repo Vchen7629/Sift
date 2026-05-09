@@ -13,7 +13,7 @@ type SearchReq struct {
 	SearchQuery string `json:"searchQuery"`
 }
 
-var searchBaseUrl = "http://localhost:8081/search"
+var searchBaseUrl = "http://localhost:8080/search"
 
 func Search(username, searchQuery string) (string, error) {
 	payload := SearchReq{UserId: username, SearchQuery: searchQuery}

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var indexBaseUrl = "http://localhost:8081/index_repo"
+var indexBaseUrl = "http://localhost:8080/index_repo"
 var client = &http.Client{
 	Timeout: 10 * time.Second,
 }
