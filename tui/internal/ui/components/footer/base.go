@@ -30,7 +30,7 @@ func (m *BaseModel) SetSize(width, height int) {
 }
 
 func (m BaseModel) Init() tea.Cmd {
-	return m.fetchUser
+	return nil
 }
 
 func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
@@ -41,10 +41,6 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 			m.ctx.ThemeSelectorOpen = !m.ctx.ThemeSelectorOpen
 			return nil
 		}
-	
-	case gitUsernameFetchedMsg:
-		m.ctx.Username = msg.username
-		return nil
 	}	
 
 	return tea.Batch(m.NavButtons.Update(msg), m.ThemeSelector.Update(msg))
@@ -87,16 +83,4 @@ func (m BaseModel) themeBtns() string {
 		PaddingLeft(1).PaddingRight(1).
 		Background(styles.Footer).
 		Render(themeLabel)
-}
-
-type gitUsernameFetchedMsg struct { username string }
-
-// fetches username for git account
-func (m *BaseModel) fetchUser() tea.Msg {
-	user, err := m.ctx.GithubApiClient.GithubUsername()
-	if err != nil {
-		return err
-	}
-
-	return gitUsernameFetchedMsg{ username: user }
 }

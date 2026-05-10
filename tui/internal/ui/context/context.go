@@ -29,9 +29,15 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
+	username, err := client.GithubUsername()
+	if err != nil {
+		return nil, err
+	}
+
 	return &App{
 		CurrentPage:     UserReposPage,
 		SelectedTheme:   styles.Warm,
 		GithubApiClient: client,
+		Username: username,
 	}, nil
 }
