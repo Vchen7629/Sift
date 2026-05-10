@@ -1,4 +1,4 @@
-package app.config;
+package app.config.repository;
 
 import javax.net.ssl.SSLContext;
 

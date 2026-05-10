@@ -1,12 +1,12 @@
 package app.repository;
 
-import java.io.IOException;
-
-import org.opensearch.client.opensearch.OpenSearchClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 
 import app.dto.JobStatusDocument;
+import io.lettuce.core.RedisException;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisStringCommands;
 import io.micrometer.observation.annotation.Observed;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -18,39 +18,24 @@ import lombok.extern.slf4j.Slf4j;
 @Validated
 @Slf4j
 public class JobStatusRepository {
-    private final OpenSearchClient openSearchClient;
-    private final static String jobStatusIndexName = "job-status";
+    private final RedisStringCommands<String, String> commands;
+    private static final int JOB_STATUS_TTL_SECONDS = 3600;
 
-
-    public JobStatusRepository(OpenSearchClient openSearchClient) {
-        this.openSearchClient = openSearchClient;
+    public JobStatusRepository(StatefulRedisConnection<String, String> connection) {
+        this.commands = connection.sync();
     }
-
-    private record StatusDoc(String status) {}
 
     @Observed(name="jobstatus.upsert.repository")
     public void upsert(@Valid JobStatusDocument jobStatus) {
+        String key = "job:" + jobStatus.userId() + ":" + jobStatus.repoName();
+
         try {
-            openSearchClient.update(r -> r
-                .index(jobStatusIndexName)
-                .id(jobStatus.userId() + ":" + jobStatus.repoName())
-                .doc(new StatusDoc(jobStatus.status()))
-                .docAsUpsert(true)
-                , JobStatusDocument.class
-            );
-            log.debug("upserted job status to {}", 
-                jobStatus.status(), 
-                kv("index", jobStatusIndexName),
-                kv("userId", jobStatus.userId()),
-                kv("repoName", jobStatus.repoName()));
-
-        } catch (IOException e) { 
-            log.error("failed to upsert job status to {}", 
-                jobStatus.status(), 
-                kv("index", jobStatusIndexName),
-                kv("userId", jobStatus.userId()),
-                kv("repoName", jobStatus.repoName()));
+            commands.setex(key, JOB_STATUS_TTL_SECONDS, jobStatus.status());
+        } catch (RedisException e) {
+            log.error("Failed to update job status", kv("key", key), e);
         }
-    }
 
+        log.debug("upserted job status to {}", 
+            jobStatus.status(), kv("userId", jobStatus.userId()), kv("repoName", jobStatus.repoName()));
+    }
 }

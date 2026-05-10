@@ -1,4 +1,4 @@
-package app.config.nats;
+package app.config.messaging;
 
 import java.io.IOException;
 import java.time.Duration;
