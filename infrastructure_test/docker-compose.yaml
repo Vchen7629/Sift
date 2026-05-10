@@ -68,7 +68,6 @@ services:
         until create_index_pattern user-repo; do echo 'Retrying user-repo...'; sleep 3; done
         until create_index_pattern dependency-changelog; do echo 'Retrying dependency-changelog...'; sleep 3; done
         until create_index_pattern dependency-issues; do echo 'Retrying dependency-issue...'; sleep 3; done
-        until create_index_pattern job-status; do echo 'Retrying job-status...'; sleep 3; done
         echo 'Index patterns created.'
     restart: on-failure
   
@@ -106,6 +105,21 @@ services:
           --discard=old \
           --dupe-window=2m \
           --defaults
+  
+  valkey:
+    image: valkey/valkey:9
+    container_name: valkey-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - opensearch-net
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   init-observability:
     image: busybox:latest
@@ -155,6 +169,7 @@ services:
 volumes:
   opensearch-data:
   nats_data:
+  valkey_data:
 
 networks:
   opensearch-net:
