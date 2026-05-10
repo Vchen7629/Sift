@@ -29,9 +29,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
 		ctx: ctx,
 		GHRepos: []types.GHRepository{},
-		ProcessingStatus: map[int]string{
-			2: "processing",
-		},
+		ProcessingStatus: map[int]string{},
 	}
 	m.FocusedIdx = 0
 	return m
@@ -105,8 +103,6 @@ func (m *ListModel) View() tea.View {
 }
 
 func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
-	header := m.repoCardHeader(idx, ghRepo, indexedRepo)
-
 	borderColor, _ := m.focusedStyle(idx)
 		
 	card := lipgloss.NewStyle().
@@ -115,32 +111,37 @@ func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo typ
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(borderColor).
 		Padding(0, 1).
-		Render(header)
+		Render(m.content(idx, ghRepo, indexedRepo))
 
 	return card
 }
 
-func (m *ListModel) repoCardHeader(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
+func (m *ListModel) content(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
 	_, textColor := m.focusedStyle(idx)
 
 	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
 
-	repoStatusText := "unindexed"
 	if status, exists := m.ProcessingStatus[idx]; exists {
-		repoStatusText = status
+		indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(status)                                                                       
+		lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
+		totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(indexedRepo.TotalDependencies))
+
+		right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
+
+		spacer := lipgloss.NewStyle().
+			Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
+			Render("")
+
+		return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
 	} 
 
-	indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(repoStatusText)                                                                       
-	lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
-	totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(indexedRepo.TotalDependencies))
-
-	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
+	indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render("Unindexed")       
 
 	spacer := lipgloss.NewStyle().
-		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
+		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(indexStatus) - 4).
 		Render("")
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
+	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, indexStatus)
 }
 
 func (m *ListModel) focusedStyle(idx int) (color.Color, color.Color) {

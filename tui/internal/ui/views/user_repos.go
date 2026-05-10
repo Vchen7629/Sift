@@ -16,7 +16,7 @@ import (
 type UserRepoModel struct {
 	ctx 		      *context.App
 	ActionBar         *user_repo.ActionBarModel
-	SearchBar 	      *user_repo.SearchBarModel
+	SearchBar 	      *common.SearchBarModel
 	RepoList	      *user_repo.ListModel
 	Sidebar 	      *user_repo.Sidebar
 	ghRepos		      []types.GHRepository
@@ -29,7 +29,7 @@ func NewUserRepo(ctx *context.App) *UserRepoModel {
 	return &UserRepoModel{
 		ctx: ctx,
 		ActionBar: user_repo.NewActionBar(ctx),
-		SearchBar: user_repo.NewUserRepoSearchBar(ctx),
+		SearchBar: common.NewSearchBar(ctx, "Search Your Repositories..."),
 		RepoList: user_repo.NewUserRepoList(ctx),
 		Sidebar: user_repo.NewSidebar(ctx),
 		ghRepos: []types.GHRepository{},

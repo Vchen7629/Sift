@@ -1,5 +1,4 @@
-// todo: refactor this into a reusable component for both rag_query and user_repo
-package rag_query
+package common
 
 import (
 	"tui/internal/ui/context"
@@ -16,9 +15,10 @@ type SearchBarModel struct {
 	focused   bool
 }
 
-func NewRagQuerySearchBar(ctx *context.App) *SearchBarModel {
+func NewSearchBar(ctx *context.App, placeholderText string) *SearchBarModel {
 	ti := textinput.New()
-	ti.Placeholder = "Describe Your Issue..."
+	ti.Placeholder = placeholderText
+	//"Search Your Repositories..."
 
 	return &SearchBarModel{
 		ctx: 	   ctx,
@@ -58,7 +58,6 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	return cmd
 }
 
-// Todo: Disable searchbar left right movement when theme is open
 func (m *SearchBarModel) View() string {
 	m.textInput.SetWidth(m.ctx.MainWidth - 10)
 	s := m.textInput.Styles()
@@ -67,7 +66,7 @@ func (m *SearchBarModel) View() string {
 
 	borderColor := styles.Divider
 	if m.focused {
-		borderColor = m.ctx.SelectedTheme.AccentBright
+		borderColor = m.ctx.SelectedTheme.AccentMid
 	}
 
 	style := lipgloss.NewStyle().

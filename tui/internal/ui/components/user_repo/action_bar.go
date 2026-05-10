@@ -52,10 +52,12 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused bool) string {
 	navBtnTextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
+	
+	//↵
 
 	if !isSidebarFocused {
 		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll repos"))
-		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search repos"))
+		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] search repos"))
 		clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))
 		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus sidebar"))
 		indexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] index"))

@@ -6,6 +6,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
+	"tui/internal/ui/common"
 	"tui/internal/ui/components/rag_query"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
@@ -14,7 +15,7 @@ import (
 type RagQueryModel struct {
 	Ctx 		     *context.App
 	ActionBar 	     *rag_query.ActionBarModel
-	Searchbar 	     *rag_query.SearchBarModel
+	Searchbar 	     *common.SearchBarModel
 	ResponseDisplay  *rag_query.RagQueryResponseModel
 	Sidebar			 *rag_query.SidebarModel
 	SelectedRepo     string
@@ -33,12 +34,25 @@ type source struct {
 }
 
 
+func NewRagQuery(ctx *context.App) *RagQueryModel {
+	return &RagQueryModel{
+		Ctx:             ctx,
+		SelectedRepo:    "Sift",
+		ActionBar:       rag_query.NewActionBar(ctx),
+		Searchbar:       common.NewSearchBar(ctx, "Describe Your Issue..."),
+		ResponseDisplay: rag_query.NewRagQueryResponse(ctx),
+		Sidebar:         rag_query.NewSidebar(ctx),
+	}
+}
+
 func (m RagQueryModel) Init() tea.Cmd {
-	return nil
+	fetchIndexedRepoCmd := m.Sidebar.Init()
+
+	return tea.Batch(fetchIndexedRepoCmd)
 }
 
 // user actions
-func (m RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case rag_query.ToggleFocusMsg:
 		if !m.Searchbar.IsSearching() {
