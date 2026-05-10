@@ -24,7 +24,7 @@ type ListModel struct {
 	FocusedIdx       int
 	ProcessingStatus map[int]string
 	viewport 	 	 viewport.Model
-	progressBar      *ProgressBarModel
+	progressBars     map[int]*ProgressBarModel
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
@@ -32,14 +32,14 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		ctx: ctx,
 		GHRepos: []types.GHRepository{},
 		ProcessingStatus: map[int]string{},
-		progressBar: NewProgressBar(ctx),
+		progressBars: map[int]*ProgressBarModel{},
 	}
 	m.FocusedIdx = 0
 	return m
 }
 
 func (m ListModel) Init() tea.Cmd {
-	return m.progressBar.Init()
+	return nil
 }
 
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {                                                                                                            
@@ -75,14 +75,27 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	// response from api call
 	case indexRepoMsg:                                                                                                                                          
 		m.ProcessingStatus[msg.idx] = msg.status
-		return nil  
+
+		pb := NewProgressBar(m.ctx, msg.idx)
+		m.progressBars[msg.idx] = pb
+		return pb.Init()
 
 	// for the progress bar
 	case tickMsg:
-		return m.progressBar.Update(msg)
+		if pb, ok := m.progressBars[msg.idx]; ok {
+			return pb.Update(msg)
+		}
 
 	case progress.FrameMsg:
-		return m.progressBar.Update(msg)
+		var cmds []tea.Cmd
+		for _, pb := range m.progressBars {
+			cmds = append(cmds, pb.Update(msg))
+		}
+		return tea.Batch(cmds...)
+
+	case statusUpdateMsg:
+		
+
 	}
 
 	return nil
@@ -113,9 +126,38 @@ func (m *ListModel) View() tea.View {
 }
 
 func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
-	borderColor, _ := m.focusedStyle(idx)
+	borderColor, textColor := m.focusedStyle(idx)
+	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
 
-	content := lipgloss.JoinVertical(lipgloss.Top, m.header(idx, ghRepo, indexedRepo), m.progressBar.View().Content)
+	// right text section of the top row of the card
+	var rightText string
+	status, exists := m.ProcessingStatus[idx]
+	switch {
+	case !exists:
+		rightText = lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render("Unindexed")
+	case status == "Indexed":
+		indexStatus := lipgloss.NewStyle().Width(16).Align(lipgloss.Right).Render(status)
+		lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
+		totalDependencies := lipgloss.NewStyle().
+			Width(17).PaddingLeft(1).Align(lipgloss.Right).
+			Render(fmt.Sprintf("· %s dependencies", strconv.Itoa(indexedRepo.TotalDependencies)))
+
+		rightText = lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
+	default:
+		rightText = lipgloss.NewStyle().Width(16).Align(lipgloss.Right).Render(status)
+	}
+
+	spacer := lipgloss.NewStyle().
+		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(rightText) - 4).
+		Render("")
+	header := lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, rightText)
+
+	var content string
+	if pb, ok := m.progressBars[idx]; ok {
+		content = lipgloss.JoinVertical(lipgloss.Top, header, pb.View().Content)
+	} else {
+		content = header
+	}
 		
 	card := lipgloss.NewStyle().
 		Width(m.ctx.MainWidth).PaddingLeft(2).Padding(0,1).
@@ -123,34 +165,6 @@ func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo typ
 		Render(content)
 
 	return card
-}
-
-func (m *ListModel) header(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
-	_, textColor := m.focusedStyle(idx)
-
-	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
-
-	if status, exists := m.ProcessingStatus[idx]; exists {
-		indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(status)                                                                       
-		lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
-		totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(indexedRepo.TotalDependencies))
-
-		right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
-
-		spacer := lipgloss.NewStyle().
-			Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(right) - 4).
-			Render("")
-
-		return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, right)
-	} 
-
-	indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render("Unindexed")       
-
-	spacer := lipgloss.NewStyle().
-		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(indexStatus) - 4).
-		Render("")
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, indexStatus)
 }
 
 func (m *ListModel) focusedStyle(idx int) (color.Color, color.Color) {
@@ -168,7 +182,7 @@ func (m *ListModel) IndexRepo() tea.Msg {
 
 	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name))
 	if err != nil {
-		return indexRepoMsg{idx: m.FocusedIdx, status: err.Error()}
+		return indexRepoMsg{idx: m.FocusedIdx, status: "error indexing"}
 	}
 
 	return indexRepoMsg{idx: m.FocusedIdx, status: "processing"}

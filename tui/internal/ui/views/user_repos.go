@@ -55,12 +55,15 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(msg.repoList) > 0 {
 			m.Sidebar.FocusedGHRepo = &m.ghRepos[0]
 			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[0].Name, m.indexedRepos)
+			m.populateIndexRepoStatus()
 		}
 		return m, nil
 
 	case common.FetchIndexedRepoMsg:
 		m.indexedRepos = msg.IndexedRepos
 		m.RepoList.IndexedRepos = msg.IndexedRepos
+		m.populateIndexRepoStatus()
+
 		if len(m.ghRepos) > 0 {
 			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
 		}
@@ -109,4 +112,12 @@ func (m *UserRepoModel) fetchRepoList() tea.Msg {
 	}
 
 	return githubRepoFetchedMsg{ repoList: repos }
+}
+
+func (m *UserRepoModel) populateIndexRepoStatus() {
+	for i, ghRepo := range m.RepoList.GHRepos {
+		if service.FindIndexedRepo(ghRepo.Name, m.RepoList.IndexedRepos) != nil {
+			m.RepoList.ProcessingStatus[i] = "Indexed"
+		}
+	}
 }

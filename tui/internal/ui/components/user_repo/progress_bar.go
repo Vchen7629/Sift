@@ -12,18 +12,22 @@ import (
 type ProgressBarModel struct {
 	ctx 	 *context.App
 	progress progress.Model
+	idx 	 int
 }
 
-func NewProgressBar(ctx *context.App) *ProgressBarModel {
+func NewProgressBar(ctx *context.App, idx int) *ProgressBarModel {
 	return &ProgressBarModel{
 		ctx:      ctx,
 		progress: progress.New(),
+		idx:	  idx,
 	}
 }
 
 func (m *ProgressBarModel) Init() tea.Cmd {
 	return m.checkProgress()
 }
+
+type statusUpdateMsg struct { idx int; status string }
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
@@ -55,10 +59,10 @@ func (m *ProgressBarModel) View() tea.View {
 	return tea.NewView(paddingTop.Render(m.progress.View()))
 }
 
-type tickMsg time.Time
+type tickMsg struct { idx int; t time.Time }
 
 func (m ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Second*1, func(t time.Time) tea.Msg {
-		return tickMsg(t)
+		return tickMsg{t: t, idx: m.idx}
 	})
 }
