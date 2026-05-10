@@ -41,7 +41,7 @@ func (m Sidebar) Init() tea.Cmd {
 func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if !isSidebarFocused {
+		if !isSidebarFocused || m.FocusedIndexedRepo == nil {
 			break
 		}
 		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedIndexedRepo.Dependencies[m.FocusedIdx]))
@@ -63,7 +63,7 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 func (m *Sidebar) View() tea.View {
 	if m.FocusedIndexedRepo == nil {
-		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Loading Repo Data..."))
+		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Repo unindexed, press r to index"))
 	}
 
 	description := m.FocusedGHRepo.Description
