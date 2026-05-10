@@ -77,7 +77,7 @@ public class IndexRepoController {
 
         String jobStatus = jobStatusRepository.findStatus(request.userId, request.repoName);
 
-        if (jobStatus.equals(null)) {
+        if (jobStatus == null) {
             log.warn("repo hasn't been added to db yet", kv("userId", request.userId), kv("repoName", request.repoName));
                 
             return ResponseEntity.status(404).body("repo status not found, add it for processing first");
