@@ -48,7 +48,6 @@ public class ProducerService {
         this.jobStatusRepository = jobStatusRepository;
     }
 
-    // todo: pass span trace id and pass it into nats message as header so it travels across service boundaries
     @Observed(name="producer.publishindexrepojobrequest.service")
     public void PublishIndexRepoJobRequest(@Valid IndexRepoMsg indexRepoMsg) throws JetStreamApiException, IOException {
         String jobStatus = jobStatusRepository.findStatus(indexRepoMsg.userId(), indexRepoMsg.repoName());
