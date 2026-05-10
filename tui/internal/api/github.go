@@ -1,6 +1,8 @@
 package api
 
 import (
+	"tui/internal/types"
+
 	gh "github.com/cli/go-gh/v2/pkg/api"
 )
 
@@ -33,21 +35,16 @@ type RepoApiRes struct {
 	LastCommit  string `json:"pushed_at"`                                                                                                             
 }
 
-type RepoList struct {
-	Id				  			  int
-	Name, Description, LastCommit string
-}
-
-func (c *GithubClient) GithubUserRepositories() ([]RepoList, error){
+func (c *GithubClient) GithubUserRepositories() ([]types.GHRepository, error){
 	var apiRes []RepoApiRes
 	err := c.rest.Get("user/repos?affiliation=owner&per_page=100", &apiRes)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]RepoList, 0, len(apiRes))
+	res := make([]types.GHRepository, 0, len(apiRes))
 	for i, repo := range apiRes {
-		res = append(res, RepoList{Id: i, Name: repo.Name, Description: repo.Description, LastCommit: repo.LastCommit})
+		res = append(res, types.GHRepository{Id: i, Name: repo.Name, Description: repo.Description, LastCommit: repo.LastCommit})
 	}
 
 	return res, err

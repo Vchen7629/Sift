@@ -61,7 +61,7 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		}
 
 	case common.FetchIndexedRepoMsg:
-		m.indexedRepos = msg.Repos
+		m.indexedRepos = msg.IndexedRepos
 		return nil
 	}
 	return nil

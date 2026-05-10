@@ -13,17 +13,18 @@ import (
 )
 
 type Sidebar struct {
-	ctx 		 *context.App
-	viewport 	 viewport.Model
-	FocusedRepo  *types.Repository
-	FocusedIdx   int
+	ctx 		       *context.App
+	viewport 	       viewport.Model
+	FocusedGHRepo      *types.GHRepository
+	FocusedIndexedRepo *types.IndexedRepo
+	FocusedIdx         int
 }
 
 func NewSidebar(ctx *context.App) *Sidebar {
 	return &Sidebar{
 		ctx: ctx,
-		FocusedRepo: nil,
-
+		FocusedGHRepo: nil,
+		FocusedIndexedRepo: nil,
 		FocusedIdx: 0,
 	}
 }
@@ -43,10 +44,10 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		if !isSidebarFocused {
 			break
 		}
-		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedRepo.Dependencies[m.FocusedIdx]))
+		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedIndexedRepo.Dependencies[m.FocusedIdx]))
 		switch msg.String() {
 		case "down":
-			if m.FocusedIdx < len(m.FocusedRepo.Dependencies) - 1 {
+			if m.FocusedIdx < len(m.FocusedIndexedRepo.Dependencies) - 1 {
 				m.FocusedIdx++
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
@@ -61,12 +62,12 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 }
 
 func (m *Sidebar) View() tea.View {
-	if m.FocusedRepo == nil {
+	if m.FocusedIndexedRepo == nil {
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Loading Repo Data..."))
 	}
 
-	description := m.FocusedRepo.Description
-	if m.FocusedRepo.Description == "" {
+	description := m.FocusedGHRepo.Description
+	if m.FocusedGHRepo.Description == "" {
 		description = "No description found for this repository"
 	}
 	repoDesc := lipgloss.NewStyle().MarginBottom(2).Render(description)
@@ -79,10 +80,10 @@ func (m *Sidebar) View() tea.View {
 }
 
 func (m *Sidebar) sidebarHeader() string {
-	repoName := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Render(m.FocusedRepo.Name)
+	repoName := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Render(m.FocusedGHRepo.Name)
 	lastUpdate := lipgloss.NewStyle().
 		Foreground(styles.TextDim).
-		Render(fmt.Sprintf("Updated %s", service.FormatRelativeDate(m.FocusedRepo.LastUpdated)))
+		Render(fmt.Sprintf("Updated %s", service.FormatRelativeDate(m.FocusedGHRepo.LastCommit)))
 
 	spaceBetween := lipgloss.NewStyle().
 		Width(m.ctx.SidebarWidth - 4 - lipgloss.Width(repoName) - lipgloss.Width(lastUpdate)).
@@ -93,11 +94,11 @@ func (m *Sidebar) sidebarHeader() string {
 	totalLibs := lipgloss.NewStyle().
 		Foreground(styles.TextDim).
 		MarginRight(1).
-		Render(fmt.Sprintf("%d total dependencies", m.FocusedRepo.TotalDependencies))
+		Render(fmt.Sprintf("%d total dependencies", m.FocusedIndexedRepo.TotalDependencies))
 
 	lastIndexed := lipgloss.NewStyle().
 		Foreground(styles.TextDim).
-		Render(fmt.Sprintf("· indexed %s ago", m.FocusedRepo.LastIndexed))
+		Render(fmt.Sprintf("· indexed %s", m.FocusedIndexedRepo.LastIndexed))
 		
 	botBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
 	
@@ -110,13 +111,13 @@ func (m *Sidebar) sidebarHeader() string {
 func (m *Sidebar) repoDependencyList() tea.View {
 	var dependencyCards []string
 
-	if len(m.FocusedRepo.Dependencies) == 0 {
+	if len(m.FocusedIndexedRepo.Dependencies) == 0 {
 		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("No dependencies indexed for this repo")
 
 		return tea.NewView(text)
 	}
 
-	for i, dependency := range m.FocusedRepo.Dependencies {
+	for i, dependency := range m.FocusedIndexedRepo.Dependencies {
 		dependencyCards = append(dependencyCards, m.dependencyCard(i, dependency))
 	}
 
@@ -126,7 +127,7 @@ func (m *Sidebar) repoDependencyList() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *Sidebar) dependencyCard(idx int, dependency types.DependencyStatus) string {
+func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
 	textColor := m.ctx.SelectedTheme.AccentMid
 	if idx == m.FocusedIdx {
 		textColor = m.ctx.SelectedTheme.AccentBright

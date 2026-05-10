@@ -44,10 +44,11 @@ func DeleteIndexedRepo(username, repoName string) error {
 	return nil
 }
 
-type fetchIndexedRepoResp struct { 
-	Name 			  string `json:"repoName"`
-	LastIndexed 	  string `json:"lastIndexed"`
-	TotalDependencies int    `json:"totalDependencies"`
+type fetchIndexedRepoResp struct {
+	Name              string             `json:"repoName"`
+	LastIndexed       string             `json:"lastIndexed"`
+	TotalDependencies int                `json:"totalDependencies"`
+	Dependencies      []types.Dependency `json:"dependencies"`
 }
 
 func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
@@ -74,12 +75,15 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 
 	var indexedRepos []types.IndexedRepo
 	for i, repos := range repos {
+		for j := range repos.Dependencies {
+			repos.Dependencies[j].Id = j
+		}
 		indexedRepo := types.IndexedRepo{
 			Id: i, TotalDependencies: repos.TotalDependencies,
-			Name: strings.Split(repos.Name, "/")[1],
-			LastIndexed: service.FormatRelativeDate(repos.LastIndexed),
+			Name:         strings.Split(repos.Name, "/")[1],
+			LastIndexed:  service.FormatRelativeDate(repos.LastIndexed),
+			Dependencies: repos.Dependencies,
 		}
-
 		indexedRepos = append(indexedRepos, indexedRepo)
 	}
 

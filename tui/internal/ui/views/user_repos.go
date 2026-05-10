@@ -2,8 +2,9 @@ package views
 
 import (
 	"strings"
-	"tui/internal/api"
 	"tui/internal/types"
+	"tui/internal/service"
+	"tui/internal/ui/common"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
@@ -18,7 +19,8 @@ type UserRepoModel struct {
 	SearchBar 	      *user_repo.SearchBarModel
 	RepoList	      *user_repo.ListModel
 	Sidebar 	      *user_repo.Sidebar
-	repos			  []types.Repository
+	ghRepos		      []types.GHRepository
+	indexedRepos 	  []types.IndexedRepo
 	focusedIdx        int
 	isSidebarFocused  bool
 }
@@ -30,37 +32,13 @@ func NewUserRepo(ctx *context.App) *UserRepoModel {
 		SearchBar: user_repo.NewUserRepoSearchBar(ctx),
 		RepoList: user_repo.NewUserRepoList(ctx),
 		Sidebar: user_repo.NewSidebar(ctx),
-		repos: []types.Repository{},
+		ghRepos: []types.GHRepository{},
 		isSidebarFocused: false,
 	}
 }
 
-// called by update, populates the struct data once data is fetched from gh api
-func (m *UserRepoModel) SetRepos(repos []types.Repository) {
-	byId := make(map[int]types.Repository, len(dummyData))
-	for _, data := range dummyData {
-		byId[data.GithubId] = data
-	}
-
-	for i, repo := range repos {
-		data, ok := byId[repo.GithubId]
-		if ok {
-			repos[i].LastIndexed = data.LastIndexed
-			repos[i].TotalDependencies = data.TotalDependencies
-			repos[i].Dependencies = data.Dependencies
-		}
-	}
-
-	m.repos = repos
-	m.RepoList.FetchedRepos = repos
-	m.RepoList.FocusedIdx = 0
-	if len(repos) > 0 {
-		m.Sidebar.FocusedRepo = &m.repos[0]
-	}
-}
-
 func (m *UserRepoModel) Init() tea.Cmd {
-	return m.fetchRepoList
+	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username))
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -71,12 +49,21 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case githubRepoFetchedMsg:
-		repos := make([]types.Repository, len(msg.repoList))
-		for i, r := range msg.repoList {
-			repos[i] = types.Repository{Name: r.Name, Description: r.Description, LastUpdated: r.LastCommit}
+		m.ghRepos = msg.repoList
+		m.RepoList.GHRepos = msg.repoList
+		m.RepoList.FocusedIdx = 0
+		if len(msg.repoList) > 0 {
+			m.Sidebar.FocusedGHRepo = &m.ghRepos[0]
+			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[0].Name, m.indexedRepos)
 		}
-		m.repos = repos
-		m.SetRepos(m.repos)
+		return m, nil
+
+	case common.FetchIndexedRepoMsg:
+		m.indexedRepos = msg.IndexedRepos
+		m.RepoList.IndexedRepos = msg.IndexedRepos
+		if len(m.ghRepos) > 0 {
+			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
+		}
 		return m, nil
 	}
 
@@ -85,13 +72,14 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	searchBarCmd := m.SearchBar.Update(msg, m.isSidebarFocused)
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
-	if len(m.RepoList.FetchedRepos) > 0 {
+	if len(m.RepoList.GHRepos) > 0 {
 		newIdx := m.RepoList.FocusedIdx
 		if newIdx != m.focusedIdx {
 			m.focusedIdx = newIdx
 			m.Sidebar.ResetFocus()
 		}
-		m.Sidebar.FocusedRepo = &m.repos[m.focusedIdx]
+		m.Sidebar.FocusedGHRepo = &m.ghRepos[m.focusedIdx]
+		m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
 	}
 
 	return m, tea.Batch(actionBarCmd, repoListCmd, searchBarCmd, sidebarCmd)
@@ -111,7 +99,7 @@ func (m *UserRepoModel) View() tea.View {
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused).Content, content))
 }
 
-type githubRepoFetchedMsg struct { repoList []api.RepoList }
+type githubRepoFetchedMsg struct { repoList []types.GHRepository }
 
 // fetches user's repositories from github
 func (m *UserRepoModel) fetchRepoList() tea.Msg {

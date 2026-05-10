@@ -18,7 +18,8 @@ import (
 
 type ListModel struct {
 	ctx 		     *context.App
-	FetchedRepos     []types.Repository
+	GHRepos     	 []types.GHRepository
+	IndexedRepos     []types.IndexedRepo
 	FocusedIdx       int
 	ProcessingStatus map[int]string
 	viewport 	 	 viewport.Model
@@ -27,7 +28,7 @@ type ListModel struct {
 func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
 		ctx: ctx,
-		FetchedRepos: []types.Repository{},
+		GHRepos: []types.GHRepository{},
 		ProcessingStatus: map[int]string{
 			2: "processing",
 		},
@@ -43,13 +44,20 @@ func (m ListModel) Init() tea.Cmd {
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {                                                                                                            
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if isSidebarFocused || len(m.FetchedRepos) == 0 {
+		if isSidebarFocused || len(m.GHRepos) == 0 {
 			break
 		}
-		cardHeight := lipgloss.Height(m.repoCard(m.FocusedIdx, m.FetchedRepos[m.FocusedIdx])) 
+
+		ir := service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos)
+		var indexedRepo types.IndexedRepo
+		if ir != nil {
+			indexedRepo = *ir
+		}
+		cardHeight := lipgloss.Height(m.repoCard(m.FocusedIdx, m.GHRepos[m.FocusedIdx], indexedRepo))
+
 		switch msg.String() {
 		case "down":
-			if m.FocusedIdx < len(m.FetchedRepos) - 1 {
+			if m.FocusedIdx < len(m.GHRepos) - 1 {
 				m.FocusedIdx++
     			service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
@@ -66,7 +74,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	// response from api call
 	case indexRepoMsg:                                                                                                                                          
 		m.ProcessingStatus[msg.idx] = msg.status
-		return nil     
+		return nil  
 	}
 
 	return nil
@@ -75,9 +83,14 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 func (m *ListModel) View() tea.View {
 	var cards []string
 	
-	if len(m.FetchedRepos) > 0 {
-		for i, repo := range m.FetchedRepos {
-			cards = append(cards, m.repoCard(i, repo))
+	if len(m.GHRepos) > 0 {
+		for i, repo := range m.GHRepos {
+			ir := service.FindIndexedRepo(repo.Name, m.IndexedRepos)
+			var indexedRepo types.IndexedRepo
+			if ir != nil {
+				indexedRepo = *ir
+			}
+			cards = append(cards, m.repoCard(i, repo, indexedRepo))
 		}
 
 		m.viewport.SetWidth(m.ctx.MainWidth)
@@ -91,8 +104,8 @@ func (m *ListModel) View() tea.View {
 	return tea.NewView(fetchingPlaceholder)
 }
 
-func (m *ListModel) repoCard(idx int, repo types.Repository) string {
-	header := m.repoCardHeader(idx, repo)
+func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
+	header := m.repoCardHeader(idx, ghRepo, indexedRepo)
 
 	borderColor, _ := m.focusedStyle(idx)
 		
@@ -107,10 +120,10 @@ func (m *ListModel) repoCard(idx int, repo types.Repository) string {
 	return card
 }
 
-func (m *ListModel) repoCardHeader(idx int, repo types.Repository) string {
+func (m *ListModel) repoCardHeader(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
 	_, textColor := m.focusedStyle(idx)
 
-	repoName := lipgloss.NewStyle().Foreground(textColor).Render(repo.Name)
+	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
 
 	repoStatusText := "unindexed"
 	if status, exists := m.ProcessingStatus[idx]; exists {
@@ -118,8 +131,8 @@ func (m *ListModel) repoCardHeader(idx int, repo types.Repository) string {
 	} 
 
 	indexStatus := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(repoStatusText)                                                                       
-	lastIndexed := lipgloss.NewStyle().Width(6).Align(lipgloss.Right).Render(repo.LastIndexed)
-	totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(repo.TotalDependencies))
+	lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
+	totalDependencies := lipgloss.NewStyle().Width(5).Align(lipgloss.Right).Render(strconv.Itoa(indexedRepo.TotalDependencies))
 
 	right := lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
 
@@ -143,7 +156,7 @@ type indexRepoMsg struct { idx int; status string }
 func (m *ListModel) IndexRepo() tea.Msg {
 	gitUser := m.ctx.Username
 
-	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.FetchedRepos[m.FocusedIdx].Name))
+	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name))
 	if err != nil {
 		return indexRepoMsg{idx: m.FocusedIdx, status: err.Error()}
 	}
