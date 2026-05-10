@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"strconv"
 
+	"charm.land/bubbles/v2/progress"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -23,6 +24,7 @@ type ListModel struct {
 	FocusedIdx       int
 	ProcessingStatus map[int]string
 	viewport 	 	 viewport.Model
+	progressBar      *ProgressBarModel
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
@@ -30,13 +32,14 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		ctx: ctx,
 		GHRepos: []types.GHRepository{},
 		ProcessingStatus: map[int]string{},
+		progressBar: NewProgressBar(ctx),
 	}
 	m.FocusedIdx = 0
 	return m
 }
 
 func (m ListModel) Init() tea.Cmd {
-	return nil
+	return m.progressBar.Init()
 }
 
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {                                                                                                            
@@ -73,6 +76,13 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case indexRepoMsg:                                                                                                                                          
 		m.ProcessingStatus[msg.idx] = msg.status
 		return nil  
+
+	// for the progress bar
+	case tickMsg:
+		return m.progressBar.Update(msg)
+
+	case progress.FrameMsg:
+		return m.progressBar.Update(msg)
 	}
 
 	return nil
@@ -104,19 +114,18 @@ func (m *ListModel) View() tea.View {
 
 func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
 	borderColor, _ := m.focusedStyle(idx)
+
+	content := lipgloss.JoinVertical(lipgloss.Top, m.header(idx, ghRepo, indexedRepo), m.progressBar.View().Content)
 		
 	card := lipgloss.NewStyle().
-		Width(m.ctx.MainWidth).
-		PaddingLeft(2).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(borderColor).
-		Padding(0, 1).
-		Render(m.content(idx, ghRepo, indexedRepo))
+		Width(m.ctx.MainWidth).PaddingLeft(2).Padding(0,1).
+		Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).
+		Render(content)
 
 	return card
 }
 
-func (m *ListModel) content(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
+func (m *ListModel) header(idx int, ghRepo types.GHRepository, indexedRepo types.IndexedRepo) string {
 	_, textColor := m.focusedStyle(idx)
 
 	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
