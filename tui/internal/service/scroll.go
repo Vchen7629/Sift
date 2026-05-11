@@ -20,3 +20,19 @@ func ScrollToFocused(vp *viewport.Model, focusedIndex, cardHeight int) {
 		vp.SetYOffset(itemTop)
 	}
 }
+
+// scrolls up the viewport list, used in the viewport components
+func NavigateUp(idx *int, vp *viewport.Model, cardHeight int) {
+	if *idx > 0 {
+		*idx--
+		ScrollToFocused(vp, *idx, cardHeight)
+	}
+}
+
+// scrolls down the viewport list, used in the viewport components
+func NavigateDown(idx *int, listLen int, vp *viewport.Model, cardHeight int) {
+	if *idx < listLen-1 {
+		*idx++
+		ScrollToFocused(vp, *idx, cardHeight)
+	}
+}

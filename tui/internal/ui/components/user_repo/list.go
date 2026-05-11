@@ -55,16 +55,10 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		}
 
 		switch msg.String() {
-		case "down":
-			if m.FocusedIdx < len(m.GHRepos)-1 {
-				m.FocusedIdx++
-				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
-			}
 		case "up":
-			if m.FocusedIdx > 0 {
-				m.FocusedIdx--
-				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
-			}
+			service.NavigateUp(&m.FocusedIdx, &m.viewport, cardHeight)
+		case "down":
+			service.NavigateDown(&m.FocusedIdx, len(m.GHRepos), &m.viewport, cardHeight)
 		}
 
 	case tea.WindowSizeMsg:

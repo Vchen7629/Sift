@@ -41,16 +41,10 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			break
 		}
 		switch msg.String() {
-		case "down":
-			if m.focusedIdx < len(m.indexedRepos)-1 {
-				m.focusedIdx++
-				service.ScrollToFocused(&m.viewport, m.focusedIdx, 1)
-			}
 		case "up":
-			if m.focusedIdx > 0 {
-				m.focusedIdx--
-				service.ScrollToFocused(&m.viewport, m.focusedIdx, 1)
-			}
+			service.NavigateUp(&m.focusedIdx, &m.viewport, 1)
+		case "down":
+			service.NavigateDown(&m.focusedIdx, len(m.indexedRepos), &m.viewport, 1)
 
 		case "enter":
 			return func() tea.Msg {

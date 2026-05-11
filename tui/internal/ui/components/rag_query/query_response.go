@@ -65,18 +65,10 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 		cardHeight := lipgloss.Height(m.sourceCard(m.focused))
 
 		switch msg.String() {
-		case "down":
-			if m.focused.id < len(m.answer.sources)-1 {
-				m.focused.id++
-				m.focused = m.answer.sources[m.focused.id]
-				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
-			}
 		case "up":
-			if m.focused.id > 0 {
-				m.focused.id--
-				m.focused = m.answer.sources[m.focused.id]
-				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
-			}
+			service.NavigateUp(&m.focused.id, &m.viewport, cardHeight)
+		case "down":
+			service.NavigateDown(&m.focused.id, len(m.answer.sources), &m.viewport, cardHeight)
 		}
 
 	case tea.WindowSizeMsg:
