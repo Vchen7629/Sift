@@ -62,7 +62,7 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 }
 
 func (m *Sidebar) View() tea.View {
-	if m.FocusedGHRepo == nil && m.FocusedIndexedRepo == nil {
+	if m.FocusedGHRepo == nil {
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("loading repo info..."))
 	}
 
@@ -124,7 +124,7 @@ func (m *Sidebar) repoDependencyList() tea.View {
 		dependencyCards = append(dependencyCards, m.dependencyCard(i, dependency))
 	}
 
-	m.viewport.SetWidth(m.ctx.MainWidth)
+	m.viewport.SetWidth(m.ctx.SidebarWidth)
 	m.viewport.SetHeight(m.ctx.MainHeight - 8)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, dependencyCards...))
 	return tea.NewView(m.viewport.View())
