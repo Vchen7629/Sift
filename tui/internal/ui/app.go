@@ -46,6 +46,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
 		m.ctx.MainHeight = msg.Height - 3
 		m.footer.SetSize(msg.Width-2, 1)
+		var cmds []tea.Cmd
+		for page, model := range m.pages {
+			updated, cmd := model.Update(msg)
+			m.pages[page] = updated
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...) 
 
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -57,6 +64,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	prevPage := m.ctx.CurrentPage
 	sbCmd := m.footer.Update(msg)
 
+	// footer.Update may change CurrentPage via nav, init new page if so
 	var initCmd tea.Cmd
 	if m.ctx.CurrentPage != prevPage {
 		initCmd = m.pages[m.ctx.CurrentPage].Init()
