@@ -71,7 +71,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth)
 		m.viewport.SetHeight(m.ctx.MainHeight - 4)
-		
+
 		for _, pb := range m.progressBars {
 			pb.Update(msg)
 		}
@@ -85,7 +85,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 	// response from api call
 	case indexRepoMsg:
-		pb := NewProgressBar(m.ctx, msg.idx, fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[m.FocusedIdx].Name))
+		pb := NewProgressBar(m.ctx, msg.idx, msg.repoName)
 		m.progressBars[msg.idx] = pb
 		return pb.Init()
 
@@ -180,7 +180,10 @@ func (m *ListModel) cardHeader(
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, indexMetadata)
 }
 
-type indexRepoMsg struct{ idx int }
+type indexRepoMsg struct {
+	idx      int
+	repoName string
+}
 type indexRepoErrMsg struct {
 	idx int
 	err error
@@ -188,11 +191,12 @@ type indexRepoErrMsg struct {
 
 func (m *ListModel) IndexRepo() tea.Msg {
 	gitUser := m.ctx.Username
+	repoName := fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name)
 
-	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name))
+	err := api.IndexRepo(gitUser, repoName)
 	if err != nil {
 		return indexRepoErrMsg{idx: m.FocusedIdx, err: err}
 	}
 
-	return indexRepoMsg{idx: m.FocusedIdx}
+	return indexRepoMsg{idx: m.FocusedIdx, repoName: repoName}
 }
