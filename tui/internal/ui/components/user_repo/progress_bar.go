@@ -27,6 +27,7 @@ func NewProgressBar(ctx *context.App, idx int, repoName string) *ProgressBarMode
 }
 
 func (m *ProgressBarModel) Init() tea.Cmd {
+	m.progress.SetWidth(m.ctx.MainWidth - 6)
 	return m.checkProgress()
 }
 

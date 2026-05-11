@@ -71,6 +71,10 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth)
 		m.viewport.SetHeight(m.ctx.MainHeight - 4)
+		
+		for _, pb := range m.progressBars {
+			pb.Update(msg)
+		}
 
 	// trigger from user pressing r
 	case IndexRepoRequestMsg:
@@ -111,6 +115,8 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	return nil
 }
 
+var repoCardStyle = lipgloss.NewStyle().PaddingLeft(2).Padding(0, 1).Border(lipgloss.RoundedBorder())
+
 func (m *ListModel) View() tea.View {
 	var cards []string
 
@@ -140,12 +146,7 @@ func (m *ListModel) View() tea.View {
 			content = header
 		}
 
-		card := lipgloss.NewStyle().
-			Width(m.ctx.MainWidth).PaddingLeft(2).Padding(0, 1).
-			Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).
-			Render(content)
-
-		cards = append(cards, card)
+		cards = append(cards, repoCardStyle.Width(m.ctx.MainWidth).BorderForeground(borderColor).Render(content))
 	}
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 
