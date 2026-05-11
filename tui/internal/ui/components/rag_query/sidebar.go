@@ -69,7 +69,7 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 func (m *SidebarModel) View() tea.View {
 	sidebarContent := m.sideBarList()
-	if m.sideBarList() == "" {
+	if sidebarContent == "" {
 		sidebarContent = lipgloss.NewStyle().Padding(1, 1).Render("No indexed repos, go to Your Repositories to index your repos")
 	}
 
