@@ -22,17 +22,6 @@ type RagQueryModel struct {
 	isSidebarFocused bool
 }
 
-type selectedRepo struct {
-	id, totalDep      int
-	name, lastIndexed string
-	sources           []source
-}
-
-type source struct {
-	id                   int
-	link, version, label string
-}
-
 func NewRagQuery(ctx *context.App) *RagQueryModel {
 	return &RagQueryModel{
 		Ctx:             ctx,

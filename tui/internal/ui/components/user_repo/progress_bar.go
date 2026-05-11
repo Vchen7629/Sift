@@ -30,11 +30,6 @@ func (m *ProgressBarModel) Init() tea.Cmd {
 	return m.checkProgress()
 }
 
-type statusUpdateMsg struct {
-	idx    int
-	status string
-}
-
 var statusProgress = map[string]float64{
 	"processing:created_job":                   0.05,
 	"processing:fetched_repo":                  0.075,

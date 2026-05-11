@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 	"tui/internal/service"
@@ -24,7 +25,13 @@ func IndexRepo(username, repoName string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("error closing index repo resp body")
+		}
+	}()
+
 
 	if resp.StatusCode != http.StatusAccepted {
 		return fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
@@ -44,7 +51,13 @@ func GetJobStatus(username, repoName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("error closing get job status resp body")
+		}
+	}()
+
 
 	if resp.StatusCode == http.StatusNotFound {
 		return "", nil

@@ -98,8 +98,6 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			cmds = append(cmds, pb.Update(msg))
 		}
 		return tea.Batch(cmds...)
-
-	case statusUpdateMsg:
 	}
 
 	return nil

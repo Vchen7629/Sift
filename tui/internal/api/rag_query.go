@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"tui/internal/service"
 )
@@ -25,7 +26,13 @@ func Search(username, searchQuery string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("error closing search resp body")
+		}
+	}()
+
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)

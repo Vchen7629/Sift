@@ -14,7 +14,6 @@ import (
 
 type RagQueryResponseModel struct {
 	ctx       *context.App
-	mainWidth int
 	answer    answerModel
 	focused   source
 	viewport  viewport.Model

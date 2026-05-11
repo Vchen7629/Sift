@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"tui/internal/service"
@@ -29,7 +30,12 @@ func DeleteIndexedRepo(username, repoName string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("error closing delete indexed repo resp body")
+		}
+	}()
 
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
@@ -50,7 +56,13 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("error closing get all indexed repos resp body")
+		}
+	}()
+
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
