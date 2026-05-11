@@ -56,13 +56,14 @@ func (m RagQueryResponseModel) Init() tea.Cmd {
 }
 
 func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
-	cardHeight := lipgloss.Height(m.sourceCard(m.focused))
-
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if isSidebarFocused {
 			break
 		}
+
+		cardHeight := lipgloss.Height(m.sourceCard(m.focused))
+		
 		switch msg.String() {
 		case "down":
 			if m.focused.id < len(m.answer.sources)-1 {
