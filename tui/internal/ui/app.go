@@ -39,7 +39,7 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg: 
+	case tea.WindowSizeMsg:
 		return m, m.handleWindowResize(msg)
 	case tea.KeyPressMsg:
 		switch msg.String() {

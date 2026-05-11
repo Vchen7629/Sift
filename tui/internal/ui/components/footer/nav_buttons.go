@@ -16,11 +16,11 @@ func NewNavButtons(ctx *context.App) *NavButtonsModel {
 	return &NavButtonsModel{ctx: ctx}
 }
 
-func (m NavButtonsModel) Init() tea.Cmd {
+func (m *NavButtonsModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
+func (m *NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
@@ -39,7 +39,7 @@ func (m NavButtonsModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m NavButtonsModel) View() string {
+func (m *NavButtonsModel) View() string {
 	navBtnStyle := lipgloss.NewStyle().PaddingLeft(1).PaddingRight(1).Background(styles.Footer)
 	selectedStyle := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Bold(true)
 

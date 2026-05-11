@@ -90,7 +90,7 @@ type tickMsg struct {
 
 type getJobStatusErr struct{ Err error }
 
-func (m ProgressBarModel) checkProgress() tea.Cmd {
+func (m *ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
 		status, err := api.GetJobStatus(m.ctx.Username, m.repoName)
 		if err != nil {

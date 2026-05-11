@@ -16,7 +16,7 @@ func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx}
 }
 
-func (m ActionBarModel) Init() tea.Cmd {
+func (m *ActionBarModel) Init() tea.Cmd {
 	return nil
 }
 
@@ -37,7 +37,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
+func (m *ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
@@ -46,7 +46,7 @@ func (m ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 		Render(m.actionBarBtns(isSidebarFocused, isIndexed)))
 }
 
-func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
+func (m *ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
 	navBtnStyle := styles.NavBtnStyle
 	navBtnTextStyle := styles.NavBtnTextStyle
 

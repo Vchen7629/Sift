@@ -19,7 +19,7 @@ func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx}
 }
 
-func (m ActionBarModel) Init() tea.Msg {
+func (m *ActionBarModel) Init() tea.Msg {
 	return nil
 }
 
@@ -34,7 +34,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.View {
+func (m *ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.View {
 	selectedRepoName := fmt.Sprintf("Selected Repo: %s", selectedRepo)
 	if selectedRepo == "" {
 		selectedRepoName = "No Repo Selected"
@@ -52,7 +52,7 @@ func (m ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.Vi
 		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused))))
 }
 
-func (m ActionBarModel) actionBarBtns(focusRepoList bool) string {
+func (m *ActionBarModel) actionBarBtns(focusRepoList bool) string {
 	navBtnStyle := styles.NavBtnStyle
 	navBtnTextStyle := styles.NavBtnTextStyle
 

@@ -29,7 +29,7 @@ func (m *BaseModel) SetSize(width, height int) {
 	m.height = height
 }
 
-func (m BaseModel) Init() tea.Cmd {
+func (m *BaseModel) Init() tea.Cmd {
 	return nil
 }
 
@@ -46,7 +46,7 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(m.NavButtons.Update(msg), m.ThemeSelector.Update(msg))
 }
 
-func (m BaseModel) View() tea.View {
+func (m *BaseModel) View() tea.View {
 	title := "Sift · "
 	if m.ctx.Username != "" {
 		title = fmt.Sprintf("Sift · @%s", m.ctx.Username)
@@ -70,7 +70,7 @@ func (m BaseModel) View() tea.View {
 	return tea.NewView(content)
 }
 
-func (m BaseModel) themeBtns() string {
+func (m *BaseModel) themeBtns() string {
 	themeLabel := "[3] theme"
 	if m.ctx.ThemeSelectorOpen {
 		themeLabel = lipgloss.NewStyle().

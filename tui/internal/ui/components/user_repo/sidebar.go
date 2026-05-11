@@ -35,7 +35,7 @@ func (m *Sidebar) ResetFocus() {
 	m.viewport.GotoTop()
 }
 
-func (m Sidebar) Init() tea.Cmd {
+func (m *Sidebar) Init() tea.Cmd {
 	return nil
 }
 

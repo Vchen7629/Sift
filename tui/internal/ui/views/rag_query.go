@@ -30,7 +30,7 @@ func NewRagQuery(ctx *context.App) *RagQueryModel {
 	}
 }
 
-func (m RagQueryModel) Init() tea.Cmd {
+func (m *RagQueryModel) Init() tea.Cmd {
 	fetchIndexedRepoCmd := m.Sidebar.Init()
 
 	return tea.Batch(fetchIndexedRepoCmd)
@@ -39,6 +39,13 @@ func (m RagQueryModel) Init() tea.Cmd {
 // user actions
 func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.ActionBar.Update(msg)
+		m.Searchbar.Update(msg, false)
+		m.ResponseDisplay.Update(msg, false)
+		m.Sidebar.Update(msg, false)
+		return m, nil
+
 	case rag_query.ToggleFocusMsg:
 		if !m.Searchbar.IsSearching() {
 			m.isSidebarFocused = !m.isSidebarFocused
@@ -59,7 +66,7 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd, sidebarCmd)
 }
 
-func (m RagQueryModel) View() tea.View {
+func (m *RagQueryModel) View() tea.View {
 	leftPanel := lipgloss.JoinVertical(lipgloss.Top, m.Searchbar.View(), m.ResponseDisplay.View().Content)
 
 	divider := common.VerticalDivider(m.ctx.MainHeight)

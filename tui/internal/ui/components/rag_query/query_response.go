@@ -51,7 +51,7 @@ func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
 	}
 }
 
-func (m RagQueryResponseModel) Init() tea.Cmd {
+func (m *RagQueryResponseModel) Init() tea.Cmd {
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 	return tea.NewView(contentPos.Render(outerBorder.Render(content)))
 }
 
-func (m RagQueryResponseModel) header() string {
+func (m *RagQueryResponseModel) header() string {
 	cardTitle := lipgloss.NewStyle().Bold(true).MarginRight(3).Render("answer")
 	name := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).MarginRight(1).Render(m.answer.dependencyName)
 	numSources := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(fmt.Sprintf("· %d sources", m.answer.numSources))

@@ -38,7 +38,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 	return m
 }
 
-func (m ListModel) Init() tea.Cmd {
+func (m *ListModel) Init() tea.Cmd {
 	return nil
 }
 
