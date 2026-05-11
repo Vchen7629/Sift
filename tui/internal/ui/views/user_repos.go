@@ -1,13 +1,11 @@
 package views
 
 import (
-	"strings"
 	"tui/internal/service"
 	"tui/internal/types"
 	"tui/internal/ui/common"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
-	"tui/internal/ui/styles"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -93,8 +91,7 @@ func (m *UserRepoModel) View() tea.View {
 		return tea.NewView("")
 	}
 
-	dividerLine := strings.Repeat("│\n", m.ctx.MainHeight-1) + "│"
-	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
+	divider := common.VerticalDivider(m.ctx.MainHeight)
 
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
 	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.Sidebar.View().Content)

@@ -1,19 +1,16 @@
 package views
 
 import (
-	"strings"
-
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
 	"tui/internal/ui/common"
 	"tui/internal/ui/components/rag_query"
 	"tui/internal/ui/context"
-	"tui/internal/ui/styles"
 )
 
 type RagQueryModel struct {
-	Ctx              *context.App
+	ctx              *context.App
 	ActionBar        *rag_query.ActionBarModel
 	Searchbar        *common.SearchBarModel
 	ResponseDisplay  *rag_query.RagQueryResponseModel
@@ -24,7 +21,7 @@ type RagQueryModel struct {
 
 func NewRagQuery(ctx *context.App) *RagQueryModel {
 	return &RagQueryModel{
-		Ctx:             ctx,
+		ctx:             ctx,
 		SelectedRepo:    "Sift",
 		ActionBar:       rag_query.NewActionBar(ctx),
 		Searchbar:       common.NewSearchBar(ctx, "Describe Your Issue..."),
@@ -65,8 +62,7 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m RagQueryModel) View() tea.View {
 	leftPanel := lipgloss.JoinVertical(lipgloss.Top, m.Searchbar.View(), m.ResponseDisplay.View().Content)
 
-	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight-1) + "│"
-	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
+	divider := common.VerticalDivider(m.ctx.MainHeight)
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
