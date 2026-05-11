@@ -47,8 +47,10 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			service.NavigateDown(&m.focusedIdx, len(m.indexedRepos), &m.viewport, 1)
 
 		case "enter":
+			name := m.indexedRepos[m.focusedIdx].Name
+
 			return func() tea.Msg {
-				return SelectRepoMsg{RepoName: m.indexedRepos[m.focusedIdx].Name}
+				return SelectRepoMsg{RepoName: name}
 			}
 		}
 
