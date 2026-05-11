@@ -1,2 +1,0 @@
-fix:
-1. remove progressbar once its done processing or errored (maybe not error)

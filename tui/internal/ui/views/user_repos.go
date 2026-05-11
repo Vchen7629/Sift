@@ -51,7 +51,8 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.RepoList.GHRepos = msg.repoList
 		m.RepoList.FocusedIdx = 0
 		if len(msg.repoList) > 0 {
-			m.Sidebar.FocusedGHRepo = &m.ghRepos[0]
+			focused := m.ghRepos[0]
+			m.Sidebar.FocusedGHRepo = &focused
 			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[0].Name, m.indexedRepos)
 			m.populateIndexRepoStatus()
 		}
@@ -79,7 +80,8 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.focusedIdx = newIdx
 			m.Sidebar.ResetFocus()
 		}
-		m.Sidebar.FocusedGHRepo = &m.ghRepos[m.focusedIdx]
+		focused := &m.ghRepos[m.focusedIdx]
+		m.Sidebar.FocusedGHRepo = focused
 		m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
 	}
 

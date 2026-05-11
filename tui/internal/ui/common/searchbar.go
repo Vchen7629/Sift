@@ -34,27 +34,33 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		return nil
 	}
 
-	key, ok := msg.(tea.KeyPressMsg)
-	if ok && key.String() == "/" {
-		m.focused = !m.focused
-		if m.focused {
-			return m.textInput.Focus()
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "/":
+			m.focused = !m.focused
+			if m.focused {
+					return m.textInput.Focus()
+			}
+			m.textInput.Blur()
+			return nil
+		case "esc":
+			if m.focused {
+					m.textInput.Reset()
+					m.focused = false
+					m.textInput.Blur()
+			}
+			return nil
 		}
-		m.textInput.Blur()
-		return nil
 	}
 
-	if m.focused && key.String() == "esc" {
-		m.textInput.Reset()
+	if m.focused {
+		var cmd tea.Cmd
+		m.textInput, cmd = m.textInput.Update(msg)
+		return cmd
 	}
 
-	if !m.focused {
-		return nil
-	}
-
-	var cmd tea.Cmd
-	m.textInput, cmd = m.textInput.Update(msg)
-	return cmd
+	return nil
 }
 
 func (m *SearchBarModel) View() string {
