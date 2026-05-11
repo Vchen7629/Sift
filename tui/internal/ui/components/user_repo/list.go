@@ -76,7 +76,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case indexRepoMsg:                                                                                                                                          
 		m.ProcessingStatus[msg.idx] = msg.status
 
-		pb := NewProgressBar(m.ctx, msg.idx)
+		pb := NewProgressBar(m.ctx, msg.idx, fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[m.FocusedIdx].Name))
 		m.progressBars[msg.idx] = pb
 		return pb.Init()
 
@@ -94,8 +94,6 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		return tea.Batch(cmds...)
 
 	case statusUpdateMsg:
-		
-
 	}
 
 	return nil
@@ -136,8 +134,8 @@ func (m *ListModel) repoCard(idx int, ghRepo types.GHRepository, indexedRepo typ
 	case !exists:
 		rightText = lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render("Unindexed")
 	case status == "Indexed":
-		indexStatus := lipgloss.NewStyle().Width(16).Align(lipgloss.Right).Render(status)
-		lastIndexed := lipgloss.NewStyle().Width(12).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
+		indexStatus := lipgloss.NewStyle().Width(16).MarginRight(1).Align(lipgloss.Right).Render(status)
+		lastIndexed := lipgloss.NewStyle().Width(16).Align(lipgloss.Right).Render(indexedRepo.LastIndexed)
 		totalDependencies := lipgloss.NewStyle().
 			Width(17).PaddingLeft(1).Align(lipgloss.Right).
 			Render(fmt.Sprintf("· %s dependencies", strconv.Itoa(indexedRepo.TotalDependencies)))
