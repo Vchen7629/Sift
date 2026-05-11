@@ -20,8 +20,8 @@ func (m ActionBarModel) Init() tea.Msg {
 	return nil
 }
 
-type ToggleFocusMsg struct {}
-type IndexRepoRequestMsg struct {}
+type ToggleFocusMsg struct{}
+type IndexRepoRequestMsg struct{}
 
 func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
@@ -29,7 +29,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 		switch msg.String() {
 		case "s":
 			return func() tea.Msg { return ToggleFocusMsg{} }
-		case "r": 
+		case "r":
 			return func() tea.Msg { return IndexRepoRequestMsg{} }
 		}
 	}
@@ -52,7 +52,7 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
 	navBtnTextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
-	
+
 	//↵
 
 	if isSidebarFocused {
@@ -61,8 +61,8 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
 		openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
 
 		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, openBrowserBtn)
-	} 
-	
+	}
+
 	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll repos"))
 	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] search repos"))
 	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))

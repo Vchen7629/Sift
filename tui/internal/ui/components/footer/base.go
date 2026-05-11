@@ -11,7 +11,7 @@ import (
 
 type BaseModel struct {
 	height, width int
-	ctx 		  *context.App
+	ctx           *context.App
 	NavButtons    *NavButtonsModel
 	ThemeSelector *ThemeSelectorModel
 }
@@ -41,7 +41,7 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 			m.ctx.ThemeSelectorOpen = !m.ctx.ThemeSelectorOpen
 			return nil
 		}
-	}	
+	}
 
 	return tea.Batch(m.NavButtons.Update(msg), m.ThemeSelector.Update(msg))
 }
@@ -53,7 +53,7 @@ func (m BaseModel) View() tea.View {
 	}
 	titleText := lipgloss.NewStyle().
 		PaddingLeft(2).PaddingRight(1).
-		Background(styles.Footer).Foreground(styles.TextPrimary).      
+		Background(styles.Footer).Foreground(styles.TextPrimary).
 		Render(title)
 
 	background := lipgloss.NewStyle().Background(styles.Footer).Width(m.width)

@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"os"
 
-
 	"tui/internal/ui"
 
 	tea "charm.land/bubbletea/v2"
 )
-
 
 func main() {
 	app, err := ui.New()

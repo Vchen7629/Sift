@@ -13,8 +13,8 @@ import (
 )
 
 type Sidebar struct {
-	ctx 		       *context.App
-	viewport 	       viewport.Model
+	ctx                *context.App
+	viewport           viewport.Model
 	FocusedGHRepo      *types.GHRepository
 	FocusedIndexedRepo *types.IndexedRepo
 	FocusedIdx         int
@@ -22,10 +22,10 @@ type Sidebar struct {
 
 func NewSidebar(ctx *context.App) *Sidebar {
 	return &Sidebar{
-		ctx: ctx,
-		FocusedGHRepo: nil,
+		ctx:                ctx,
+		FocusedGHRepo:      nil,
 		FocusedIndexedRepo: nil,
-		FocusedIdx: 0,
+		FocusedIdx:         0,
 	}
 }
 
@@ -47,7 +47,7 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedIndexedRepo.Dependencies[m.FocusedIdx]))
 		switch msg.String() {
 		case "down":
-			if m.FocusedIdx < len(m.FocusedIndexedRepo.Dependencies) - 1 {
+			if m.FocusedIdx < len(m.FocusedIndexedRepo.Dependencies)-1 {
 				m.FocusedIdx++
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
@@ -71,7 +71,7 @@ func (m *Sidebar) View() tea.View {
 		description = "No description found for this repository"
 	}
 	repoDesc := lipgloss.NewStyle().MarginBottom(2).Render(description)
-	
+
 	content := lipgloss.JoinVertical(lipgloss.Top, m.sidebarHeader(), repoDesc, m.repoDependencyList().Content)
 
 	padding := lipgloss.NewStyle().PaddingLeft(2).PaddingRight(2).PaddingTop(1).Width(m.ctx.SidebarWidth)
@@ -91,7 +91,7 @@ func (m *Sidebar) sidebarHeader() string {
 
 	topBlock := lipgloss.JoinHorizontal(lipgloss.Left, repoName, spaceBetween, lastUpdate)
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
-	
+
 	if m.FocusedIndexedRepo != nil {
 		totalLibs := lipgloss.NewStyle().
 			Foreground(styles.TextDim).
@@ -101,9 +101,8 @@ func (m *Sidebar) sidebarHeader() string {
 		lastIndexed := lipgloss.NewStyle().
 			Foreground(styles.TextDim).
 			Render(fmt.Sprintf("· indexed %s", m.FocusedIndexedRepo.LastIndexed))
-			
+
 		botBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
-		
 
 		return marginBottom.Render(lipgloss.JoinVertical(lipgloss.Top, topBlock, botBlock))
 	}
@@ -151,14 +150,14 @@ func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
 	case "archived":
 		statusText = lipgloss.Yellow
 	}
-	
+
 	status := lipgloss.NewStyle().Foreground(statusText).Width(10).Render(dependency.Status)
 	rightBlock := lipgloss.JoinHorizontal(lipgloss.Left, version, status)
 
 	spaceBetween := lipgloss.NewStyle().
 		Width(m.ctx.SidebarWidth - 4 - lipgloss.Width(name) - lipgloss.Width(rightBlock)).
 		Render("")
-	
+
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
 
 	return marginBottom.Render(lipgloss.JoinHorizontal(lipgloss.Left, name, spaceBetween, rightBlock))

@@ -18,21 +18,21 @@ import (
 )
 
 type ListModel struct {
-	ctx 		     *context.App
-	GHRepos     	 []types.GHRepository
+	ctx              *context.App
+	GHRepos          []types.GHRepository
 	IndexedRepos     []types.IndexedRepo
 	FocusedIdx       int
 	ProcessingStatus map[int]string
-	viewport 	 	 viewport.Model
+	viewport         viewport.Model
 	progressBars     map[int]*ProgressBarModel
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
-		ctx: ctx,
-		GHRepos: []types.GHRepository{},
+		ctx:              ctx,
+		GHRepos:          []types.GHRepository{},
 		ProcessingStatus: map[int]string{},
-		progressBars: map[int]*ProgressBarModel{},
+		progressBars:     map[int]*ProgressBarModel{},
 	}
 	m.FocusedIdx = 0
 	return m
@@ -42,7 +42,7 @@ func (m ListModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {                                                                                                            
+func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if isSidebarFocused || len(m.GHRepos) == 0 {
@@ -57,9 +57,9 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 		switch msg.String() {
 		case "down":
-			if m.FocusedIdx < len(m.GHRepos) - 1 {
+			if m.FocusedIdx < len(m.GHRepos)-1 {
 				m.FocusedIdx++
-    			service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
+				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
 		case "up":
 			if m.FocusedIdx > 0 {
@@ -68,12 +68,12 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			}
 		}
 	// trigger from user pressing r
-	case IndexRepoRequestMsg: 
+	case IndexRepoRequestMsg:
 		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
 			return nil // prevents an already indexed repo from sending a new index repo request
 		}
-      	return m.IndexRepo
-	
+		return m.IndexRepo
+
 	// response from api call
 	case indexRepoMsg:
 		pb := NewProgressBar(m.ctx, msg.idx, fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[m.FocusedIdx].Name))
@@ -111,7 +111,7 @@ func (m *ListModel) View() tea.View {
 	if len(m.GHRepos) <= 0 {
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Loading your repos..."))
 	}
-	
+
 	for i, repo := range m.GHRepos {
 		ir := service.FindIndexedRepo(repo.Name, m.IndexedRepos)
 		var indexedRepo types.IndexedRepo
@@ -133,9 +133,9 @@ func (m *ListModel) View() tea.View {
 		} else {
 			content = header
 		}
-			
+
 		card := lipgloss.NewStyle().
-			Width(m.ctx.MainWidth).PaddingLeft(2).Padding(0,1).
+			Width(m.ctx.MainWidth).PaddingLeft(2).Padding(0, 1).
 			Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).
 			Render(content)
 
@@ -176,11 +176,11 @@ func (m *ListModel) cardHeader(
 	spacer := lipgloss.NewStyle().
 		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(indexMetadata) - 4).
 		Render("")
-	
+
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, indexMetadata)
 }
 
-type indexRepoMsg struct { idx int }
+type indexRepoMsg struct{ idx int }
 
 func (m *ListModel) IndexRepo() tea.Msg {
 	gitUser := m.ctx.Username

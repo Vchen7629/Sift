@@ -67,7 +67,7 @@ func (m *ThemeSelectorModel) View() tea.View {
 	for i, theme := range themes {
 		name := theme.label
 		selectedLabel := lipgloss.NewStyle().Inherit(label).Foreground(theme.selectedColor)
-		
+
 		if m.ctx.SelectedTheme == theme.theme {
 			name = selectedLabel.Render(name)
 		}

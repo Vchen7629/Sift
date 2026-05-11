@@ -13,11 +13,11 @@ import (
 )
 
 type RagQueryModel struct {
-	Ctx 		     *context.App
-	ActionBar 	     *rag_query.ActionBarModel
-	Searchbar 	     *common.SearchBarModel
+	Ctx              *context.App
+	ActionBar        *rag_query.ActionBarModel
+	Searchbar        *common.SearchBarModel
 	ResponseDisplay  *rag_query.RagQueryResponseModel
-	Sidebar			 *rag_query.SidebarModel
+	Sidebar          *rag_query.SidebarModel
 	SelectedRepo     string
 	isSidebarFocused bool
 }
@@ -25,14 +25,13 @@ type RagQueryModel struct {
 type selectedRepo struct {
 	id, totalDep      int
 	name, lastIndexed string
-	sources			  []source
+	sources           []source
 }
 
 type source struct {
-	id 					 int
-	link, version, label string 
+	id                   int
+	link, version, label string
 }
-
 
 func NewRagQuery(ctx *context.App) *RagQueryModel {
 	return &RagQueryModel{
@@ -59,7 +58,7 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.isSidebarFocused = !m.isSidebarFocused
 		}
 		return m, nil
-	
+
 	case rag_query.SelectRepoMsg:
 		m.SelectedRepo = msg.RepoName
 
@@ -77,7 +76,7 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m RagQueryModel) View() tea.View {
 	leftPanel := lipgloss.JoinVertical(lipgloss.Top, m.Searchbar.View(), m.ResponseDisplay.View().Content)
 
-	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight - 1) + "│"
+	dividerLine := strings.Repeat("│\n", m.Ctx.MainHeight-1) + "│"
 	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)

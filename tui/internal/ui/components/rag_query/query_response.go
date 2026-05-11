@@ -13,31 +13,31 @@ import (
 )
 
 type RagQueryResponseModel struct {
-	ctx           *context.App
-	mainWidth 	  int
-	answer    	  answerModel
-	focused 	  source
-	viewport  	  viewport.Model
+	ctx       *context.App
+	mainWidth int
+	answer    answerModel
+	focused   source
+	viewport  viewport.Model
 }
 
 type answerModel struct {
 	dependencyName, text string
-	numSources 	   		   int8
-	sources			       []source
+	numSources           int8
+	sources              []source
 }
 
 type source struct {
-	id 					 int
-	link, version, label string 
+	id                   int
+	link, version, label string
 }
 
 func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
 	return &RagQueryResponseModel{
-		ctx: ctx, 
+		ctx: ctx,
 		answer: answerModel{
-			dependencyName: "Sift", 
-			text: "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-			numSources: 7,
+			dependencyName: "Sift",
+			text:           "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
+			numSources:     7,
 			sources: []source{
 				{id: 0, link: "github.com/idk/axios", version: "v1.7.2", label: "issue"},
 				{id: 1, link: "github.com/idk/lodash", version: "v4.17.21", label: "changelog"},
@@ -66,7 +66,7 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 		}
 		switch msg.String() {
 		case "down":
-			if m.focused.id < len(m.answer.sources) - 1 {
+			if m.focused.id < len(m.answer.sources)-1 {
 				m.focused.id++
 				m.focused = m.answer.sources[m.focused.id]
 				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
@@ -87,7 +87,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 	mainWidth := m.ctx.MainWidth - 2
 
 	contentPos := lipgloss.NewStyle().Width(mainWidth).MarginLeft(2).MarginTop(1).MarginBottom(1)
-	outerBorder := lipgloss.NewStyle().Width(mainWidth - 2).Padding(0, 1).
+	outerBorder := lipgloss.NewStyle().Width(mainWidth-2).Padding(0, 1).
 		Border(lipgloss.DoubleBorder()).BorderForeground(m.ctx.SelectedTheme.BorderFocused)
 
 	answerText := lipgloss.NewStyle().

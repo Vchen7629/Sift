@@ -46,7 +46,7 @@ func GetJobStatus(username, repoName string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {                                                                                                                 
+	if resp.StatusCode == http.StatusNotFound {
 		return "", nil
 	}
 
@@ -61,4 +61,3 @@ func GetJobStatus(username, repoName string) (string, error) {
 
 	return string(res), err
 }
-

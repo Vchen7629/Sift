@@ -10,7 +10,7 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx 		 *context.App
+	ctx *context.App
 }
 
 type ToggleFocusMsg struct{}
@@ -28,7 +28,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "s":
-			return func () tea.Msg { return ToggleFocusMsg{} }
+			return func() tea.Msg { return ToggleFocusMsg{} }
 		}
 	}
 	return nil
@@ -39,7 +39,7 @@ func (m ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.Vi
 	if selectedRepo == "" {
 		selectedRepoName = "No Repo Selected"
 	}
-	
+
 	selectedRepoText := lipgloss.NewStyle().
 		PaddingRight(1).Foreground(m.ctx.SelectedTheme.AccentBright).PaddingLeft(2).
 		Render(selectedRepoName)
@@ -57,7 +57,6 @@ func (m ActionBarModel) actionBarBtns(focusRepoList bool) string {
 	navBtnTextStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
-	
 
 	if focusRepoList {
 		scrollText := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] change selected repo"))

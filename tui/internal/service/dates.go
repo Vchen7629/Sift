@@ -25,13 +25,13 @@ func FormatRelativeDate(ts string) string {
 	case hours < oneDayHours:
 		return pluralFormat(hours, "hour")
 	case hours < oneWeekHours:
-		return pluralFormat(hours / oneDayHours, "day")
+		return pluralFormat(hours/oneDayHours, "day")
 	case hours < oneMonthHours:
-		return pluralFormat(hours / oneWeekHours, "week")
+		return pluralFormat(hours/oneWeekHours, "week")
 	case hours < oneYearHours:
-		return pluralFormat(hours / oneMonthHours, "month")
+		return pluralFormat(hours/oneMonthHours, "month")
 	default:
-		return pluralFormat(hours / oneYearHours, "year")
+		return pluralFormat(hours/oneYearHours, "year")
 	}
 }
 

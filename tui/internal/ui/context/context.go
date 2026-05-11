@@ -15,12 +15,12 @@ const (
 type App struct {
 	WindowWidth, WindowHeight int
 	MainWidth, MainHeight     int
-	SidebarWidth 		      int
-	Username	  			  string
-	CurrentPage   			  Page
-	ThemeSelectorOpen		  bool
-	SelectedTheme			  styles.Theme
-	GithubApiClient 		  *api.GithubClient
+	SidebarWidth              int
+	Username                  string
+	CurrentPage               Page
+	ThemeSelectorOpen         bool
+	SelectedTheme             styles.Theme
+	GithubApiClient           *api.GithubClient
 }
 
 func NewApp() (*App, error) {
@@ -38,6 +38,6 @@ func NewApp() (*App, error) {
 		CurrentPage:     UserReposPage,
 		SelectedTheme:   styles.Warm,
 		GithubApiClient: client,
-		Username: username,
+		Username:        username,
 	}, nil
 }

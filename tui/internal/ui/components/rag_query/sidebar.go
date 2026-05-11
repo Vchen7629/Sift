@@ -25,7 +25,7 @@ type SelectRepoMsg struct{ RepoName string }
 
 func NewSidebar(ctx *context.App) *SidebarModel {
 	return &SidebarModel{
-		ctx: ctx,
+		ctx:          ctx,
 		indexedRepos: []types.IndexedRepo{},
 	}
 }
@@ -42,21 +42,21 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		}
 		switch msg.String() {
 		case "down":
-			if m.focused.Id < len(m.indexedRepos) - 1 {
+			if m.focused.Id < len(m.indexedRepos)-1 {
 				m.focused.Id++
 				m.focused = m.indexedRepos[m.focused.Id]
 				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
 			}
-		case "up": 
+		case "up":
 			if m.focused.Id > 0 {
 				m.focused.Id--
 				m.focused = m.indexedRepos[m.focused.Id]
 				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
 			}
-		
+
 		case "enter":
-			return func() tea.Msg { 
-				return SelectRepoMsg{ RepoName: m.focused.Name } 
+			return func() tea.Msg {
+				return SelectRepoMsg{RepoName: m.focused.Name}
 			}
 		}
 
@@ -87,7 +87,7 @@ func (m *SidebarModel) header() string {
 
 	divider := lipgloss.NewStyle().
 		Foreground(styles.Divider).
-		Render(strings.Repeat("─", m.ctx.SidebarWidth - 1))
+		Render(strings.Repeat("─", m.ctx.SidebarWidth-1))
 
 	return lipgloss.JoinVertical(lipgloss.Left, titleText, divider)
 }

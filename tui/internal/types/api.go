@@ -1,6 +1,6 @@
 package types
 
-type IndexedRepo struct { 
+type IndexedRepo struct {
 	Id, TotalDependencies int
 	Name, LastIndexed     string
 	Dependencies          []Dependency

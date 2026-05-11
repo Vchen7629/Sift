@@ -5,7 +5,7 @@ import "encoding/json"
 // todo: update the userId in the tui and api to be username for clarity
 type RequestBody struct {
 	UserId   string `json:"userId"`
-	RepoName string `json:"repoName"` 
+	RepoName string `json:"repoName"`
 }
 
 func MarshalRequestBody(username, repoName string) ([]byte, error) {

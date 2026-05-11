@@ -29,13 +29,13 @@ func (c *GithubClient) GithubUsername() (string, error) {
 	return response.Login, err
 }
 
-type RepoApiRes struct {  
+type RepoApiRes struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	LastCommit  string `json:"pushed_at"`                                                                                                             
+	LastCommit  string `json:"pushed_at"`
 }
 
-func (c *GithubClient) GithubUserRepositories() ([]types.GHRepository, error){
+func (c *GithubClient) GithubUserRepositories() ([]types.GHRepository, error) {
 	var apiRes []RepoApiRes
 	err := c.rest.Get("user/repos?affiliation=owner&per_page=100", &apiRes)
 	if err != nil {

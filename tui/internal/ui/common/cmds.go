@@ -7,7 +7,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-type FetchIndexedRepoMsg struct { IndexedRepos []types.IndexedRepo }
+type FetchIndexedRepoMsg struct{ IndexedRepos []types.IndexedRepo }
 
 func FetchIndexedRepo(username string) tea.Cmd {
 	return func() tea.Msg {
@@ -16,11 +16,11 @@ func FetchIndexedRepo(username string) tea.Cmd {
 			return err
 		}
 
-		return FetchIndexedRepoMsg{ IndexedRepos: indexRepos }
+		return FetchIndexedRepoMsg{IndexedRepos: indexRepos}
 	}
 }
 
-type FetchIndexJobStatusMsg struct { Status string }
+type FetchIndexJobStatusMsg struct{ Status string }
 
 func FetchIndexJobStatus(username, repoName string) tea.Cmd {
 	return func() tea.Msg {
@@ -29,6 +29,6 @@ func FetchIndexJobStatus(username, repoName string) tea.Cmd {
 			return err
 		}
 
-		return FetchIndexJobStatusMsg{ Status: status}
+		return FetchIndexJobStatusMsg{Status: status}
 	}
 }

@@ -2,8 +2,8 @@ package views
 
 import (
 	"strings"
-	"tui/internal/types"
 	"tui/internal/service"
+	"tui/internal/types"
 	"tui/internal/ui/common"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
@@ -14,25 +14,25 @@ import (
 )
 
 type UserRepoModel struct {
-	ctx 		      *context.App
-	ActionBar         *user_repo.ActionBarModel
-	SearchBar 	      *common.SearchBarModel
-	RepoList	      *user_repo.ListModel
-	Sidebar 	      *user_repo.Sidebar
-	ghRepos		      []types.GHRepository
-	indexedRepos 	  []types.IndexedRepo
-	focusedIdx        int
-	isSidebarFocused  bool
+	ctx              *context.App
+	ActionBar        *user_repo.ActionBarModel
+	SearchBar        *common.SearchBarModel
+	RepoList         *user_repo.ListModel
+	Sidebar          *user_repo.Sidebar
+	ghRepos          []types.GHRepository
+	indexedRepos     []types.IndexedRepo
+	focusedIdx       int
+	isSidebarFocused bool
 }
 
 func NewUserRepo(ctx *context.App) *UserRepoModel {
 	return &UserRepoModel{
-		ctx: ctx,
-		ActionBar: user_repo.NewActionBar(ctx),
-		SearchBar: common.NewSearchBar(ctx, "Search Your Repositories..."),
-		RepoList: user_repo.NewUserRepoList(ctx),
-		Sidebar: user_repo.NewSidebar(ctx),
-		ghRepos: []types.GHRepository{},
+		ctx:              ctx,
+		ActionBar:        user_repo.NewActionBar(ctx),
+		SearchBar:        common.NewSearchBar(ctx, "Search Your Repositories..."),
+		RepoList:         user_repo.NewUserRepoList(ctx),
+		Sidebar:          user_repo.NewSidebar(ctx),
+		ghRepos:          []types.GHRepository{},
 		isSidebarFocused: false,
 	}
 }
@@ -93,7 +93,7 @@ func (m *UserRepoModel) View() tea.View {
 		return tea.NewView("")
 	}
 
-	dividerLine := strings.Repeat("│\n", m.ctx.MainHeight - 1) + "│"
+	dividerLine := strings.Repeat("│\n", m.ctx.MainHeight-1) + "│"
 	divider := lipgloss.NewStyle().Foreground(styles.Divider).Render(dividerLine)
 
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
@@ -102,7 +102,7 @@ func (m *UserRepoModel) View() tea.View {
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused, m.Sidebar.FocusedIndexedRepo != nil).Content, content))
 }
 
-type githubRepoFetchedMsg struct { repoList []types.GHRepository }
+type githubRepoFetchedMsg struct{ repoList []types.GHRepository }
 
 // fetches user's repositories from github
 func (m *UserRepoModel) fetchRepoList() tea.Msg {
@@ -111,7 +111,7 @@ func (m *UserRepoModel) fetchRepoList() tea.Msg {
 		return err
 	}
 
-	return githubRepoFetchedMsg{ repoList: repos }
+	return githubRepoFetchedMsg{repoList: repos}
 }
 
 func (m *UserRepoModel) populateIndexRepoStatus() {

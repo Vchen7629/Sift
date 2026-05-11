@@ -10,7 +10,7 @@ import (
 )
 
 type SearchBarModel struct {
-	ctx 	  *context.App
+	ctx       *context.App
 	textInput textinput.Model
 	focused   bool
 }
@@ -21,7 +21,7 @@ func NewSearchBar(ctx *context.App, placeholderText string) *SearchBarModel {
 	//"Search Your Repositories..."
 
 	return &SearchBarModel{
-		ctx: 	   ctx,
+		ctx:       ctx,
 		textInput: ti,
 	}
 }
@@ -35,7 +35,7 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		return nil
 	}
 
-	key, ok := msg.(tea.KeyPressMsg)	
+	key, ok := msg.(tea.KeyPressMsg)
 	if ok && key.String() == "/" {
 		m.focused = !m.focused
 		if m.focused {
@@ -70,7 +70,7 @@ func (m *SearchBarModel) View() string {
 	}
 
 	style := lipgloss.NewStyle().
-		MarginLeft(2).Width(m.ctx.MainWidth - 4).Padding(0, 1).
+		MarginLeft(2).Width(m.ctx.MainWidth-4).Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).BorderForeground(borderColor)
 
 	return style.Render(m.textInput.View())
