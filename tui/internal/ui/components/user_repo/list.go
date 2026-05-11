@@ -81,7 +81,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 		idx := m.FocusedIdx
 		repoName := fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[idx].Name)
-		
+
 		return IndexRepo(idx, m.ctx.Username, repoName)
 
 	// response from api call
@@ -188,6 +188,7 @@ type indexRepoMsg struct {
 	idx      int
 	repoName string
 }
+
 type indexRepoErrMsg struct {
 	idx int
 	err error
