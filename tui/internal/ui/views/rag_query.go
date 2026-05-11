@@ -22,7 +22,7 @@ type RagQueryModel struct {
 func NewRagQuery(ctx *context.App) *RagQueryModel {
 	return &RagQueryModel{
 		ctx:             ctx,
-		SelectedRepo:    "Sift",
+		SelectedRepo:    "",
 		ActionBar:       rag_query.NewActionBar(ctx),
 		Searchbar:       common.NewSearchBar(ctx, "Describe Your Issue..."),
 		ResponseDisplay: rag_query.NewRagQueryResponse(ctx),
