@@ -53,10 +53,8 @@ func (m ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.Vi
 }
 
 func (m ActionBarModel) actionBarBtns(focusRepoList bool) string {
-	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Bold(true)
+	navBtnStyle := styles.NavBtnStyle
+	navBtnTextStyle := styles.NavBtnTextStyle
 
 	if focusRepoList {
 		scrollText := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] change selected repo"))

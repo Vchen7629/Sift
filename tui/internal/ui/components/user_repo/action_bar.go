@@ -47,11 +47,8 @@ func (m ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 }
 
 func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
-	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
-
-	navBtnTextStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).
-		Bold(true)
+	navBtnStyle := styles.NavBtnStyle
+	navBtnTextStyle := styles.NavBtnTextStyle
 
 	if isSidebarFocused {
 		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
