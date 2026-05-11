@@ -46,7 +46,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
 		m.ctx.MainHeight = msg.Height - 3
 		m.footer.SetSize(msg.Width-2, 1)
-		return m, nil
 
 	case tea.KeyPressMsg:
 		switch msg.String() {
