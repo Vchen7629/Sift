@@ -39,21 +39,8 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.ctx.WindowWidth = msg.Width
-		m.ctx.WindowHeight = msg.Height
-		m.ctx.MainWidth = msg.Width - 55
-		m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
-		m.ctx.MainHeight = msg.Height - 3
-		m.footer.SetSize(msg.Width-2, 1)
-		var cmds []tea.Cmd
-		for page, model := range m.pages {
-			updated, cmd := model.Update(msg)
-			m.pages[page] = updated
-			cmds = append(cmds, cmd)
-		}
-		return m, tea.Batch(cmds...) 
-
+	case tea.WindowSizeMsg: 
+		return m, m.handleWindowResize(msg)
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -96,4 +83,22 @@ func (m model) View() tea.View {
 	v := tea.NewView(padding.Render(content))
 	v.AltScreen = true
 	return v
+}
+
+func (m *model) handleWindowResize(msg tea.WindowSizeMsg) tea.Cmd {
+	m.ctx.WindowWidth = msg.Width
+	m.ctx.WindowHeight = msg.Height
+	m.ctx.MainWidth = msg.Width - 55
+	m.ctx.MainHeight = msg.Height - 3
+	m.ctx.SidebarWidth = m.ctx.WindowWidth - m.ctx.MainWidth - 2
+	m.footer.SetSize(msg.Width-2, 1)
+
+	var cmds []tea.Cmd
+	for page, model := range m.pages {
+		updated, cmd := model.Update(msg)
+		m.pages[page] = updated
+		cmds = append(cmds, cmd)
+	}
+
+	return tea.Batch(cmds...)
 }
