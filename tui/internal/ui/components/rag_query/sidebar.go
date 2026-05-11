@@ -105,9 +105,7 @@ func (m *SidebarModel) sideBarList() string {
 		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.TotalDependencies))
 		lastIndexed := lipgloss.NewStyle().Width(18).Foreground(textColor).Render(repo.LastIndexed)
 
-		spaceBelow := lipgloss.NewStyle().MarginBottom(0)
-
-		row := spaceBelow.Render(lipgloss.JoinHorizontal(lipgloss.Left, repoName, totalDependencies, lastIndexed))
+		row := lipgloss.JoinHorizontal(lipgloss.Left, repoName, totalDependencies, lastIndexed)
 
 		indexedRepoList = append(indexedRepoList, row)
 	}

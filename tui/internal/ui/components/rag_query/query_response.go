@@ -21,7 +21,7 @@ type RagQueryResponseModel struct {
 
 type answerModel struct {
 	dependencyName, text string
-	numSources           int8
+	numSources           int
 	sources              []source
 }
 
@@ -63,7 +63,7 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 		}
 
 		cardHeight := lipgloss.Height(m.sourceCard(m.focused))
-		
+
 		switch msg.String() {
 		case "down":
 			if m.focused.id < len(m.answer.sources)-1 {
@@ -139,7 +139,5 @@ func (m *RagQueryResponseModel) sourceCard(dependency source) string {
 	version := lipgloss.NewStyle().Width(10).Render(dependency.version)
 	label := lipgloss.NewStyle().Render(fmt.Sprintf("· %s", dependency.label))
 
-	return lipgloss.NewStyle().Render(dependencyText.Render(lipgloss.JoinHorizontal(
-		lipgloss.Left, id, name, version, label,
-	)))
+	return dependencyText.Render(lipgloss.JoinHorizontal(lipgloss.Left, id, name, version, label))
 }

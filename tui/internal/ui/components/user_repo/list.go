@@ -3,7 +3,6 @@ package user_repo
 import (
 	"fmt"
 	"image/color"
-	"strconv"
 
 	"charm.land/bubbles/v2/progress"
 	"charm.land/bubbles/v2/viewport"
@@ -82,7 +81,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 	case indexRepoErrMsg:
 		m.ProcessingStatus[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
-		
+
 	// for the progress bar
 	case tickMsg:
 		statusText := "new index job request"
@@ -165,9 +164,7 @@ func (m *ListModel) cardHeader(
 	case status == "processed" || status == "Indexed":
 		indexStatus := lipgloss.NewStyle().MarginRight(1).Render(status)
 		lastIndexed := lipgloss.NewStyle().Render(indexedRepo.LastIndexed)
-		totalDependencies := lipgloss.NewStyle().
-			PaddingLeft(1).
-			Render(fmt.Sprintf("· %s dependencies", strconv.Itoa(indexedRepo.TotalDependencies)))
+		totalDependencies := lipgloss.NewStyle().PaddingLeft(1).Render(fmt.Sprintf("· %d dependencies", indexedRepo.TotalDependencies))
 
 		indexMetadata = lipgloss.JoinHorizontal(lipgloss.Top, indexStatus, lastIndexed, totalDependencies)
 	default:
