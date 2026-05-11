@@ -60,7 +60,7 @@ public class DependencyService {
     ) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
-            jobStatusRepository.upsert(new JobStatusDocument(repoName, userId, "processing:fetched_repo"));
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_repo"));
             
             Map<String, List<Dependency>> dependenciesByLanguage = new HashMap<>();
 
