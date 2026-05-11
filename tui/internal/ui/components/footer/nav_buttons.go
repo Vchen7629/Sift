@@ -51,7 +51,7 @@ func (m *NavButtonsModel) View() string {
 		{"[2] Search issue", context.QueryPage},
 	}
 
-	rendered := make([]string, len(buttons)+1)
+	rendered := make([]string, len(buttons))
 	for i, btn := range buttons {
 		label := btn.label
 		if m.ctx.CurrentPage == btn.page {
