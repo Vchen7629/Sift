@@ -62,8 +62,8 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 }
 
 func (m *Sidebar) View() tea.View {
-	if m.FocusedIndexedRepo == nil {
-		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Repo unindexed, press r to index"))
+	if m.FocusedGHRepo == nil && m.FocusedIndexedRepo == nil {
+		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("loading repo info..."))
 	}
 
 	description := m.FocusedGHRepo.Description
@@ -71,7 +71,7 @@ func (m *Sidebar) View() tea.View {
 		description = "No description found for this repository"
 	}
 	repoDesc := lipgloss.NewStyle().MarginBottom(2).Render(description)
-
+	
 	content := lipgloss.JoinVertical(lipgloss.Top, m.sidebarHeader(), repoDesc, m.repoDependencyList().Content)
 
 	padding := lipgloss.NewStyle().PaddingLeft(2).PaddingRight(2).PaddingTop(1).Width(m.ctx.SidebarWidth)
@@ -90,29 +90,33 @@ func (m *Sidebar) sidebarHeader() string {
 		Render("")
 
 	topBlock := lipgloss.JoinHorizontal(lipgloss.Left, repoName, spaceBetween, lastUpdate)
-
-	totalLibs := lipgloss.NewStyle().
-		Foreground(styles.TextDim).
-		MarginRight(1).
-		Render(fmt.Sprintf("%d total dependencies", m.FocusedIndexedRepo.TotalDependencies))
-
-	lastIndexed := lipgloss.NewStyle().
-		Foreground(styles.TextDim).
-		Render(fmt.Sprintf("· indexed %s", m.FocusedIndexedRepo.LastIndexed))
-		
-	botBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
-	
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
+	
+	if m.FocusedIndexedRepo != nil {
+		totalLibs := lipgloss.NewStyle().
+			Foreground(styles.TextDim).
+			MarginRight(1).
+			Render(fmt.Sprintf("%d total dependencies", m.FocusedIndexedRepo.TotalDependencies))
 
-	return marginBottom.Render(lipgloss.JoinVertical(lipgloss.Top, topBlock, botBlock))
+		lastIndexed := lipgloss.NewStyle().
+			Foreground(styles.TextDim).
+			Render(fmt.Sprintf("· indexed %s", m.FocusedIndexedRepo.LastIndexed))
+			
+		botBlock := lipgloss.JoinHorizontal(lipgloss.Left, totalLibs, lastIndexed)
+		
+
+		return marginBottom.Render(lipgloss.JoinVertical(lipgloss.Top, topBlock, botBlock))
+	}
+
+	return marginBottom.Render(topBlock)
 }
 
 // todo: refactor this into reusable func since both list and this file use same style to create viewport
 func (m *Sidebar) repoDependencyList() tea.View {
 	var dependencyCards []string
 
-	if len(m.FocusedIndexedRepo.Dependencies) == 0 {
-		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("No dependencies indexed for this repo")
+	if m.FocusedIndexedRepo == nil {
+		text := lipgloss.NewStyle().Foreground(styles.TextMuted).Render("This repo isn't indexed yet, press r to index the repo")
 
 		return tea.NewView(text)
 	}
