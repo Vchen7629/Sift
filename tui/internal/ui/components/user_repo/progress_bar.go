@@ -45,7 +45,7 @@ var statusProgress = map[string]float64{
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.progress.SetWidth(m.ctx.MainWidth - 6)
+		m.progress.SetWidth(m.ctx.MainWidth - 6) // todo: fix this, only half of the card width
 
 	case tickMsg:
 		var cmd tea.Cmd
@@ -58,8 +58,8 @@ func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 		}
 		return tea.Batch(m.checkProgress(), cmd)
 
-	case error:
-		return m.checkProgress()
+	case getJobStatusErr:
+		return nil
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -88,11 +88,13 @@ type tickMsg struct {
 	status string
 }
 
+type getJobStatusErr struct{ Err error }
+
 func (m ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
 		status, err := api.GetJobStatus(m.ctx.Username, m.repoName)
 		if err != nil {
-			return err
+			return getJobStatusErr{Err: err}
 		}
 
 		return tickMsg{t: t, idx: m.idx, status: status}

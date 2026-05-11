@@ -67,7 +67,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
 		}
-	
+
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth)
 		m.viewport.SetHeight(m.ctx.MainHeight - 4)

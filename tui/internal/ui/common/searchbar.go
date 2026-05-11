@@ -40,15 +40,15 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		case "/":
 			m.focused = !m.focused
 			if m.focused {
-					return m.textInput.Focus()
+				return m.textInput.Focus()
 			}
 			m.textInput.Blur()
 			return nil
 		case "esc":
 			if m.focused {
-					m.textInput.Reset()
-					m.focused = false
-					m.textInput.Blur()
+				m.textInput.Reset()
+				m.focused = false
+				m.textInput.Blur()
 			}
 			return nil
 		}

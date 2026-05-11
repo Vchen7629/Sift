@@ -58,6 +58,9 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case githubRepoFetchedErr:
+		return m, nil
+
 	case common.FetchIndexedRepoMsg:
 		m.indexedRepos = msg.IndexedRepos
 		m.RepoList.IndexedRepos = msg.IndexedRepos
@@ -102,12 +105,13 @@ func (m *UserRepoModel) View() tea.View {
 }
 
 type githubRepoFetchedMsg struct{ repoList []types.GHRepository }
+type githubRepoFetchedErr struct{ Err error }
 
 // fetches user's repositories from github
 func (m *UserRepoModel) fetchRepoList() tea.Msg {
 	repos, err := m.ctx.GithubApiClient.GithubUserRepositories()
 	if err != nil {
-		return err
+		return githubRepoFetchedErr{Err: err}
 	}
 
 	return githubRepoFetchedMsg{repoList: repos}
