@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/types"
@@ -64,16 +65,22 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case githubRepoFetchedErr:
+		m.RepoList.FetchError = fmt.Sprintf("failed to fetch repos from github: %s", msg.Err.Error())
 		return m, nil
 
 	case common.FetchIndexedRepoMsg:
 		m.indexedRepos = msg.IndexedRepos
 		m.RepoList.IndexedRepos = msg.IndexedRepos
 		m.populateIndexRepoStatus()
+		m.ActionBar.IndexRepoApiDown = false
 
 		if len(m.ghRepos) > 0 {
 			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
 		}
+		return m, nil
+
+	case common.FetchIndexedRepoErr:
+		m.ActionBar.IndexRepoApiDown = true
 		return m, nil
 	}
 

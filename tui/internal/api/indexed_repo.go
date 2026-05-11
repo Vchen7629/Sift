@@ -83,9 +83,12 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 		for j := range repos.Dependencies {
 			repos.Dependencies[j].Id = j
 		}
+
+		_, name, _ := strings.Cut(repos.Name, "/")
+
 		indexedRepo := types.IndexedRepo{
 			TotalDependencies: repos.TotalDependencies,
-			Name:              strings.Split(repos.Name, "/")[1],
+			Name:              name,
 			LastIndexed:       service.FormatRelativeDate(repos.LastIndexed),
 			Dependencies:      repos.Dependencies,
 		}

@@ -25,6 +25,7 @@ type ListModel struct {
 	ProcessingStatus map[int]string
 	viewport         viewport.Model
 	progressBars     map[int]*ProgressBarModel
+	FetchError       string
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
@@ -33,6 +34,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		GHRepos:          []api.RepoApiRes{},
 		ProcessingStatus: map[int]string{},
 		progressBars:     map[int]*ProgressBarModel{},
+		FetchError:       "",
 	}
 	return m
 }
@@ -123,6 +125,10 @@ func (m *ListModel) View() tea.View {
 
 	if len(m.GHRepos) <= 0 {
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Loading your repos..."))
+	}
+
+	if m.FetchError != "" {
+		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("error fetching from github"))
 	}
 
 	for i, repo := range m.GHRepos {

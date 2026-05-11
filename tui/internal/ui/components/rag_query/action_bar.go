@@ -44,12 +44,10 @@ func (m *ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.V
 		PaddingRight(1).Foreground(m.ctx.SelectedTheme.AccentBright).PaddingLeft(2).
 		Render(selectedRepoName)
 
-	return tea.NewView(lipgloss.NewStyle().
-		BorderBottom(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderBottomForeground(styles.Divider).
+	return tea.NewView(styles.ActionBarBorder.
 		Width(m.ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused))))
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused))),
+	)
 }
 
 func (m *ActionBarModel) actionBarBtns(focusRepoList bool) string {
