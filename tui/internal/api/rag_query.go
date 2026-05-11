@@ -2,10 +2,10 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"tui/internal/service"
 )
 
 type SearchReq struct {
@@ -16,13 +16,12 @@ type SearchReq struct {
 var searchBaseUrl = "http://localhost:8080/search"
 
 func Search(username, searchQuery string) (string, error) {
-	payload := SearchReq{UserId: username, SearchQuery: searchQuery}
-	jsonData, err := json.Marshal(payload)
+	payload, err := service.MarshalRequestBody(username, searchQuery)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/add", searchBaseUrl), "application/json", bytes.NewBuffer(jsonData))
+	resp, err := client.Post(fmt.Sprintf("%s/add", searchBaseUrl), "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}

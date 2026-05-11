@@ -2,11 +2,11 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
+	"tui/internal/service"
 )
 
 var indexBaseUrl = "http://localhost:8080/index_repo"
@@ -14,20 +14,13 @@ var client = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-// todo: update the userId in the tui and api to be username for clarity
-type IndexRepoReq struct {
-	UserId   string `json:"userId"`
-	RepoName string `json:"repoName"` 
-}
-
 func IndexRepo(username, repoName string) error {
-	payload := IndexRepoReq{UserId: username, RepoName: repoName}
-	jsonData, err := json.Marshal(payload)
+	payload, err := service.MarshalRequestBody(username, repoName)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/add", indexBaseUrl), "application/json", bytes.NewBuffer(jsonData))
+	resp, err := client.Post(fmt.Sprintf("%s/add", indexBaseUrl), "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
@@ -42,11 +35,20 @@ func IndexRepo(username, repoName string) error {
 
 // used to poll the job status for the progress bar
 func GetJobStatus(username, repoName string) (string, error) {
-	resp, err := client.Get(fmt.Sprintf("%s/get_status/%s/%s", indexBaseUrl, username, repoName))
+	payload, err := service.MarshalRequestBody(username, repoName)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Post(fmt.Sprintf("%s/job_status", indexBaseUrl), "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {                                                                                                                 
+		return "", nil
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
@@ -59,5 +61,4 @@ func GetJobStatus(username, repoName string) (string, error) {
 
 	return string(res), err
 }
-
 

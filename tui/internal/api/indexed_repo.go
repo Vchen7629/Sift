@@ -13,19 +13,13 @@ import (
 
 var indexedRepoBaseUrl = "http://localhost:8080/user_repo"
 
-type DeleteIndexedRepoReq struct {
-	UserId   string `json:"userId"`
-	RepoName string `json:"repoName"`
-}
-
 func DeleteIndexedRepo(username, repoName string) error {
-	payload := DeleteIndexedRepoReq{UserId: username, RepoName: repoName}
-	jsonData, err := json.Marshal(payload)
+	payload, err := service.MarshalRequestBody(username, repoName)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/delete", indexedRepoBaseUrl), bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/delete", indexedRepoBaseUrl), bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
