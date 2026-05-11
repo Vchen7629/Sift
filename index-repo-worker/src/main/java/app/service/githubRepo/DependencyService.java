@@ -24,9 +24,11 @@ import org.springframework.validation.annotation.Validated;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import app.model.DependencyFileEnum;
+import app.repository.JobStatusRepository;
 import io.micrometer.observation.annotation.Observed;
 import app.component.parser.DependencyParserStrategy;
 import app.component.parser.DependencyParserStrategy.Dependency;
+import app.dto.JobStatusDocument;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
@@ -38,20 +40,27 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 public class DependencyService {
     private final GitHub githubClient;
     private final DependencyParserStrategy dependencyParserStrategy;
+    private final JobStatusRepository jobStatusRepository;
 
     public DependencyService(
         GitHub githubClient,
-        DependencyParserStrategy dependencyParserStrategy
+        DependencyParserStrategy dependencyParserStrategy,
+        JobStatusRepository jobStatusRepository
     ) {
         this.githubClient = githubClient;
         this.dependencyParserStrategy = dependencyParserStrategy;
+        this.jobStatusRepository = jobStatusRepository;
     }
 
     @Async
     @Observed(name="dependency.fetchrepodependencies.service")
-    public CompletableFuture<Map<String, List<Dependency>>> fetchRepoDependencies(@NotBlank String repoName) {
+    public CompletableFuture<Map<String, List<Dependency>>> fetchRepoDependencies(
+        @NotBlank String repoName,
+        @NotBlank String userId
+    ) {
         try {
             GHRepository repo = githubClient.getRepository(repoName);
+            jobStatusRepository.upsert(new JobStatusDocument(repoName, userId, "processing:fetched_repo"));
             
             Map<String, List<Dependency>> dependenciesByLanguage = new HashMap<>();
 
@@ -68,15 +77,19 @@ public class DependencyService {
             }
 
             log.debug("fetched dependencies", kv("repoName", repoName));
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_dependency_list"));
 
             return CompletableFuture.completedFuture(dependenciesByLanguage);
         } catch (GHFileNotFoundException e) {
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "failed"));
+
             log.error("Repo not found", 
                 kv("repoName", repoName), 
                 kv("error", e.getMessage()));
 
             return CompletableFuture.failedFuture(e);
         } catch (IOException e) {
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "failed"));
             log.error("Unknown error fetching issues", 
                 kv("repoName", repoName), 
                 kv("error", e.getMessage()));

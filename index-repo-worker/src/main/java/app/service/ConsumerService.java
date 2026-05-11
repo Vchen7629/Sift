@@ -110,7 +110,7 @@ public class ConsumerService {
                 log.debug("recived index repo msg for processing");
 
                 try {
-                    jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "processing"));
+                    jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "processing:created_job"));
 
                     Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
                     if (dependenciesByLanguage.isEmpty()) continue;
@@ -137,10 +137,12 @@ public class ConsumerService {
     ) throws JetStreamApiException, TranslateException, IOException {
         log.info("processMsg called");
 
-        Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(payload.repoName).join();
+        Map<String, List<Dependency>> dependenciesByLanguage = dependencyService.fetchRepoDependencies(
+            payload.repoName, payload.userId
+        ).join();
 
         if (dependenciesByLanguage.isEmpty()) {
-            jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "Dependencies Not Found"));
+            jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "skipped"));
                 
             log.warn("no dependencies found for the repo", kv("repoName", payload.repoName), kv("userId", payload.userId));
             msg.ack();
@@ -224,10 +226,12 @@ public class ConsumerService {
             }
         }
 
+        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_all_issues_changelogs"));
         if (!issueList.isEmpty()) {
             List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.generateIssue(issueList);
             dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName);
 
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_issues"));
             log.info("inserted new issue documents into openSearch successfully!", kv("repoName", repoName));
         }
 
@@ -235,9 +239,11 @@ public class ConsumerService {
             List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.generateChangeLog(changeLogs);
             dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName);
 
+            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_changelogs"));
             log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
         }
-
+        
         userRepoRepository.insert(new UserRepoDocument(userId, repoName, libraryMap, Instant.now()));
+        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_indexed_repo"));
     }
 }
