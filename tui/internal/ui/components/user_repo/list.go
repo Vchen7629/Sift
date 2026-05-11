@@ -78,7 +78,11 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
 			return nil // prevents an already indexed repo from sending a new index repo request
 		}
-		return m.IndexRepo
+
+		idx := m.FocusedIdx
+		repoName := fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[idx].Name)
+		
+		return IndexRepo(idx, m.ctx.Username, repoName)
 
 	// response from api call
 	case indexRepoMsg:
@@ -189,14 +193,13 @@ type indexRepoErrMsg struct {
 	err error
 }
 
-func (m *ListModel) IndexRepo() tea.Msg {
-	gitUser := m.ctx.Username
-	repoName := fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name)
+func IndexRepo(idx int, username, repoName string) tea.Cmd {
+	return func() tea.Msg {
+		err := api.IndexRepo(username, repoName)
+		if err != nil {
+			return indexRepoErrMsg{idx: idx, err: err}
+		}
 
-	err := api.IndexRepo(gitUser, repoName)
-	if err != nil {
-		return indexRepoErrMsg{idx: m.FocusedIdx, err: err}
+		return indexRepoMsg{idx: idx, repoName: repoName}
 	}
-
-	return indexRepoMsg{idx: m.FocusedIdx, repoName: repoName}
 }
