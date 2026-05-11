@@ -19,7 +19,7 @@ import (
 
 type ListModel struct {
 	ctx              *context.App
-	GHRepos          []types.GHRepository
+	GHRepos          []api.RepoApiRes
 	IndexedRepos     []types.IndexedRepo
 	FocusedIdx       int
 	ProcessingStatus map[int]string
@@ -30,7 +30,7 @@ type ListModel struct {
 func NewUserRepoList(ctx *context.App) *ListModel {
 	m := &ListModel{
 		ctx:              ctx,
-		GHRepos:          []types.GHRepository{},
+		GHRepos:          []api.RepoApiRes{},
 		ProcessingStatus: map[int]string{},
 		progressBars:     map[int]*ProgressBarModel{},
 	}
@@ -156,9 +156,7 @@ func (m *ListModel) Reset() {
 }
 
 // This is the top row in each list card, shows things like name, index status, total deps, and last indexed time
-func (m *ListModel) cardHeader(
-	idx int, indexedRepo types.IndexedRepo, ghRepo types.GHRepository, textColor color.Color,
-) string {
+func (m *ListModel) cardHeader(idx int, indexedRepo types.IndexedRepo, ghRepo api.RepoApiRes, textColor color.Color) string {
 	repoName := lipgloss.NewStyle().Foreground(textColor).Render(ghRepo.Name)
 
 	// index metadata like index status, lastIndexed and  totalDependencies

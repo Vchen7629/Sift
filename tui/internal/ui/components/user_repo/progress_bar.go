@@ -68,7 +68,7 @@ func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 		m.progress, cmd = m.progress.Update(msg)
 		return cmd
 	}
-	
+
 	return nil
 }
 

@@ -97,9 +97,9 @@ func (m *SidebarModel) header() string {
 func (m *SidebarModel) sideBarList() string {
 	var indexedRepoList []string
 
-	for _, repo := range m.indexedRepos {
+	for i, repo := range m.indexedRepos {
 		textColor := m.ctx.SelectedTheme.AccentMid
-		if repo.Id == m.focusedIdx {
+		if i == m.focusedIdx {
 			textColor = m.ctx.SelectedTheme.AccentBright
 		}
 

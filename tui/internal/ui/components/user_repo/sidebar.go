@@ -2,6 +2,7 @@ package user_repo
 
 import (
 	"fmt"
+	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/types"
 	"tui/internal/ui/common"
@@ -16,7 +17,7 @@ import (
 type Sidebar struct {
 	ctx                *context.App
 	viewport           viewport.Model
-	FocusedGHRepo      *types.GHRepository
+	FocusedGHRepo      *api.RepoApiRes
 	FocusedIndexedRepo *types.IndexedRepo
 	FocusedIdx         int
 }
