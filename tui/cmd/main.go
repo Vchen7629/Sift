@@ -16,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	p := tea.NewProgram(app)
+	p := tea.NewProgram(&app)
 	_, err = p.Run()
 	if err != nil {
 		fmt.Printf("error launching: %v", err)

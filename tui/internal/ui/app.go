@@ -30,14 +30,14 @@ func New() (model, error) {
 	}, nil
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	footerCmd := m.footer.Init()
 	pageCmd := m.pages[m.ctx.CurrentPage].Init()
 
 	return tea.Batch(pageCmd, footerCmd)
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		return m, m.handleWindowResize(msg)
@@ -63,7 +63,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(sbCmd, cmd, initCmd)
 }
 
-func (m model) View() tea.View {
+func (m *model) View() tea.View {
 	pageContent := m.pages[m.ctx.CurrentPage].View()
 	footer := m.footer.View()
 
