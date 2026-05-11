@@ -63,7 +63,6 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 		}
 	}()
 
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}

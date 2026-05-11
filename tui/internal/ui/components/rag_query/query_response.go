@@ -13,10 +13,10 @@ import (
 )
 
 type RagQueryResponseModel struct {
-	ctx       *context.App
-	answer    answerModel
-	focused   source
-	viewport  viewport.Model
+	ctx      *context.App
+	answer   answerModel
+	focused  source
+	viewport viewport.Model
 }
 
 type answerModel struct {

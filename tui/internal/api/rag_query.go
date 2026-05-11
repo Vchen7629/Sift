@@ -33,7 +33,6 @@ func Search(username, searchQuery string) (string, error) {
 		}
 	}()
 
-
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}

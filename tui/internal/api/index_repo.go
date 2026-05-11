@@ -32,7 +32,6 @@ func IndexRepo(username, repoName string) error {
 		}
 	}()
 
-
 	if resp.StatusCode != http.StatusAccepted {
 		return fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
@@ -57,7 +56,6 @@ func GetJobStatus(username, repoName string) (string, error) {
 			log.Println("error closing get job status resp body")
 		}
 	}()
-
 
 	if resp.StatusCode == http.StatusNotFound {
 		return "", nil
