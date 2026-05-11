@@ -142,7 +142,7 @@ public class ConsumerService {
         ).join();
 
         if (dependenciesByLanguage.isEmpty()) {
-            jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "skipped"));
+            jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "skipped:no dependencies found"));
                 
             log.warn("no dependencies found for the repo", kv("repoName", payload.repoName), kv("userId", payload.userId));
             msg.ack();

@@ -40,6 +40,7 @@ var statusProgress = map[string]float64{
 	"processing:inserted_all_changelogs":     	0.90,
 	"processing:inserted_indexed_repo":       	0.95,
 	"processed":                              	1.0,
+	"skipped:no dependencies found":			1.0,
 }
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
@@ -50,7 +51,7 @@ func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 			cmd = m.progress.SetPercent(pct)
 		}
 		// this is to stop polling after its done processing
-		if msg.status == "processed" {
+		if msg.status == "processed" || msg.status == "skipped:no dependencies found" {
 			return cmd
 		}
 		return tea.Batch(m.checkProgress(), cmd)		
