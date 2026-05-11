@@ -34,7 +34,6 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		ProcessingStatus: map[int]string{},
 		progressBars:     map[int]*ProgressBarModel{},
 	}
-	m.FocusedIdx = 0
 	return m
 }
 
@@ -151,6 +150,11 @@ func (m *ListModel) View() tea.View {
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 
 	return tea.NewView(m.viewport.View())
+}
+
+func (m *ListModel) Reset() {
+	m.FocusedIdx = 0
+	m.viewport.GotoTop()
 }
 
 // This is the top row in each list card, shows things like name, index status, total deps, and last indexed time

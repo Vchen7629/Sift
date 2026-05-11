@@ -36,6 +36,10 @@ func NewUserRepo(ctx *context.App) *UserRepoModel {
 }
 
 func (m *UserRepoModel) Init() tea.Cmd {
+	m.focusedIdx = 0
+	m.isSidebarFocused = false
+	m.RepoList.Reset()
+	
 	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username))
 }
 
