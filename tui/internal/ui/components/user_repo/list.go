@@ -71,6 +71,10 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 	// trigger from user pressing r
 	case IndexRepoRequestMsg:
+		// prevents case where r is pressed before gh fetch completes
+		if len(m.GHRepos) == 0 {
+			return nil
+		}
 		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
 			return nil // prevents an already indexed repo from sending a new index repo request
 		}
