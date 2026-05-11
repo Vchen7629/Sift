@@ -2,6 +2,7 @@ package user_repo
 
 import (
 	"time"
+	"tui/internal/api"
 	"tui/internal/ui/context"
 
 	"charm.land/bubbles/v2/progress"
@@ -13,13 +14,15 @@ type ProgressBarModel struct {
 	ctx 	 *context.App
 	progress progress.Model
 	idx 	 int
+	repoName string
 }
 
-func NewProgressBar(ctx *context.App, idx int) *ProgressBarModel {
+func NewProgressBar(ctx *context.App, idx int, repoName string) *ProgressBarModel {
 	return &ProgressBarModel{
 		ctx:      ctx,
 		progress: progress.New(),
 		idx:	  idx,
+		repoName: repoName,
 	}
 }
 
@@ -28,14 +31,32 @@ func (m *ProgressBarModel) Init() tea.Cmd {
 }
 
 type statusUpdateMsg struct { idx int; status string }
+var statusProgress = map[string]float64{                                                                                                                    
+	"processing:created_job":                 	0.05,
+	"processing:fetched_repo":                	0.075,                                                                                                        
+	"processing:fetched_dependency_list":     	0.10,
+	"processing:fetched_all_issues_changelogs": 0.80,
+	"processing:inserted_all_issues":         	0.85,
+	"processing:inserted_all_changelogs":     	0.90,
+	"processing:inserted_indexed_repo":       	0.95,
+	"processed":                              	1.0,
+}
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tickMsg:
-		// Note that you can also use progress.Model.SetPercent to set the
-		// percentage value explicitly, too.
-		cmd := m.progress.IncrPercent(0.05)
-		return tea.Batch(m.checkProgress(), cmd)
+		var cmd tea.Cmd
+		if pct, ok := statusProgress[msg.status]; ok {
+			cmd = m.progress.SetPercent(pct)
+		}
+		// this is to stop polling after its done processing
+		if msg.status == "processed" {
+			return cmd
+		}
+		return tea.Batch(m.checkProgress(), cmd)		
+	
+	case error:
+		return m.checkProgress()
 	
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -59,10 +80,15 @@ func (m *ProgressBarModel) View() tea.View {
 	return tea.NewView(paddingTop.Render(m.progress.View()))
 }
 
-type tickMsg struct { idx int; t time.Time }
+type tickMsg struct { idx int; t time.Time; status string}
 
 func (m ProgressBarModel) checkProgress() tea.Cmd {
-	return tea.Tick(time.Second*1, func(t time.Time) tea.Msg {
-		return tickMsg{t: t, idx: m.idx}
+	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
+		status, err := api.GetJobStatus(m.ctx.Username, m.repoName)
+		if err != nil {
+			return err
+		}
+
+		return tickMsg{t: t, idx: m.idx, status: status}
 	})
 }
