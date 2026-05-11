@@ -31,9 +31,7 @@ func NewRagQuery(ctx *context.App) *RagQueryModel {
 }
 
 func (m *RagQueryModel) Init() tea.Cmd {
-	fetchIndexedRepoCmd := m.Sidebar.Init()
-
-	return tea.Batch(fetchIndexedRepoCmd)
+	return m.Sidebar.Init()
 }
 
 // user actions
