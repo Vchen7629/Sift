@@ -38,7 +38,7 @@ func NewUserRepo(ctx *context.App) *UserRepoModel {
 }
 
 func (m *UserRepoModel) Init() tea.Cmd {
-	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username), m.RepoList.Init())
+	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username))
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

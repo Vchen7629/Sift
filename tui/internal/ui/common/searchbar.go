@@ -18,8 +18,7 @@ type SearchBarModel struct {
 func NewSearchBar(ctx *context.App, placeholderText string) *SearchBarModel {
 	ti := textinput.New()
 	ti.Placeholder = placeholderText
-	//"Search Your Repositories..."
-
+	
 	return &SearchBarModel{
 		ctx:       ctx,
 		textInput: ti,

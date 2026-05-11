@@ -53,8 +53,6 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
 		Foreground(lipgloss.Color("#444444")).
 		Bold(true)
 
-	//↵
-
 	if isSidebarFocused {
 		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
 		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus repo list"))
