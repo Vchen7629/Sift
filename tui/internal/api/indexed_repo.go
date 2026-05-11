@@ -78,7 +78,7 @@ func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
 		return nil, err
 	}
 
-	var indexedRepos []types.IndexedRepo
+	indexedRepos := make([]types.IndexedRepo, 0, len(repos))
 	for i, repos := range repos {
 		for j := range repos.Dependencies {
 			repos.Dependencies[j].Id = j
