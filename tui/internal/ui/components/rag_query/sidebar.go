@@ -18,7 +18,7 @@ type SidebarModel struct {
 	ctx          *context.App
 	indexedRepos []types.IndexedRepo
 	viewport     viewport.Model
-	focused      types.IndexedRepo
+	focusedIdx   int
 }
 
 type SelectRepoMsg struct{ RepoName string }
@@ -42,21 +42,19 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		}
 		switch msg.String() {
 		case "down":
-			if m.focused.Id < len(m.indexedRepos)-1 {
-				m.focused.Id++
-				m.focused = m.indexedRepos[m.focused.Id]
-				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
+			if m.focusedIdx < len(m.indexedRepos)-1 {
+				m.focusedIdx++
+				service.ScrollToFocused(&m.viewport, m.focusedIdx, 1)
 			}
 		case "up":
-			if m.focused.Id > 0 {
-				m.focused.Id--
-				m.focused = m.indexedRepos[m.focused.Id]
-				service.ScrollToFocused(&m.viewport, m.focused.Id, 1)
+			if m.focusedIdx > 0 {
+				m.focusedIdx--
+				service.ScrollToFocused(&m.viewport, m.focusedIdx, 1)
 			}
 
 		case "enter":
 			return func() tea.Msg {
-				return SelectRepoMsg{RepoName: m.focused.Name}
+				return SelectRepoMsg{RepoName: m.indexedRepos[m.focusedIdx].Name}
 			}
 		}
 
@@ -101,7 +99,7 @@ func (m *SidebarModel) sideBarList() string {
 
 	for _, repo := range m.indexedRepos {
 		textColor := m.ctx.SelectedTheme.AccentMid
-		if repo.Id == m.focused.Id {
+		if repo.Id == m.focusedIdx {
 			textColor = m.ctx.SelectedTheme.AccentBright
 		}
 
