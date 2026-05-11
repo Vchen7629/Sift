@@ -12,10 +12,10 @@ func FormatRelativeDate(ts string) string {
 	}
 
 	const (
-		oneDayHours = 24
-		oneWeekHours = 168
+		oneDayHours   = 24
+		oneWeekHours  = 168
 		oneMonthHours = 720
-		oneYearHours = 8760
+		oneYearHours  = 8760
 	)
 
 	elapsed := time.Since(t)

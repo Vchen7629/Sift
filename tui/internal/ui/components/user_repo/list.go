@@ -178,7 +178,10 @@ func (m *ListModel) cardHeader(
 }
 
 type indexRepoMsg struct{ idx int }
-type indexRepoErrMsg struct { idx int; err error }
+type indexRepoErrMsg struct {
+	idx int
+	err error
+}
 
 func (m *ListModel) IndexRepo() tea.Msg {
 	gitUser := m.ctx.Username

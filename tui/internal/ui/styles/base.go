@@ -17,12 +17,12 @@ type Theme struct {
 }
 
 var (
-	Footer      	= lipgloss.ANSIColor(236)
-	Divider     	= lipgloss.Color("#444444")
-	BorderFocus 	= lipgloss.Color("#2a2a2a")
-	TextPrimary 	= lipgloss.Color("#d0d0d0")
-	TextMuted   	= lipgloss.Color("#555555")
-	TextDim     	= lipgloss.Color("#333333")
-	NavBtnStyle 	= lipgloss.NewStyle().PaddingLeft(2)
+	Footer          = lipgloss.ANSIColor(236)
+	Divider         = lipgloss.Color("#444444")
+	BorderFocus     = lipgloss.Color("#2a2a2a")
+	TextPrimary     = lipgloss.Color("#d0d0d0")
+	TextMuted       = lipgloss.Color("#555555")
+	TextDim         = lipgloss.Color("#333333")
+	NavBtnStyle     = lipgloss.NewStyle().PaddingLeft(2)
 	NavBtnTextStyle = lipgloss.NewStyle().Foreground(Divider).Bold(true)
 )
