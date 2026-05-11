@@ -12,6 +12,7 @@ import (
 	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/types"
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 )
@@ -171,9 +172,7 @@ func (m *ListModel) cardHeader(
 		indexMetadata = lipgloss.NewStyle().Render(status)
 	}
 
-	spacer := lipgloss.NewStyle().
-		Width(m.ctx.MainWidth - lipgloss.Width(repoName) - lipgloss.Width(indexMetadata) - 4).
-		Render("")
+	spacer := common.SpaceBetween(m.ctx.MainWidth, lipgloss.Width(repoName), lipgloss.Width(indexMetadata), 4)
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, repoName, spacer, indexMetadata)
 }

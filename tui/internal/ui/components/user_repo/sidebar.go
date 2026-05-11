@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"tui/internal/service"
 	"tui/internal/types"
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -85,9 +86,7 @@ func (m *Sidebar) sidebarHeader() string {
 		Foreground(styles.TextDim).
 		Render(fmt.Sprintf("Updated %s", service.FormatRelativeDate(m.FocusedGHRepo.LastCommit)))
 
-	spaceBetween := lipgloss.NewStyle().
-		Width(m.ctx.SidebarWidth - 4 - lipgloss.Width(repoName) - lipgloss.Width(lastUpdate)).
-		Render("")
+	spaceBetween := common.SpaceBetween(m.ctx.SidebarWidth, lipgloss.Width(repoName), lipgloss.Width(lastUpdate), 4)
 
 	topBlock := lipgloss.JoinHorizontal(lipgloss.Left, repoName, spaceBetween, lastUpdate)
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
@@ -153,11 +152,7 @@ func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
 
 	status := lipgloss.NewStyle().Foreground(statusText).Width(10).Render(dependency.Status)
 	rightBlock := lipgloss.JoinHorizontal(lipgloss.Left, version, status)
-
-	spaceBetween := lipgloss.NewStyle().
-		Width(m.ctx.SidebarWidth - 4 - lipgloss.Width(name) - lipgloss.Width(rightBlock)).
-		Render("")
-
+	spaceBetween := common.SpaceBetween(m.ctx.SidebarWidth, lipgloss.Width(name), lipgloss.Width(rightBlock), 4)
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
 
 	return marginBottom.Render(lipgloss.JoinHorizontal(lipgloss.Left, name, spaceBetween, rightBlock))
