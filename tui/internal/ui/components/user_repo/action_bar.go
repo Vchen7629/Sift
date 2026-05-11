@@ -16,7 +16,7 @@ func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx}
 }
 
-func (m ActionBarModel) Init() tea.Msg {
+func (m ActionBarModel) Init() tea.Cmd {
 	return nil
 }
 
