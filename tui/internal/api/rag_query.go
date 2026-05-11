@@ -39,7 +39,7 @@ func Search(username, searchQuery string) (string, error) {
 
 	res, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", nil
+		return "", fmt.Errorf("error reading search response: %w", err)
 	}
 
 	return string(res), err

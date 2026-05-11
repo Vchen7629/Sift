@@ -9,11 +9,12 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx *context.App
+	ctx              *context.App
+	IndexRepoApiDown bool
 }
 
 func NewActionBar(ctx *context.App) *ActionBarModel {
-	return &ActionBarModel{ctx: ctx}
+	return &ActionBarModel{ctx: ctx, IndexRepoApiDown: false}
 }
 
 func (m *ActionBarModel) Init() tea.Cmd {
@@ -38,12 +39,16 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
-	return tea.NewView(lipgloss.NewStyle().
-		BorderBottom(true).
-		BorderStyle(lipgloss.ThickBorder()).
-		BorderBottomForeground(styles.Divider).
-		Width(m.ctx.WindowWidth - 2).
-		Render(m.actionBarBtns(isSidebarFocused, isIndexed)))
+	widthStyle := styles.ActionBarBorder.Width(m.ctx.WindowWidth - 2)
+
+	if m.IndexRepoApiDown {
+		statusText := lipgloss.NewStyle().Padding(0, 1).Foreground(lipgloss.Red).Render("Index Repo api is unavailable")
+
+		return tea.NewView(widthStyle.Render(
+			lipgloss.JoinHorizontal(lipgloss.Left, statusText, m.actionBarBtns(isSidebarFocused, isIndexed))),
+		)
+	}
+	return tea.NewView(widthStyle.Render(m.actionBarBtns(isSidebarFocused, isIndexed)))
 }
 
 func (m *ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
