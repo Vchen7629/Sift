@@ -67,7 +67,7 @@ func GetJobStatus(username, repoName string) (string, error) {
 
 	res, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", nil
+		return "", fmt.Errorf("reading job status response: %w", err)
 	}
 
 	return string(res), err
