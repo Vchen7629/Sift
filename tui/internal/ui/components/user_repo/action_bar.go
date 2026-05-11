@@ -37,16 +37,16 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m ActionBarModel) View(isSidebarFocused bool) tea.View {
+func (m ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 	return tea.NewView(lipgloss.NewStyle().
 		BorderBottom(true).
 		BorderStyle(lipgloss.ThickBorder()).
 		BorderBottomForeground(styles.Divider).
 		Width(m.ctx.WindowWidth - 2).
-		Render(m.actionBarBtns(isSidebarFocused)))
+		Render(m.actionBarBtns(isSidebarFocused, isIndexed)))
 }
 
-func (m ActionBarModel) actionBarBtns(isSidebarFocused bool) string {
+func (m ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
 	navBtnStyle := lipgloss.NewStyle().PaddingLeft(2)
 
 	navBtnTextStyle := lipgloss.NewStyle().
@@ -55,19 +55,23 @@ func (m ActionBarModel) actionBarBtns(isSidebarFocused bool) string {
 	
 	//↵
 
-	if !isSidebarFocused {
-		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll repos"))
-		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] search repos"))
-		clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))
-		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus sidebar"))
-		indexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] index"))
+	if isSidebarFocused {
+		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
+		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus repo list"))
+		openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
 
-		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, searchBtn, clearSearchBtn, swapFocusBtn, indexBtn)
+		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, openBrowserBtn)
+	} 
+	
+	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll repos"))
+	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] search repos"))
+	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))
+	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus sidebar"))
+
+	btns := []string{navBtn, searchBtn, clearSearchBtn, swapFocusBtn}
+	if !isIndexed {
+		btns = append(btns, navBtnStyle.Render(navBtnTextStyle.Render("[r] index")))
 	}
 
-	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
-	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus repo list"))
-	indexBtn := navBtnStyle.Render(navBtnTextStyle.Render("[r] reindex"))
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, indexBtn)
+	return lipgloss.JoinHorizontal(lipgloss.Left, btns...)
 }

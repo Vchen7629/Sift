@@ -68,7 +68,10 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			}
 		}
 	// trigger from user pressing r
-	case IndexRepoRequestMsg:                                                                                                                                   
+	case IndexRepoRequestMsg: 
+		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
+			return nil // prevents an already indexed repo from sending a new index repo request
+		}
       	return m.IndexRepo
 	
 	// response from api call

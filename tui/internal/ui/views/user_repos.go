@@ -99,7 +99,7 @@ func (m *UserRepoModel) View() tea.View {
 	repoListContent := lipgloss.JoinVertical(lipgloss.Top, m.SearchBar.View(), m.RepoList.View().Content)
 	content := lipgloss.JoinHorizontal(lipgloss.Left, repoListContent, divider, m.Sidebar.View().Content)
 
-	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused).Content, content))
+	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused, m.Sidebar.FocusedIndexedRepo != nil).Content, content))
 }
 
 type githubRepoFetchedMsg struct { repoList []types.GHRepository }
