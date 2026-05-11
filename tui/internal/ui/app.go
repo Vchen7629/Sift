@@ -55,12 +55,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var initCmd tea.Cmd
 	if m.ctx.CurrentPage != prevPage {
 		initCmd = m.pages[m.ctx.CurrentPage].Init()
+		return m, tea.Batch(sbCmd, initCmd)
 	}
 
 	updatedModel, cmd := m.pages[m.ctx.CurrentPage].Update(msg)
 	m.pages[m.ctx.CurrentPage] = updatedModel
 
-	return m, tea.Batch(sbCmd, cmd, initCmd)
+	return m, tea.Batch(sbCmd, cmd)
 }
 
 func (m *model) View() tea.View {
