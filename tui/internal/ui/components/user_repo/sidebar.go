@@ -58,6 +58,10 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
 		}
+
+	case tea.WindowSizeMsg:
+		m.viewport.SetWidth(m.ctx.SidebarWidth)
+		m.viewport.SetHeight(m.ctx.MainHeight - 8)
 	}
 	return nil
 }
@@ -123,8 +127,6 @@ func (m *Sidebar) repoDependencyList() tea.View {
 		dependencyCards = append(dependencyCards, m.dependencyCard(i, dependency))
 	}
 
-	m.viewport.SetWidth(m.ctx.SidebarWidth)
-	m.viewport.SetHeight(m.ctx.MainHeight - 8)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, dependencyCards...))
 	return tea.NewView(m.viewport.View())
 }

@@ -78,6 +78,10 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 				service.ScrollToFocused(&m.viewport, m.focused.id, cardHeight)
 			}
 		}
+
+	case tea.WindowSizeMsg:
+		m.viewport.SetWidth(m.ctx.MainWidth - 2)
+		m.viewport.SetHeight(4)
 	}
 
 	return nil
@@ -119,8 +123,6 @@ func (m *RagQueryResponseModel) source() tea.View {
 		sources = append(sources, sourceCard)
 	}
 
-	m.viewport.SetWidth(m.ctx.MainWidth - 2)
-	m.viewport.SetHeight(4)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, sources...))
 	return tea.NewView(m.viewport.View())
 }

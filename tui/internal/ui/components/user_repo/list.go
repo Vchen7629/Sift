@@ -67,6 +67,11 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 				service.ScrollToFocused(&m.viewport, m.FocusedIdx, cardHeight)
 			}
 		}
+	
+	case tea.WindowSizeMsg:
+		m.viewport.SetWidth(m.ctx.MainWidth)
+		m.viewport.SetHeight(m.ctx.MainHeight - 4)
+
 	// trigger from user pressing r
 	case IndexRepoRequestMsg:
 		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
@@ -142,9 +147,6 @@ func (m *ListModel) View() tea.View {
 
 		cards = append(cards, card)
 	}
-
-	m.viewport.SetWidth(m.ctx.MainWidth)
-	m.viewport.SetHeight(m.ctx.MainHeight - 4)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, cards...))
 
 	return tea.NewView(m.viewport.View())

@@ -52,6 +52,8 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			}
 			return nil
 		}
+	case tea.WindowSizeMsg:
+		m.textInput.SetWidth(m.ctx.MainWidth - 10)
 	}
 
 	if m.focused {
@@ -64,7 +66,6 @@ func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 }
 
 func (m *SearchBarModel) View() string {
-	m.textInput.SetWidth(m.ctx.MainWidth - 10)
 	s := m.textInput.Styles()
 	s.Focused.Text = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
 	m.textInput.SetStyles(s)

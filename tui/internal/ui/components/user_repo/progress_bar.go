@@ -44,6 +44,9 @@ var statusProgress = map[string]float64{
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.progress.SetWidth(m.ctx.MainWidth - 6)
+
 	case tickMsg:
 		var cmd tea.Cmd
 		if pct, ok := statusProgress[msg.status]; ok {
@@ -74,7 +77,6 @@ func (m *ProgressBarModel) View() tea.View {
 		m.ctx.SelectedTheme.GradientBright,
 	)(&m.progress)
 
-	m.progress.SetWidth(m.ctx.MainWidth - 6)
 	paddingTop := lipgloss.NewStyle().PaddingTop(1)
 
 	return tea.NewView(paddingTop.Render(m.progress.View()))

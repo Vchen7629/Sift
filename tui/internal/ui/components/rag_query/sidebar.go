@@ -60,6 +60,10 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			}
 		}
 
+	case tea.WindowSizeMsg:
+		m.viewport.SetHeight(m.ctx.MainHeight)
+		m.viewport.SetWidth(m.ctx.SidebarWidth)
+
 	case common.FetchIndexedRepoMsg:
 		m.indexedRepos = msg.IndexedRepos
 		return nil
@@ -110,8 +114,6 @@ func (m *SidebarModel) sideBarList() string {
 		indexedRepoList = append(indexedRepoList, row)
 	}
 
-	m.viewport.SetHeight(m.ctx.MainHeight)
-	m.viewport.SetWidth(m.ctx.SidebarWidth)
 	m.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, indexedRepoList...))
 
 	return m.viewport.View()
