@@ -80,6 +80,9 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		m.progressBars[msg.idx] = pb
 		return pb.Init()
 
+	case indexRepoErrMsg:
+		m.ProcessingStatus[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
+		
 	// for the progress bar
 	case tickMsg:
 		statusText := "new index job request"
@@ -179,13 +182,14 @@ func (m *ListModel) cardHeader(
 }
 
 type indexRepoMsg struct{ idx int }
+type indexRepoErrMsg struct { idx int; err error }
 
 func (m *ListModel) IndexRepo() tea.Msg {
 	gitUser := m.ctx.Username
 
 	err := api.IndexRepo(gitUser, fmt.Sprintf("%s/%s", gitUser, m.GHRepos[m.FocusedIdx].Name))
 	if err != nil {
-		return indexRepoMsg{idx: m.FocusedIdx}
+		return indexRepoErrMsg{idx: m.FocusedIdx, err: err}
 	}
 
 	return indexRepoMsg{idx: m.FocusedIdx}
