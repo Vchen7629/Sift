@@ -11,16 +11,19 @@ func FormatRelativeDate(ts string) string {
 		return "unknown"
 	}
 
-	hours := int(time.Since(t).Hours())
+	const (
+		oneDayHours = 24
+		oneWeekHours = 168
+		oneMonthHours = 720
+		oneYearHours = 8760
+	)
 
-	var oneDayHours = 24
-	var oneWeekHours = 168
-	var oneMonthHours = 720
-	var oneYearHours = 8760
+	elapsed := time.Since(t)
+	hours := int(elapsed.Hours())
 
 	switch {
 	case hours < 1:
-		m := int(time.Since(t).Minutes())
+		m := int(elapsed.Minutes())
 		return pluralFormat(m, "minute")
 	case hours < oneDayHours:
 		return pluralFormat(hours, "hour")
