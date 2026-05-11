@@ -1,6 +1,7 @@
 package views
 
 import (
+	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/types"
 	"tui/internal/ui/common"
@@ -17,7 +18,7 @@ type UserRepoModel struct {
 	SearchBar        *common.SearchBarModel
 	RepoList         *user_repo.ListModel
 	Sidebar          *user_repo.Sidebar
-	ghRepos          []types.GHRepository
+	ghRepos          []api.RepoApiRes
 	indexedRepos     []types.IndexedRepo
 	focusedIdx       int
 	isSidebarFocused bool
@@ -30,7 +31,7 @@ func NewUserRepo(ctx *context.App) *UserRepoModel {
 		SearchBar:        common.NewSearchBar(ctx, "Search Your Repositories..."),
 		RepoList:         user_repo.NewUserRepoList(ctx),
 		Sidebar:          user_repo.NewSidebar(ctx),
-		ghRepos:          []types.GHRepository{},
+		ghRepos:          []api.RepoApiRes{},
 		isSidebarFocused: false,
 	}
 }
@@ -39,7 +40,7 @@ func (m *UserRepoModel) Init() tea.Cmd {
 	m.focusedIdx = 0
 	m.isSidebarFocused = false
 	m.RepoList.Reset()
-	
+
 	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username))
 }
 
@@ -108,7 +109,7 @@ func (m *UserRepoModel) View() tea.View {
 	return tea.NewView(lipgloss.JoinVertical(lipgloss.Left, m.ActionBar.View(m.isSidebarFocused, m.Sidebar.FocusedIndexedRepo != nil).Content, content))
 }
 
-type githubRepoFetchedMsg struct{ repoList []types.GHRepository }
+type githubRepoFetchedMsg struct{ repoList []api.RepoApiRes }
 type githubRepoFetchedErr struct{ Err error }
 
 // fetches user's repositories from github
