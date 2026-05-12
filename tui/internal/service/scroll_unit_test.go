@@ -10,7 +10,7 @@ import (
 )
 
 func TestNavigateUp(t *testing.T) {
-	tc := []struct {
+	tt := []struct {
 		name    string
 		start   int
 		wantIdx int
@@ -20,18 +20,18 @@ func TestNavigateUp(t *testing.T) {
 		{"does not go negative", 0, 0},
 	}
 
-	for _, tt := range tc {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
 			vp := viewport.New()
-			idx := tt.start
+			idx := tc.start
 			NavigateUp(&idx, &vp, 1)
-			assert.Equal(t, tt.wantIdx, idx, "should be this index after navigating")
+			assert.Equal(t, tc.wantIdx, idx, "should be this index after navigating")
 		})
 	}
 }
 
 func TestNavigateDown(t *testing.T) {
-	tc := []struct {
+	tt := []struct {
 		name    string
 		start   int
 		listLen int
@@ -43,12 +43,12 @@ func TestNavigateDown(t *testing.T) {
 		{"does not move on single item list", 0, 1, 0},
 	}
 
-	for _, tt := range tc {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
 			vp := viewport.New()
-			idx := tt.start
-			NavigateDown(&idx, tt.listLen, &vp, 1)
-			assert.Equal(t, tt.wantIdx, idx, "should be this index after navigating")
+			idx := tc.start
+			NavigateDown(&idx, tc.listLen, &vp, 1)
+			assert.Equal(t, tc.wantIdx, idx, "should be this index after navigating")
 		})
 	}
 }

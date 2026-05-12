@@ -11,8 +11,8 @@ import (
 )
 
 func TestMarshallRequestBody(t *testing.T) {
-	tc := []struct{
-		name 	 string
+	tt := []struct {
+		name     string
 		username string
 		repoName string
 	}{
@@ -22,17 +22,17 @@ func TestMarshallRequestBody(t *testing.T) {
 		{"both empty", "", ""},
 	}
 
-	for _, tt := range tc {
-		t.Run(tt.name, func(t *testing.T) {
-			data, err := MarshalRequestBody(tt.username, tt.repoName)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := MarshalRequestBody(tc.username, tc.repoName)
 
 			require.NoError(t, err)
 
 			var got RequestBody
 			require.NoError(t, json.Unmarshal(data, &got))
 
-			assert.Equal(t, tt.username, got.UserId)
-			assert.Equal(t, tt.repoName, got.RepoName)
+			assert.Equal(t, tc.username, got.UserId)
+			assert.Equal(t, tc.repoName, got.RepoName)
 		})
 	}
 }

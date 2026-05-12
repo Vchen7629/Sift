@@ -16,7 +16,7 @@ var mockRepos = []types.IndexedRepo{
 }
 
 func TestFindIndexedRepo_Found(t *testing.T) {
-	tc := []struct {
+	tt := []struct {
 		name   string
 		search string
 	}{
@@ -25,18 +25,18 @@ func TestFindIndexedRepo_Found(t *testing.T) {
 		{"finds last item", "maple"},
 	}
 
-	for _, tt := range tc {
-		t.Run(tt.name, func(t *testing.T) {
-			got := FindIndexedRepo(tt.search, mockRepos)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			got := FindIndexedRepo(tc.search, mockRepos)
 
 			assert.NotNil(t, got)
-			assert.Equal(t, tt.search, got.Name)
+			assert.Equal(t, tc.search, got.Name)
 		})
 	}
 }
 
 func TestFindIndexedRepo_NotFound(t *testing.T) {
-	tc := []struct {
+	tt := []struct {
 		name   string
 		search string
 		list   []types.IndexedRepo
@@ -45,9 +45,9 @@ func TestFindIndexedRepo_NotFound(t *testing.T) {
 		{"empty list", "coco", []types.IndexedRepo{}},
 	}
 
-	for _, tt := range tc {
-		t.Run(tt.name, func(t *testing.T) {
-			got := FindIndexedRepo(tt.search, tt.list)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			got := FindIndexedRepo(tc.search, tc.list)
 			assert.Nil(t, got)
 		})
 	}
