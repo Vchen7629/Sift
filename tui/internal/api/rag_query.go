@@ -15,6 +15,8 @@ type SearchReq struct {
 }
 
 type SearchRes struct {
+	RepoName 	 string 	   `json:"repoName"`
+	NumSources   int 		   `json:"numSources"`
 	IssueSources []issueSource `json:"issues"`
 	Summary		 string 	   `json:"summary"`
 }
