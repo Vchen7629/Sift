@@ -50,15 +50,16 @@ public class SearchResponseService {
 
     @Observed(name = "searchresponse.generateissuecandidates.service")
     public List<IssueSearchResponse> generateIssueCandidates(
-        @NotBlank String userId, @NotBlank String searchQuery
+        @NotBlank String userId, @NotBlank String searchQuery, @NotBlank String repoName
     ) throws TranslateException, IOException {
-        Map<String, String> userRepoDependencies = userRepoRepository.listAllDependencies(userId);
-        if (userRepoDependencies.isEmpty()) {
-            log.debug("no dependencies found for user", kv("userId", userId));
+        List<String> repoDependencies = userRepoRepository.listAllRepoDependencies(userId, repoName);
+
+        if (repoDependencies.isEmpty()) {
+            log.debug("no dependencies found for repo", kv("userId", userId), kv("repoName", repoName));
             return List.of();
         }
 
-        return searchRepository.findRelevantIssues(userRepoDependencies, searchQuery);
+        return searchRepository.findRelevantIssues(repoDependencies, searchQuery);
     }
 
     @Observed(name = "searchresponse.rerankcandidates.service")

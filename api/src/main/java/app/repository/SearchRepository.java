@@ -3,7 +3,6 @@ package app.repository;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
@@ -49,7 +48,7 @@ public class SearchRepository {
 
     @Observed(name="search.findrelevantissues.repository")
     public List<IssueSearchResponse> findRelevantIssues(
-        Map<String, String> dependencyFilterList,
+        List<String> dependencyFilterList,
         @NotBlank String searchQuery
     ) throws TranslateException, IOException {
         Query keywordQuery = Query.of(q -> q
@@ -67,12 +66,7 @@ public class SearchRepository {
         Query dependencyNameFilter = Query.of(q -> q
             .terms(t -> t
                 .field("dependencyName")
-                .terms(tv -> tv
-                    .value(dependencyFilterList.keySet().stream()
-                        .map(FieldValue::of)
-                        .toList()
-                    )
-                )
+                .terms(tv -> tv.value(dependencyFilterList.stream().map(FieldValue::of).toList()))
             )
         );
 

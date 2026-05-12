@@ -30,7 +30,7 @@ public class SearchController {
         this.searchResponseService = searchResponseService;
     }
 
-    private record searchIssueRequest(@NotBlank String userId, @NotBlank String searchQuery) {}
+    private record searchIssueRequest(@NotBlank String userId, @NotBlank String searchQuery, @NotBlank String repoName) {}
     private record searchQueryResponse(List<IssueSearchResponse> issues, String summary) {}
     
     /**
@@ -46,7 +46,10 @@ public class SearchController {
         @RequestBody @Valid searchIssueRequest request
     ) throws TranslateException, IOException {
         log.info("recieved hybrid search request", kv("query", request.searchQuery));
-        List<IssueSearchResponse> issueCandidates = searchResponseService.generateIssueCandidates(request.userId, request.searchQuery);
+
+        List<IssueSearchResponse> issueCandidates = searchResponseService.generateIssueCandidates(
+            request.userId, request.searchQuery, request.repoName
+        );
         if (issueCandidates.isEmpty()) {
             return ResponseEntity.status(404).body("No dependencies found for the userId");
         }

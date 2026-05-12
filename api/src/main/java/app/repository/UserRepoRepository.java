@@ -27,7 +27,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Slf4j
 public class UserRepoRepository {
     private final OpenSearchClient openSearchClient;
-    private final static String indexedRepoIndexName = "user-repo";
+    private final static String indexName = "user-repo";
 
     public UserRepoRepository(OpenSearchClient openSearchClient) {
         this.openSearchClient = openSearchClient;
@@ -36,7 +36,7 @@ public class UserRepoRepository {
     @Observed(name="userrepo.delete.repository")
     public void delete(@NotBlank String userId, @NotBlank String repoName) throws IOException {
         DeleteByQueryResponse deleteRes =  openSearchClient.deleteByQuery(d -> d
-            .index(indexedRepoIndexName)
+            .index(indexName)
             .query(q -> q
                 .bool(b -> b
                     .must(m -> m.term(t -> t.field("userId").value(v -> v.stringValue(userId))))
@@ -68,7 +68,7 @@ public class UserRepoRepository {
         final int maxUniqueDependencies = 1000;
 
         SearchResponse<UserRepoDepDoc> searchRes = openSearchClient.search(r -> r
-            .index(indexedRepoIndexName)
+            .index(indexName)
             .size(maxUniqueDependencies)
             .query(q -> q
                 .term(t -> t.field("userId").value(v -> v.stringValue(userId)))
@@ -100,7 +100,7 @@ public class UserRepoRepository {
         final int maxUniqueRepos = 1000;
 
         SearchResponse<IndexedRepoDocument.Source> searchRes = openSearchClient.search(r -> r
-            .index(indexedRepoIndexName)
+            .index(indexName)
             .size(maxUniqueRepos)
             .timeout("30s")
             .query(q -> q
@@ -120,10 +120,32 @@ public class UserRepoRepository {
         return indexedRepos;
     }
 
+    @Observed(name="userrepo.listallrepodependencies.repository")
+    public List<String> listAllRepoDependencies(@NotBlank String userId, @NotBlank String repoName) throws IOException{
+        SearchResponse<UserRepoDepDoc> searchRes = openSearchClient.search(r -> r
+            .index(indexName)
+            .timeout("2s")
+            .query(q -> q
+                .bool(b -> b
+                    .must(m -> m.term(t -> t.field("userId").value(v -> v.stringValue(userId))))
+                    .must(m -> m.term(t -> t.field("repoName").value(v -> v.stringValue(repoName))))
+                )
+            ),
+            UserRepoDepDoc.class
+        );
+
+        return searchRes.hits().hits().stream()
+            .map(hit -> hit.source())
+            .filter(Objects::nonNull)
+            .flatMap(doc -> doc.dependencies().keySet().stream())
+            .distinct()
+            .toList();
+    }
+
     @Observed(name="userrepo.isrepoindexed.repository")
     public boolean isRepoIndexed(String repoName) throws IOException{
         SearchResponse<Void> searchRes = openSearchClient.search(r -> r
-            .index(indexedRepoIndexName)
+            .index(indexName)
             .timeout("30s")
             .query(q -> q
                 .term(t -> t.field("repoName").value(v -> v.stringValue(repoName))
