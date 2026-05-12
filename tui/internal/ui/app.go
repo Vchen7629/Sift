@@ -89,9 +89,9 @@ func (m *model) View() tea.View {
 func (m *model) handleWindowResize(msg tea.WindowSizeMsg) tea.Cmd {
 	m.ctx.WindowWidth = msg.Width
 	m.ctx.WindowHeight = msg.Height
-	m.ctx.MainWidth = max(0, msg.Width - 55)
-	m.ctx.MainHeight = max(0, msg.Height - 3)
-	m.ctx.SidebarWidth = max(0, m.ctx.WindowWidth - m.ctx.MainWidth - 2)
+	m.ctx.MainWidth = max(0, msg.Width-55)
+	m.ctx.MainHeight = max(0, msg.Height-3)
+	m.ctx.SidebarWidth = max(0, m.ctx.WindowWidth-m.ctx.MainWidth-2)
 	m.footer.SetSize(msg.Width-2, 1)
 
 	var cmds []tea.Cmd

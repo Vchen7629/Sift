@@ -7,3 +7,6 @@ format:
 
 lint:
 	golangci-lint run ${PKGS}
+
+unit:
+	go test -tags unit ${PKGS}
