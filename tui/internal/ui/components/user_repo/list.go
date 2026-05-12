@@ -20,7 +20,7 @@ import (
 type ListModel struct {
 	ctx              *context.App
 	GHRepos          []api.RepoApiRes
-	IndexedRepos     []types.IndexedRepo
+	IndexedRepoMap   map[string]*types.IndexedRepo
 	FocusedIdx       int
 	ProcessingStatus map[int]string
 	viewport         viewport.Model
@@ -77,7 +77,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		if len(m.GHRepos) == 0 {
 			return nil
 		}
-		if service.FindIndexedRepo(m.GHRepos[m.FocusedIdx].Name, m.IndexedRepos) != nil {
+		if m.IndexedRepoMap[m.GHRepos[m.FocusedIdx].Name] != nil {
 			return nil // prevents an already indexed repo from sending a new index repo request
 		}
 
@@ -132,7 +132,7 @@ func (m *ListModel) View() tea.View {
 	}
 
 	for i, repo := range m.GHRepos {
-		ir := service.FindIndexedRepo(repo.Name, m.IndexedRepos)
+		ir := m.IndexedRepoMap[repo.Name]
 		var indexedRepo types.IndexedRepo
 		if ir != nil {
 			indexedRepo = *ir

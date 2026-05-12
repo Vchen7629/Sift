@@ -3,7 +3,6 @@ package views
 import (
 	"fmt"
 	"tui/internal/api"
-	"tui/internal/service"
 	"tui/internal/types"
 	"tui/internal/ui/common"
 	"tui/internal/ui/components/user_repo"
@@ -20,7 +19,7 @@ type UserRepoModel struct {
 	RepoList         *user_repo.ListModel
 	Sidebar          *user_repo.Sidebar
 	ghRepos          []api.RepoApiRes
-	indexedRepos     []types.IndexedRepo
+	indexedRepoMap   map[string]*types.IndexedRepo
 	focusedIdx       int
 	isSidebarFocused bool
 }
@@ -59,7 +58,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(msg.repoList) > 0 {
 			focused := m.ghRepos[0]
 			m.Sidebar.FocusedGHRepo = &focused
-			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[0].Name, m.indexedRepos)
+			m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[0].Name]
 			m.populateIndexRepoStatus()
 		}
 		return m, nil
@@ -69,13 +68,16 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case common.FetchIndexedRepoMsg:
-		m.indexedRepos = msg.IndexedRepos
-		m.RepoList.IndexedRepos = msg.IndexedRepos
+		m.indexedRepoMap = make(map[string]*types.IndexedRepo, len(msg.IndexedRepos))
+		for i := range msg.IndexedRepos {
+			m.indexedRepoMap[msg.IndexedRepos[i].Name] = &msg.IndexedRepos[i]
+		}
+		m.RepoList.IndexedRepoMap = m.indexedRepoMap
 		m.populateIndexRepoStatus()
 		m.ActionBar.IndexRepoApiDown = false
 
 		if len(m.ghRepos) > 0 {
-			m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
+			m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[m.focusedIdx].Name]
 		}
 		return m, nil
 
@@ -97,7 +99,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		focused := &m.ghRepos[m.focusedIdx]
 		m.Sidebar.FocusedGHRepo = focused
-		m.Sidebar.FocusedIndexedRepo = service.FindIndexedRepo(m.ghRepos[m.focusedIdx].Name, m.indexedRepos)
+		m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[m.focusedIdx].Name]
 	}
 
 	return m, tea.Batch(actionBarCmd, repoListCmd, searchBarCmd, sidebarCmd)
@@ -131,7 +133,7 @@ func (m *UserRepoModel) fetchRepoList() tea.Msg {
 
 func (m *UserRepoModel) populateIndexRepoStatus() {
 	for i, ghRepo := range m.RepoList.GHRepos {
-		if service.FindIndexedRepo(ghRepo.Name, m.RepoList.IndexedRepos) != nil {
+		if m.indexedRepoMap[ghRepo.Name] != nil {
 			m.RepoList.ProcessingStatus[i] = "Indexed"
 		}
 	}
