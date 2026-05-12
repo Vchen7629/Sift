@@ -2,45 +2,57 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"tui/internal/service"
 )
 
 type SearchReq struct {
 	UserId      string `json:"userId"`
+	RepoName 	string `json:"repoName"`
 	SearchQuery string `json:"searchQuery"`
+}
+
+type SearchRes struct {
+	IssueSources []issueSource `json:"issues"`
+	Summary		 string 	   `json:"summary"`
+}
+
+type issueSource struct {
+	Url  		   string  `json:"url"`
+	Title 		   string  `json:"title"`
+	Body 		   string  `json:"body"`
+	RelevanceScore float32 `json:"rerankScore"`
 }
 
 var searchBaseUrl = "http://localhost:8080/search"
 
-func Search(username, searchQuery string) (string, error) {
-	payload, err := service.MarshalRequestBody(username, searchQuery)
+func Search(username, repoName, searchQuery string) (SearchRes, error) {
+	payload := SearchReq{UserId: username, RepoName: repoName, SearchQuery: searchQuery}
+	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		return "", err
+		return SearchRes{}, err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/add", searchBaseUrl), "application/json", bytes.NewBuffer(payload))
+	resp, err := client.Post(fmt.Sprintf("%s/add", searchBaseUrl), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", err
+		return SearchRes{}, err
 	}
 	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
+		if err := resp.Body.Close(); err != nil {
 			log.Println("error closing search resp body")
 		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
+		return SearchRes{}, fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 
-	res, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("error reading search response: %w", err)
+	var result SearchRes
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return SearchRes{}, fmt.Errorf("error decoding search response: %w", err)
 	}
 
-	return string(res), err
+	return result, err
 }
