@@ -21,17 +21,19 @@ public class OllamaConfig {
     @Value("${ollama.port}")
     private int port;
 
-    @Bean
+    @Bean(destroyMethod = "close")
     public CloseableHttpClient ollamaHttpClient() {
         PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
             .setDefaultConnectionConfig(ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofSeconds(2))
-                .setSocketTimeout(Timeout.ofSeconds(10))
+                .setSocketTimeout(Timeout.ofSeconds(20))
                 .build())
             .build();
 
         return HttpClients.custom()
             .setConnectionManager(cm)
+            .evictExpiredConnections()
+            .evictIdleConnections(Timeout.ofSeconds(30))
             .build();
     }
 

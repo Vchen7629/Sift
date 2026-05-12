@@ -101,7 +101,7 @@ public class SearchResponseService {
             OLLAMA_MODEL,
             List.of(new OllamaMessage("user", prompt)),
             false,
-            Map.of("temperature", 0.1)
+            Map.of("temperature", 0.1, "think", false)
         );
 
         long start = System.currentTimeMillis();
@@ -122,7 +122,7 @@ public class SearchResponseService {
         long elapsed = System.currentTimeMillis() - start;
         log.debug("llm response took {}s", elapsed / 1000);
 
-        return response.message().content().replaceAll("<think>[\\s\\S]*?</think>", "").strip();
+        return response.message().content();
     }
 
     private static final int BODY_TRUNCATION_CHARS = 1200;
