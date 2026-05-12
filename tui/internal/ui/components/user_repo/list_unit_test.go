@@ -13,12 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testCtx() *context.App {
+func testListCtx() *context.App {
 	return &context.App{Username: "testuser", SelectedTheme: styles.Warm}
 }
 
 func listWithRepos(repos []api.RepoApiRes) *user_repo.ListModel {
-	m := user_repo.NewUserRepoList(testCtx())
+	m := user_repo.NewUserRepoList(testListCtx())
 	m.GHRepos = repos
 
 	return m
