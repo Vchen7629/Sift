@@ -10,6 +10,8 @@ import java.util.stream.IntStream;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PreDestroy;
+
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import ai.djl.util.StringPair;
@@ -29,6 +31,11 @@ public class RerankingService {
     private final ExecutorService rerankPool = Executors.newFixedThreadPool(
         Runtime.getRuntime().availableProcessors() / 2
     );
+
+    @PreDestroy
+    public void shutdown() {
+        rerankPool.shutdown();
+    }
 
     // this is an async method so prob have to capture scope to propagate or whatever properly
     @Observed(name="reranking.rerank.service")
