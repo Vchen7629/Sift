@@ -2,7 +2,6 @@ package app.controller;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,9 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ai.djl.translate.TranslateException;
 import app.dto.IssueSearchResponse;
-import app.repository.SearchRepository;
-import app.repository.UserRepoRepository;
-import app.service.RerankingService;
+import app.service.SearchResponseService;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -27,18 +24,10 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @Validated
 @Slf4j
 public class SearchController {
-    private final SearchRepository searchRepository;
-    private final UserRepoRepository userRepoRepository;
-    private final RerankingService rerankingService;
+    private final SearchResponseService searchResponseService;
 
-    public SearchController(
-        SearchRepository searchRepository,
-        UserRepoRepository userRepoRepository,
-        RerankingService rerankingService
-    ) {
-        this.searchRepository = searchRepository;
-        this.userRepoRepository = userRepoRepository;
-        this.rerankingService = rerankingService;
+    public SearchController(SearchResponseService searchResponseService) {
+        this.searchResponseService = searchResponseService;
     }
 
     private record searchIssueRequest(
@@ -59,22 +48,12 @@ public class SearchController {
         @RequestBody @Valid searchIssueRequest request
     ) throws TranslateException, IOException {
         log.info("recieved hybrid search request", kv("query", request.searchQuery));
-
-        Map<String, String> userRepoDependencies = userRepoRepository.listAllDependencies(request.userId);
-        if (userRepoDependencies.isEmpty()) {
-            log.debug("no dependencies found for user", kv("userId", request.userId));
+        List<IssueSearchResponse> issueCandidates = searchResponseService.generateIssueCandidates(request.userId, request.searchQuery);
+        if (issueCandidates.isEmpty()) {
             return ResponseEntity.status(404).body("No dependencies found for the userId");
         }
 
-        List<IssueSearchResponse> issueResults = searchRepository.findRelevantIssues(
-            userRepoDependencies, request.searchQuery
-        );
-
-        long start = System.currentTimeMillis();
-        List<IssueSearchResponse> rerankedResults = rerankingService.rerank(request.searchQuery, issueResults);
-        long elapsed = System.currentTimeMillis() - start;
-
-        log.debug("reranking took {} ms", elapsed);
+        List<IssueSearchResponse> rerankedResults = searchResponseService.rerankCandidates(request.searchQuery, issueCandidates);
 
         return ResponseEntity.ok().body(rerankedResults);
     }
