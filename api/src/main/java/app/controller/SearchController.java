@@ -30,15 +30,13 @@ public class SearchController {
         this.searchResponseService = searchResponseService;
     }
 
-    private record searchIssueRequest(
-        @NotBlank String userId,
-        @NotBlank String searchQuery
-    ) {}
+    private record searchIssueRequest(@NotBlank String userId, @NotBlank String searchQuery) {}
+    private record searchQueryResponse(List<IssueSearchResponse> issues, String summary) {}
     
     /**
-     * semantic search endpoint controller
-     * @param request 
-     * @return a list of the top 10 search results
+     * rag search query endpoint
+     * @param request - contains the userId and searchQuery text
+     * @return a response message json with all the sources used by the llm and the 2-3 sentence summary
      * @throws TranslateException from searcRepository.findRelevantIssues
      * @throws IOException from both userRepoRepository.findRepoDependency and searchRepository.findRelevantIssues
      */
@@ -54,7 +52,9 @@ public class SearchController {
         }
 
         List<IssueSearchResponse> rerankedResults = searchResponseService.rerankCandidates(request.searchQuery, issueCandidates);
+        
+        String finalResponse = searchResponseService.generateFinalResponse(request.searchQuery, rerankedResults);
 
-        return ResponseEntity.ok().body(rerankedResults);
+        return ResponseEntity.ok().body(new searchQueryResponse(rerankedResults, finalResponse));
     }
 }
