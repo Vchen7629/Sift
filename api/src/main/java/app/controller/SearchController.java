@@ -16,6 +16,7 @@ import app.service.SearchResponseService;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -31,7 +32,12 @@ public class SearchController {
     }
 
     private record searchIssueRequest(@NotBlank String userId, @NotBlank String searchQuery, @NotBlank String repoName) {}
-    private record searchQueryResponse(List<IssueSearchResponse> issues, String summary) {}
+    private record searchQueryResponse(
+        @NotBlank String repoName,
+        Number numSources,
+        @NotEmpty List<IssueSearchResponse> issues, 
+        @NotBlank String summary
+    ) {}
     
     /**
      * rag search query endpoint
@@ -58,6 +64,6 @@ public class SearchController {
         
         String finalResponse = searchResponseService.generateFinalResponse(request.searchQuery, rerankedResults);
 
-        return ResponseEntity.ok().body(new searchQueryResponse(rerankedResults, finalResponse));
+        return ResponseEntity.ok().body(new searchQueryResponse(request.repoName, rerankedResults.size(), rerankedResults, finalResponse));
     }
 }
