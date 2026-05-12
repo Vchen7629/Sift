@@ -52,7 +52,10 @@ public class RerankingService {
             .filter(i -> scores.get(i)[0] >= filterThreshold)
             .sorted(Comparator.comparingDouble(i -> -scores.get(i)[0]))
             .limit(10)
-            .map(i -> searchRes.get(i))
+            .map(i -> {
+                IssueSearchResponse issue = searchRes.get(i);
+                return new IssueSearchResponse(issue.url(), issue.title(), issue.body(), scores.get(i)[0]);
+            })
             .toList();
     }
 }

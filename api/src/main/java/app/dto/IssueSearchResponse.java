@@ -8,5 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 public record IssueSearchResponse (
     @NotBlank String url,
     @NotBlank String title,
-    @NotBlank String body
+    @NotBlank String body,
+    float rerankScore
 ) {};
