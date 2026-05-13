@@ -34,10 +34,10 @@ func (m *SidebarModel) Init() tea.Cmd {
 	return common.FetchIndexedRepo(m.ctx.Username)
 }
 
-func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused, isSearching bool) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if !isSidebarFocused {
+		if !isSidebarFocused || isSearching {
 			break
 		}
 		switch msg.String() {

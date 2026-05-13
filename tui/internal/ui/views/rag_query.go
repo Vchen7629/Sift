@@ -52,9 +52,9 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	actionBarCmd := m.ActionBar.Update(msg)
-	searchBarCmd := m.Searchbar.Update(msg, m.isSidebarFocused, m.SelectedRepo)
+	searchBarCmd := m.Searchbar.Update(msg, m.SelectedRepo)
 	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused)
-	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
+	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused, m.Searchbar.IsSearching())
 
 	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd, sidebarCmd)
 }

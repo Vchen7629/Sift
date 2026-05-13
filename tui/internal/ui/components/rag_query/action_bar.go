@@ -51,29 +51,22 @@ func (m *ActionBarModel) View(isRepoListFocused, isSearching bool, selectedRepo 
 }
 
 func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
-	navBtnStyle := styles.NavBtnStyle
-	navBtnTextStyle := styles.NavBtnTextStyle
-
-	if focusRepoList {
-		scrollText := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] change selected repo"))
-		switchFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] back to search"))
-		selectRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] select repo"))
-
-		return lipgloss.JoinHorizontal(lipgloss.Left, scrollText, switchFocusBtn, selectRepoBtn)
+	btn := func(text string) string {
+		return styles.NavBtnStyle.Render(styles.NavBtnTextStyle.Render(text))
 	}
 
-	if isSearching {
-		focusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] cancel search"))
-		clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search query"))
-		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
-
-		return lipgloss.JoinHorizontal(lipgloss.Left, focusBtn, clearSearchBtn, searchBtn)
+	switch {
+	case isSearching:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[/] cancel search"), btn("[esc] clear search query"), btn("[↵] search"),
+		)
+	case focusRepoList:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[/] new query"), btn("[↑↓] change selected repo"), btn("[s] back to query card"), btn("[↵] select repo"),
+		)
+	default:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[/] new query"), btn("[↑↓] scroll sources"), btn("[s] switch selected repo"), btn("[↵] open in browser"),
+		)
 	}
-
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))
-	scrollSourceBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll sources"))
-	switchFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] switch selected repo"))
-	openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, searchBtn, scrollSourceBtn, switchFocusBtn, openBrowserBtn)
 }

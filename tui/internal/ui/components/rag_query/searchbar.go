@@ -30,11 +30,7 @@ func (m *SearchBarModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *SearchBarModel) Update(msg tea.Msg, isSidebarFocused bool, selectedRepo string) tea.Cmd {
-	if isSidebarFocused {
-		return nil
-	}
-
+func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		switch msg.String() {
