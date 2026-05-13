@@ -126,9 +126,9 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case retryFetchMsg:
 		return common.FetchIndexedRepo(m.ctx.Username)
 
-	case DoneProcessingMsg:
-		m.pendingCleanup[msg.Idx] = true
-		m.ProcessingStatus[msg.Idx] = "fetching indexed repo..."
+	case doneProcessingMsg:
+		m.pendingCleanup[msg.idx] = true
+		m.ProcessingStatus[msg.idx] = "fetching indexed repo..."
 		return common.FetchIndexedRepo(m.ctx.Username)
 	}
 

@@ -27,7 +27,7 @@ func NewProgressBar(ctx *context.App, idx int, repoName string) *ProgressBarMode
 }
 
 func (m *ProgressBarModel) Init() tea.Cmd {
-	m.progress.SetWidth(m.ctx.MainWidth - 6)
+	m.progress.SetWidth(max(0, m.ctx.MainWidth-6))
 	return m.checkProgress()
 }
 
@@ -43,21 +43,19 @@ var statusProgress = map[string]float64{
 	"skipped:no dependencies found":            1.0,
 }
 
-type DoneProcessingMsg struct{ Idx int }
+type doneProcessingMsg struct{ idx int }
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.progress.SetWidth(m.ctx.MainWidth - 6) // todo: fix this, only half of the card width
+		m.progress.SetWidth(max(0, m.ctx.MainWidth-6))
 
 	case tickMsg:
 		var cmd tea.Cmd
 		if pct, ok := statusProgress[msg.status]; ok {
 			cmd = m.progress.SetPercent(pct)
 			if pct == 1.0 {
-				return tea.Batch(cmd, tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
-					return DoneProcessingMsg{Idx: m.idx}
-				}))
+				return tea.Batch(cmd, func() tea.Msg { return doneProcessingMsg{idx: m.idx} })
 			}
 		}
 		// this is to stop polling after its done processing
