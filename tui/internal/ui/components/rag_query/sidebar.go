@@ -64,6 +64,11 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused, isSearching bool) t
 
 	case common.FetchIndexedRepoMsg:
 		m.indexedRepos = msg.IndexedRepos
+		if len(m.indexedRepos) > 0 {
+			return func() tea.Msg {
+				return SelectRepoMsg{RepoName: m.indexedRepos[0].Name}
+			}
+		}
 		return nil
 	}
 	return nil
