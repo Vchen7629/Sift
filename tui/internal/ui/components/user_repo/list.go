@@ -24,10 +24,11 @@ type ListModel struct {
 	IndexedRepoMap   map[string]*types.IndexedRepo
 	FocusedIdx       int
 	ProcessingStatus map[int]string
+	FetchError       string
 	viewport         viewport.Model
 	progressBars     map[int]*ProgressBarModel
 	pendingCleanup   map[int]bool
-	FetchError       string
+	noSearchResults  bool
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
@@ -91,16 +92,13 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		repoName := fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[idx].Name)
 
 		return IndexRepo(idx, m.ctx.Username, repoName)
-
 	// response from api call
 	case indexRepoMsg:
 		pb := NewProgressBar(m.ctx, msg.idx, msg.repoName)
 		m.progressBars[msg.idx] = pb
 		return pb.Init()
-
 	case indexRepoErrMsg:
 		m.ProcessingStatus[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
-
 	// for the progress bar
 	case tickMsg:
 		statusText := "new index job request"
@@ -125,11 +123,24 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 	case retryFetchMsg:
 		return common.FetchIndexedRepo(m.ctx.Username)
-
 	case doneProcessingMsg:
 		m.pendingCleanup[msg.idx] = true
 		m.ProcessingStatus[msg.idx] = "fetching indexed repo..."
 		return common.FetchIndexedRepo(m.ctx.Username)
+
+	case searchQueryMsg:
+		if len(msg.filteredGHRepos) == 0 {
+			m.GHRepos = msg.filteredGHRepos
+			m.IndexedRepoMap = msg.filteredIndexedRepos
+			m.noSearchResults = true
+			return nil
+		}
+
+		m.GHRepos = msg.filteredGHRepos
+		m.IndexedRepoMap = msg.filteredIndexedRepos
+		m.noSearchResults = false
+
+		return nil
 	}
 
 	return nil
@@ -141,7 +152,11 @@ func (m *ListModel) View() tea.View {
 	var cards []string
 
 	if len(m.GHRepos) <= 0 {
-		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("Loading your repos..."))
+		text := "Loading your repos..."
+		if m.noSearchResults {
+			text = "No repositories match your search"
+		}
+		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render(text))
 	}
 
 	if m.FetchError != "" {

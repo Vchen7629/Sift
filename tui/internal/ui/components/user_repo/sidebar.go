@@ -20,6 +20,7 @@ type Sidebar struct {
 	FocusedGHRepo      *api.RepoApiRes
 	FocusedIndexedRepo *types.IndexedRepo
 	FocusedIdx         int
+	noSearchResults    bool
 }
 
 func NewSidebar(ctx *context.App) *Sidebar {
@@ -59,13 +60,34 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.SidebarWidth)
 		m.viewport.SetHeight(m.ctx.MainHeight - 8)
+
+	case searchQueryMsg:
+		if len(msg.filteredGHRepos) == 0 {
+			m.FocusedGHRepo = nil
+			m.FocusedIndexedRepo = nil
+			m.noSearchResults = true
+			break
+		}
+
+		filteredGHRepos := &msg.filteredGHRepos[0]
+		filteredIndexedRepo := msg.filteredIndexedRepos[msg.filteredGHRepos[0].Name]
+		m.noSearchResults = false
+
+		m.FocusedGHRepo = filteredGHRepos
+		m.FocusedIndexedRepo = filteredIndexedRepo
+
+		return nil
 	}
 	return nil
 }
 
 func (m *Sidebar) View() tea.View {
 	if m.FocusedGHRepo == nil {
-		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("loading repo info..."))
+		text := "loading repo info..."
+		if m.noSearchResults {
+			text = "No repositories match your search"
+		}
+		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render(text))
 	}
 
 	description := m.FocusedGHRepo.Description

@@ -56,6 +56,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ghRepos = msg.repoList
 		m.RepoList.GHRepos = msg.repoList
 		m.RepoList.FocusedIdx = 0
+		m.SearchBar.OriginalGHRepoList = msg.repoList
 		if len(msg.repoList) > 0 {
 			focused := m.ghRepos[0]
 			m.Sidebar.FocusedGHRepo = &focused
@@ -75,6 +76,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.RepoList.IndexedRepoMap = m.indexedRepoMap
 		m.populateIndexRepoStatus()
+		m.SearchBar.OriginalIndexedRepoList = m.indexedRepoMap
 		m.ActionBar.IndexRepoApiDown = false
 
 		if len(m.ghRepos) > 0 {
@@ -93,7 +95,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	searchBarCmd := m.SearchBar.Update(msg, m.isSidebarFocused)
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
-	if len(m.RepoList.GHRepos) > 0 {
+	if len(m.RepoList.GHRepos) > 0 && !m.SearchBar.IsSearching() {
 		newIdx := m.RepoList.FocusedIdx
 		if newIdx != m.focusedIdx {
 			m.focusedIdx = newIdx
