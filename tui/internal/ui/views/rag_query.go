@@ -12,7 +12,7 @@ import (
 type RagQueryModel struct {
 	ctx              *context.App
 	ActionBar        *rag_query.ActionBarModel
-	Searchbar        *common.SearchBarModel
+	Searchbar        *rag_query.SearchBarModel
 	ResponseDisplay  *rag_query.RagQueryResponseModel
 	Sidebar          *rag_query.SidebarModel
 	SelectedRepo     string
@@ -24,7 +24,7 @@ func NewRagQuery(ctx *context.App) *RagQueryModel {
 		ctx:             ctx,
 		SelectedRepo:    "",
 		ActionBar:       rag_query.NewActionBar(ctx),
-		Searchbar:       common.NewSearchBar(ctx, "Describe Your Issue..."),
+		Searchbar:       rag_query.NewSearchBar(ctx, "Describe Your Issue..."),
 		ResponseDisplay: rag_query.NewRagQueryResponse(ctx),
 		Sidebar:         rag_query.NewSidebar(ctx),
 	}
@@ -44,13 +44,15 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case rag_query.SelectRepoMsg:
-		m.SelectedRepo = msg.RepoName
+		selectedRepo := msg.RepoName
+
+		m.SelectedRepo = selectedRepo
 
 		return m, nil
 	}
 
 	actionBarCmd := m.ActionBar.Update(msg)
-	searchBarCmd := m.Searchbar.Update(msg, m.isSidebarFocused)
+	searchBarCmd := m.Searchbar.Update(msg, m.isSidebarFocused, m.SelectedRepo)
 	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused)
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
@@ -64,7 +66,11 @@ func (m *RagQueryModel) View() tea.View {
 
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
-	screen := lipgloss.JoinVertical(lipgloss.Top, m.ActionBar.View(m.isSidebarFocused, m.SelectedRepo).Content, mainContent)
+	screen := lipgloss.JoinVertical(
+		lipgloss.Top, 
+		m.ActionBar.View(m.isSidebarFocused, m.Searchbar.IsSearching(), m.SelectedRepo).Content, 
+		mainContent,
+	)
 
 	return tea.NewView(screen)
 }

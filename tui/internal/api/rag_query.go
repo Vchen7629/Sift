@@ -17,11 +17,11 @@ type SearchReq struct {
 type SearchRes struct {
 	RepoName 	 string 	   `json:"repoName"`
 	NumSources   int 		   `json:"numSources"`
-	IssueSources []issueSource `json:"issues"`
+	IssueSources []IssueSource `json:"issues"`
 	Summary		 string 	   `json:"summary"`
 }
 
-type issueSource struct {
+type IssueSource struct {
 	Url  		   string  `json:"url"`
 	Title 		   string  `json:"title"`
 	Body 		   string  `json:"body"`
@@ -31,13 +31,15 @@ type issueSource struct {
 var searchBaseUrl = "http://localhost:8080/search"
 
 func Search(username, repoName, searchQuery string) (SearchRes, error) {
-	payload := SearchReq{UserId: username, RepoName: repoName, SearchQuery: searchQuery}
+	repoNameFmt := fmt.Sprintf("%s/%s", username, repoName)
+
+	payload := SearchReq{UserId: username, RepoName: repoNameFmt, SearchQuery: searchQuery}
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return SearchRes{}, err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/add", searchBaseUrl), "application/json", bytes.NewBuffer(jsonData))
+	resp, err := client.Post(fmt.Sprintf("%s/new", searchBaseUrl), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return SearchRes{}, err
 	}

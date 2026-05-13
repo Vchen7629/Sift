@@ -10,7 +10,7 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx *context.App
+	ctx 		*context.App
 }
 
 type ToggleFocusMsg struct{}
@@ -34,7 +34,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	return nil
 }
 
-func (m *ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.View {
+func (m *ActionBarModel) View(isRepoListFocused, isSearching bool, selectedRepo string) tea.View {
 	selectedRepoName := fmt.Sprintf("Selected Repo: %s", selectedRepo)
 	if selectedRepo == "" {
 		selectedRepoName = "No Repo Selected"
@@ -46,11 +46,11 @@ func (m *ActionBarModel) View(isRepoListFocused bool, selectedRepo string) tea.V
 
 	return tea.NewView(styles.ActionBarBorder.
 		Width(m.ctx.WindowWidth - 2).
-		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused))),
+		Render(lipgloss.JoinHorizontal(lipgloss.Left, selectedRepoText, m.actionBarBtns(isRepoListFocused, isSearching))),
 	)
 }
 
-func (m *ActionBarModel) actionBarBtns(focusRepoList bool) string {
+func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
 	navBtnStyle := styles.NavBtnStyle
 	navBtnTextStyle := styles.NavBtnTextStyle
 
@@ -60,6 +60,14 @@ func (m *ActionBarModel) actionBarBtns(focusRepoList bool) string {
 		selectRepoBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] select repo"))
 
 		return lipgloss.JoinHorizontal(lipgloss.Left, scrollText, switchFocusBtn, selectRepoBtn)
+	}
+
+	if isSearching {
+		focusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] cancel search"))
+		clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search query"))
+		searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] search"))
+
+		return lipgloss.JoinHorizontal(lipgloss.Left, focusBtn, clearSearchBtn, searchBtn)
 	}
 
 	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] new query"))

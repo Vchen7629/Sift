@@ -3,6 +3,7 @@ package rag_query
 import (
 	"fmt"
 	"strconv"
+	"tui/internal/api"
 	"tui/internal/service"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
@@ -13,41 +14,17 @@ import (
 )
 
 type RagQueryResponseModel struct {
-	ctx      *context.App
-	answer   answerModel
-	focused  source
-	viewport viewport.Model
-}
-
-type answerModel struct {
-	dependencyName, text string
-	numSources           int
-	sources              []source
-}
-
-type source struct {
-	id                   int
-	link, version, label string
+	ctx      	*context.App
+	queryRes   	api.SearchRes
+	focusedIdx  int
+	viewport 	viewport.Model
 }
 
 func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
 	return &RagQueryResponseModel{
-		ctx: ctx,
-		answer: answerModel{
-			dependencyName: "Sift",
-			text:           "RAG pipeline for semantic search over GitHub issues. Built with Java, Spring Boot, and OpenSearch.",
-			numSources:     7,
-			sources: []source{
-				{id: 0, link: "github.com/idk/axios", version: "v1.7.2", label: "issue"},
-				{id: 1, link: "github.com/idk/lodash", version: "v4.17.21", label: "changelog"},
-				{id: 2, link: "github.com/idk/moment", version: "v2.29.4", label: "issue"},
-				{id: 3, link: "github.com/idk/react-query", version: "v5.28.0", label: "issue"},
-				{id: 4, link: "github.com/idk/classnames", version: "v2.3.2", label: "issue"},
-				{id: 5, link: "github.com/idk/prop-types", version: "v15.8.1", label: "issue"},
-				{id: 6, link: "github.com/idk/redux", version: "v4.2.1", label: "changelog"},
-			},
-		},
-		focused: source{id: 0, link: "github.com/idk/axios", version: "v1.7.2", label: "issue"},
+		ctx: 		ctx,
+		queryRes: 	api.SearchRes{},
+		focusedIdx: 0,
 	}
 }
 
@@ -62,18 +39,24 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 			break
 		}
 
-		cardHeight := lipgloss.Height(m.sourceCard(m.focused))
-
 		switch msg.String() {
 		case "up":
-			service.NavigateUp(&m.focused.id, &m.viewport, cardHeight)
+			service.NavigateUp(&m.focusedIdx, &m.viewport, 1)
 		case "down":
-			service.NavigateDown(&m.focused.id, len(m.answer.sources), &m.viewport, cardHeight)
+			service.NavigateDown(&m.focusedIdx, len(m.queryRes.IssueSources), &m.viewport, 1)
 		}
 
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth - 2)
 		m.viewport.SetHeight(4)
+
+	case NewSearchQueryMsg:
+		m.queryRes = msg.Res
+
+		return nil
+
+	case NewSearchQueryErr:
+		return nil
 	}
 
 	return nil
@@ -86,10 +69,22 @@ func (m *RagQueryResponseModel) View() tea.View {
 	outerBorder := lipgloss.NewStyle().Width(mainWidth-2).Padding(0, 1).
 		Border(lipgloss.DoubleBorder()).BorderForeground(m.ctx.SelectedTheme.BorderFocused)
 
+	if len(m.queryRes.IssueSources) == 0 {
+		innerWidth := mainWidth - 4
+		placeholder := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("240")).
+			Render("Enter a query to search across your GitHub issues")
+
+		centered := lipgloss.Place(innerWidth, 10, lipgloss.Center, lipgloss.Center, placeholder)
+
+		box := outerBorder.Height(10).Render(centered)
+		return tea.NewView(contentPos.Render(box))
+	}
+
 	answerText := lipgloss.NewStyle().
-		PaddingBottom(1).Width(mainWidth).MaxHeight(6).
+		MarginBottom(2).Width(mainWidth - 6).MaxHeight(6).
 		BorderStyle(lipgloss.NormalBorder()).BorderBottom(true).BorderForeground(styles.TextDim).
-		Render(m.answer.text)
+		Render(m.queryRes.Summary)
 
 	content := lipgloss.JoinVertical(lipgloss.Top, m.header(), answerText, m.source().Content)
 
@@ -98,8 +93,8 @@ func (m *RagQueryResponseModel) View() tea.View {
 
 func (m *RagQueryResponseModel) header() string {
 	cardTitle := lipgloss.NewStyle().Bold(true).MarginRight(3).Render("answer")
-	name := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).MarginRight(1).Render(m.answer.dependencyName)
-	numSources := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(fmt.Sprintf("· %d sources", m.answer.numSources))
+	name := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).MarginRight(1).Render(m.queryRes.RepoName)
+	numSources := lipgloss.NewStyle().Foreground(styles.TextMuted).Render(fmt.Sprintf("· %d sources", m.queryRes.NumSources))
 
 	padding := lipgloss.NewStyle().PaddingBottom(1)
 
@@ -109,8 +104,8 @@ func (m *RagQueryResponseModel) header() string {
 func (m *RagQueryResponseModel) source() tea.View {
 	var sources []string
 
-	for _, dependency := range m.answer.sources {
-		sourceCard := m.sourceCard(dependency)
+	for i, dependency := range m.queryRes.IssueSources {
+		sourceCard := m.sourceCard(i, dependency)
 
 		sources = append(sources, sourceCard)
 	}
@@ -119,19 +114,17 @@ func (m *RagQueryResponseModel) source() tea.View {
 	return tea.NewView(m.viewport.View())
 }
 
-func (m *RagQueryResponseModel) sourceCard(dependency source) string {
+func (m *RagQueryResponseModel) sourceCard(idx int, dependency api.IssueSource) string {
 	textColor := m.ctx.SelectedTheme.AccentMid
 
-	if m.focused.id == dependency.id {
+	if m.focusedIdx == idx {
 		textColor = m.ctx.SelectedTheme.AccentBright
 	}
 
 	dependencyText := lipgloss.NewStyle().Foreground(textColor)
 
-	id := lipgloss.NewStyle().PaddingRight(2).Render(strconv.Itoa(dependency.id + 1))
-	name := lipgloss.NewStyle().Width(45).Render(dependency.link)
-	version := lipgloss.NewStyle().Width(10).Render(dependency.version)
-	label := lipgloss.NewStyle().Render(fmt.Sprintf("· %s", dependency.label))
+	id := lipgloss.NewStyle().PaddingRight(2).Render(strconv.Itoa(idx + 1))
+	name := lipgloss.NewStyle().Render(dependency.Url)
 
-	return dependencyText.Render(lipgloss.JoinHorizontal(lipgloss.Left, id, name, version, label))
+	return dependencyText.Render(lipgloss.JoinHorizontal(lipgloss.Left, id, name))
 }

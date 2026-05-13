@@ -1,4 +1,4 @@
-package common
+package user_repo
 
 import (
 	"tui/internal/ui/context"
