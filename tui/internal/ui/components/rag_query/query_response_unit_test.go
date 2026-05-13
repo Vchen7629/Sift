@@ -8,6 +8,7 @@ import (
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
+	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 )
@@ -77,4 +78,55 @@ func TestQueryResponse_NewSearchQueryMsg(t *testing.T) {
 	m.Update(NewSearchQueryMsg{Res: res}, false)
 
 	assert.Equal(t, res, m.queryRes)
+}
+
+func TestQueryResponse_UpdateMessages(t *testing.T) {
+	tt := []struct {
+		name         string
+		msg          tea.Msg
+		setupLoading bool
+		wantLoading  bool
+		wantCmd      bool
+		wantQueryRes *api.SearchRes
+	}{
+		{
+			name:        "searchQueryLoadingMsg sets loading and starts spinner",
+			msg:         searchQueryLoadingMsg{},
+			wantLoading: true,
+			wantCmd:     true,
+		},
+		{
+			name:    "spinner.TickMsg returns tick cmd",
+			msg:     spinner.TickMsg{},
+			wantCmd: true,
+		},
+		{
+			name:         "NewSearchQueryMsg clears loading and sets result",
+			msg:          NewSearchQueryMsg{Res: api.SearchRes{RepoName: "repo"}},
+			setupLoading: true,
+			wantLoading:  false,
+			wantQueryRes: &api.SearchRes{RepoName: "repo"},
+		},
+		{
+			name:         "NewSearchQueryErr clears loading and sets error",
+			msg:          NewSearchQueryErr{RepoName: "repo", Err: "failed"},
+			setupLoading: true,
+			wantLoading:  false,
+			wantQueryRes: &api.SearchRes{RepoName: "repo", Summary: "failed"},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			m := NewRagQueryResponse(queryResponseCtx())
+			m.loadingSearchQuery = tc.setupLoading
+			cmd := m.Update(tc.msg, false)
+
+			assert.Equal(t, tc.wantLoading, m.loadingSearchQuery)
+			assert.Equal(t, tc.wantCmd, cmd != nil)
+			if tc.wantQueryRes != nil {
+				assert.Equal(t, *tc.wantQueryRes, m.queryRes)
+			}
+		})
+	}
 }

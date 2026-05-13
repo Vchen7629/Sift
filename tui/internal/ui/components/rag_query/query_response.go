@@ -8,23 +8,30 @@ import (
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
+	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
 type RagQueryResponseModel struct {
-	ctx        *context.App
-	queryRes   api.SearchRes
-	focusedIdx int
-	viewport   viewport.Model
+	ctx                *context.App
+	queryRes           api.SearchRes
+	focusedIdx         int
+	viewport           viewport.Model
+	loadingSearchQuery bool
+	spinner            spinner.Model
 }
 
 func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
+	s := spinner.New()
+	s.Spinner = spinner.Points
+
 	return &RagQueryResponseModel{
 		ctx:        ctx,
 		queryRes:   api.SearchRes{},
 		focusedIdx: 0,
+		spinner:    s,
 	}
 }
 
@@ -50,12 +57,29 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 		m.viewport.SetWidth(max(0, m.ctx.MainWidth-2))
 		m.viewport.SetHeight(4)
 
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+
+		return cmd
+	case searchQueryLoadingMsg:
+		m.loadingSearchQuery = true
+
+		return m.spinner.Tick
 	case NewSearchQueryMsg:
+		m.loadingSearchQuery = false
 		m.queryRes = msg.Res
 
 		return nil
-
 	case NewSearchQueryErr:
+		m.loadingSearchQuery = false
+		m.queryRes = api.SearchRes{
+			RepoName:     msg.RepoName,
+			NumSources:   0,
+			IssueSources: nil,
+			Summary:      msg.Err,
+		}
+
 		return nil
 	}
 
@@ -69,26 +93,36 @@ func (m *RagQueryResponseModel) View() tea.View {
 	outerBorder := lipgloss.NewStyle().Width(mainWidth-2).Padding(0, 1).
 		Border(lipgloss.DoubleBorder()).BorderForeground(m.ctx.SelectedTheme.BorderFocused)
 
-	if len(m.queryRes.IssueSources) == 0 {
+	switch {
+	case m.loadingSearchQuery:
+		m.spinner.Style = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
+
+		return tea.NewView(placeholderComponent(
+			mainWidth, "Searching relevant issues "+m.spinner.View(), outerBorder, contentPos,
+		))
+
+	case len(m.queryRes.IssueSources) == 0 && m.queryRes.Summary != "No relevant issues were found for your query.":
+		return tea.NewView(placeholderComponent(
+			mainWidth, "Enter a query to search across your GitHub issues", outerBorder, contentPos,
+		))		
+	case m.queryRes.Summary == "No relevant issues were found for your query.":
 		innerWidth := mainWidth - 4
-		placeholder := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).
-			Render("Enter a query to search across your GitHub issues")
+		centeredText := lipgloss.Place(innerWidth, 6, lipgloss.Center, lipgloss.Center,
+			lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(m.queryRes.Summary),
+		)
+		content := lipgloss.JoinVertical(lipgloss.Top, m.header(), centeredText)
 
-		centered := lipgloss.Place(innerWidth, 10, lipgloss.Center, lipgloss.Center, placeholder)
+		return tea.NewView(contentPos.Render(outerBorder.Render(content)))
+	default:
+		answerText := lipgloss.NewStyle().
+			MarginBottom(2).Width(mainWidth - 6).MaxHeight(6).
+			BorderStyle(lipgloss.NormalBorder()).BorderBottom(true).BorderForeground(styles.TextDim).
+			Render(m.queryRes.Summary)
 
-		box := outerBorder.Height(10).Render(centered)
-		return tea.NewView(contentPos.Render(box))
+		content := lipgloss.JoinVertical(lipgloss.Top, m.header(), answerText, m.source().Content)
+
+		return tea.NewView(contentPos.Render(outerBorder.Render(content)))
 	}
-
-	answerText := lipgloss.NewStyle().
-		MarginBottom(2).Width(mainWidth - 6).MaxHeight(6).
-		BorderStyle(lipgloss.NormalBorder()).BorderBottom(true).BorderForeground(styles.TextDim).
-		Render(m.queryRes.Summary)
-
-	content := lipgloss.JoinVertical(lipgloss.Top, m.header(), answerText, m.source().Content)
-
-	return tea.NewView(contentPos.Render(outerBorder.Render(content)))
 }
 
 func (m *RagQueryResponseModel) header() string {
@@ -123,4 +157,15 @@ func (m *RagQueryResponseModel) sourceCard(idx int, dependency api.IssueSource) 
 	name := lipgloss.NewStyle().Render(dependency.Url)
 
 	return dependencyText.Render(lipgloss.JoinHorizontal(lipgloss.Left, id, name))
+}
+
+// placeholder component when no search query/loading
+func placeholderComponent(mainWidth int, text string, outerBorder, contentPos lipgloss.Style) string {
+	innerWidth := mainWidth - 4
+	placeholder := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(text)
+
+	centered := lipgloss.Place(innerWidth, 10, lipgloss.Center, lipgloss.Center, placeholder)
+
+	box := outerBorder.Height(10).Render(centered)
+	return contentPos.Render(box)
 }

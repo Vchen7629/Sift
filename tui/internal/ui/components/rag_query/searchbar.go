@@ -16,6 +16,8 @@ func NewSearchBar(ctx *context.App, placeholderText string) *SearchBarModel {
 	return &SearchBarModel{SearchBar: common.NewSearchBar(ctx, placeholderText)}
 }
 
+type searchQueryLoadingMsg struct{ name string }
+
 func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
@@ -32,8 +34,9 @@ func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 			if !m.IsFocused || selectedRepo == "" {
 				return nil
 			}
+			cmd := m.newSearchQuery(selectedRepo)
 
-			return m.newSearchQuery(selectedRepo)
+			return tea.Batch(cmd, func() tea.Msg { return searchQueryLoadingMsg{name: selectedRepo} })
 		}
 	case tea.WindowSizeMsg:
 		m.TextInput.SetWidth(m.Ctx.MainWidth - 10)
