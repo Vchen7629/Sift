@@ -14,16 +14,16 @@ import (
 )
 
 type RagQueryResponseModel struct {
-	ctx      	*context.App
-	queryRes   	api.SearchRes
-	focusedIdx  int
-	viewport 	viewport.Model
+	ctx        *context.App
+	queryRes   api.SearchRes
+	focusedIdx int
+	viewport   viewport.Model
 }
 
 func NewRagQueryResponse(ctx *context.App) *RagQueryResponseModel {
 	return &RagQueryResponseModel{
-		ctx: 		ctx,
-		queryRes: 	api.SearchRes{},
+		ctx:        ctx,
+		queryRes:   api.SearchRes{},
 		focusedIdx: 0,
 	}
 }

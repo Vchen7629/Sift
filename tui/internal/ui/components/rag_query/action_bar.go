@@ -10,7 +10,7 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx 		*context.App
+	ctx *context.App
 }
 
 type ToggleFocusMsg struct{}
@@ -51,22 +51,20 @@ func (m *ActionBarModel) View(isRepoListFocused, isSearching bool, selectedRepo 
 }
 
 func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
-	btn := func(text string) string {
-		return styles.NavBtnStyle.Render(styles.NavBtnTextStyle.Render(text))
-	}
-
 	switch {
 	case focusRepoList:
-		return lipgloss.JoinHorizontal(lipgloss.Left, 
-			btn("[/] new query"), btn("[↑↓] change selected repo"), btn("[s] back to query card"), btn("[↵] select repo"),
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			styles.NavBtn("[/] new query"), styles.NavBtn("[↑↓] change selected repo"), styles.NavBtn("[s] back to query card"),
+			styles.NavBtn("[↵] select repo"),
 		)
 	case isSearching:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
-			btn("[/] cancel search"), btn("[esc] clear search query"), btn("[↵] search"),
+			styles.NavBtn("[/] cancel search"), styles.NavBtn("[esc] clear search query"), styles.NavBtn("[↵] search"),
 		)
 	default:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
-			btn("[/] new query"), btn("[↑↓] scroll sources"), btn("[s] switch selected repo"), btn("[↵] open in browser"),
+			styles.NavBtn("[/] new query"), styles.NavBtn("[↑↓] scroll sources"), styles.NavBtn("[s] switch selected repo"),
+			styles.NavBtn("[↵] open in browser"),
 		)
 	}
 }

@@ -18,3 +18,7 @@ func FocusColor(theme Theme, idx, focusedIdx int) color.Color {
 	}
 	return theme.AccentMid
 }
+
+func NavBtn(text string) string {
+	return NavBtnStyle.Render(NavBtnTextStyle.Render(text))
+}

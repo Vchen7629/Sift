@@ -10,7 +10,7 @@ import (
 )
 
 type SearchBar struct {
-	Ctx		  *context.App
+	Ctx       *context.App
 	TextInput textinput.Model
 	IsFocused bool
 }
@@ -54,7 +54,7 @@ func (m *SearchBar) View() string {
 	m.TextInput.SetStyles(s)
 
 	borderColor := styles.Divider
-	if m.IsFocused{
+	if m.IsFocused {
 		borderColor = m.Ctx.SelectedTheme.AccentMid
 	}
 

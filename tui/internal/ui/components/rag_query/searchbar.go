@@ -4,7 +4,7 @@ import (
 	"tui/internal/api"
 	"tui/internal/ui/common"
 	"tui/internal/ui/context"
-	
+
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -42,8 +42,8 @@ func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 	return m.UpdateInput(msg)
 }
 
-type NewSearchQueryMsg struct { Res api.SearchRes }
-type NewSearchQueryErr struct { RepoName, Err string }
+type NewSearchQueryMsg struct{ Res api.SearchRes }
+type NewSearchQueryErr struct{ RepoName, Err string }
 
 func (m *SearchBarModel) newSearchQuery(repoName string) tea.Cmd {
 	return func() tea.Msg {

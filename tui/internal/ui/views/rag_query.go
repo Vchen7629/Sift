@@ -67,8 +67,8 @@ func (m *RagQueryModel) View() tea.View {
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, divider, m.Sidebar.View().Content)
 
 	screen := lipgloss.JoinVertical(
-		lipgloss.Top, 
-		m.ActionBar.View(m.isSidebarFocused, m.Searchbar.IsSearching(), m.SelectedRepo).Content, 
+		lipgloss.Top,
+		m.ActionBar.View(m.isSidebarFocused, m.Searchbar.IsSearching(), m.SelectedRepo).Content,
 		mainContent,
 	)
 

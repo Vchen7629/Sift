@@ -25,7 +25,7 @@ func TestSidebarUpdate_SidebarFocusedGuard(t *testing.T) {
 	tt := []struct {
 		name             string
 		isSidebarFocused bool
-		isSearching	     bool
+		isSearching      bool
 		key              rune
 		wantIdx          int
 	}{

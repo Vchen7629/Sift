@@ -10,21 +10,21 @@ import (
 
 type SearchReq struct {
 	UserId      string `json:"userId"`
-	RepoName 	string `json:"repoName"`
+	RepoName    string `json:"repoName"`
 	SearchQuery string `json:"searchQuery"`
 }
 
 type SearchRes struct {
-	RepoName 	 string 	   `json:"repoName"`
-	NumSources   int 		   `json:"numSources"`
+	RepoName     string        `json:"repoName"`
+	NumSources   int           `json:"numSources"`
 	IssueSources []IssueSource `json:"issues"`
-	Summary		 string 	   `json:"summary"`
+	Summary      string        `json:"summary"`
 }
 
 type IssueSource struct {
-	Url  		   string  `json:"url"`
-	Title 		   string  `json:"title"`
-	Body 		   string  `json:"body"`
+	Url            string  `json:"url"`
+	Title          string  `json:"title"`
+	Body           string  `json:"body"`
 	RelevanceScore float32 `json:"rerankScore"`
 }
 
