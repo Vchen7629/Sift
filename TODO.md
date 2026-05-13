@@ -4,7 +4,7 @@
 - [ ] Support for Python dependency parsing
 - [ ] Support for JS/TS dependency parsing
 - [ ] Support for Java dependency parsing (maybe depending on how cancer maven is to parse)
-- [ ] Golang TUI client with Bubbletea library (poggers)
+- [x] Golang TUI client with Bubbletea library (poggers)
       - show depency status like deprecated or not found
       - Could be cool to display text that show that the search results are strong match vs weak match
 - [x] add a last updated field to user Repo
@@ -23,6 +23,7 @@
 - [ ] look into parallelizing Embedding cpu processing since it takes 64665ms (64.665s) to create text embeddings for 3128 issues
 - [ ] Look into parallelizing Fetch issue query page calls into seperate virtual threads to speed up I/O bottleneck even more
 - [ ] could look into rate limiting the public api
+- [ ] replace tui get status with websockets
 
 ### Edge cases
 - Detect if the dependency repo is deprecated/archived and save it in the database as a "status field"
