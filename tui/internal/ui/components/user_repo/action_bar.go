@@ -1,6 +1,7 @@
 package user_repo
 
 import (
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -21,7 +22,6 @@ func (m *ActionBarModel) Init() tea.Cmd {
 	return nil
 }
 
-type ToggleFocusMsg struct{}
 type IndexRepoRequestMsg struct{}
 
 func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
@@ -29,7 +29,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "s":
-			return func() tea.Msg { return ToggleFocusMsg{} }
+			return func() tea.Msg { return common.ToggleFocusMsg{} }
 		case "r":
 			return func() tea.Msg { return IndexRepoRequestMsg{} }
 		}

@@ -4,6 +4,7 @@ package user_repo_test
 
 import (
 	"testing"
+	"tui/internal/ui/common"
 	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
@@ -24,7 +25,7 @@ func TestActionBar_Update(t *testing.T) {
 		key         rune
 		expectedMsg tea.Msg
 	}{
-		{"pressing s returns ToggleFocusMsg", 's', user_repo.ToggleFocusMsg{}},
+		{"pressing s returns ToggleFocusMsg", 's', common.ToggleFocusMsg{}},
 		{"pressing r returns IndexRepoRequestMsg", 'r', user_repo.IndexRepoRequestMsg{}},
 		{"pressing other key (enter) returns nil", tea.KeyEnter, nil},
 	}

@@ -37,7 +37,7 @@ func (m *RagQueryModel) Init() tea.Cmd {
 // user actions
 func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case rag_query.ToggleFocusMsg:
+	case common.ToggleFocusMsg:
 		if !m.Searchbar.IsSearching() {
 			m.isSidebarFocused = !m.isSidebarFocused
 		}

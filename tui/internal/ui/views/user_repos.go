@@ -46,7 +46,7 @@ func (m *UserRepoModel) Init() tea.Cmd {
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case user_repo.ToggleFocusMsg:
+	case common.ToggleFocusMsg:
 		if !m.SearchBar.IsSearching() {
 			m.isSidebarFocused = !m.isSidebarFocused
 		}

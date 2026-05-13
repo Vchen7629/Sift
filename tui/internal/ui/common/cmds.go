@@ -7,6 +7,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+type ToggleFocusMsg struct{}
+
 type FetchIndexedRepoMsg struct{ IndexedRepos []types.IndexedRepo }
 type FetchIndexedRepoErr struct{ Err error }
 

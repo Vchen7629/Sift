@@ -2,6 +2,7 @@ package rag_query
 
 import (
 	"fmt"
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -12,8 +13,6 @@ import (
 type ActionBarModel struct {
 	ctx *context.App
 }
-
-type ToggleFocusMsg struct{}
 
 func NewActionBar(ctx *context.App) *ActionBarModel {
 	return &ActionBarModel{ctx: ctx}
@@ -28,7 +27,7 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyPressMsg:
 		switch msg.String() {
 		case "s":
-			return func() tea.Msg { return ToggleFocusMsg{} }
+			return func() tea.Msg { return common.ToggleFocusMsg{} }
 		}
 	}
 	return nil
