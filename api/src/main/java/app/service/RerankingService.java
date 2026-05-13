@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PreDestroy;
-
+import jakarta.validation.constraints.NotEmpty;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import ai.djl.util.StringPair;
@@ -63,6 +63,19 @@ public class RerankingService {
                 IssueSearchResponse issue = searchRes.get(i);
                 return new IssueSearchResponse(issue.url(), issue.title(), issue.body(), scores.get(i)[0]);
             })
+            .toList();
+    }
+
+    private static final float LLM_RELEVANCE_THRESHOLD = 0.3f;
+
+    /**
+     * refilter the reranked issues before passing into llm prompt
+     * @param rerankedIssues
+     * @return
+     */
+    public static List<IssueSearchResponse> refilterRelevance(@NotEmpty List<IssueSearchResponse> rerankedIssues) {
+        return rerankedIssues.stream()
+            .filter(i -> i.rerankScore() >= LLM_RELEVANCE_THRESHOLD)
             .toList();
     }
 }

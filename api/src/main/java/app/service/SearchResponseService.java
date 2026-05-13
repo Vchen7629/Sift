@@ -85,18 +85,14 @@ public class SearchResponseService {
 
     @Observed(name = "searchresponse.generatefinalresponse.service")
     public String generateFinalResponse(@NotBlank String searchQuery, @NotEmpty List<IssueSearchResponse> rerankedIssues) {
-        List<IssueSearchResponse> relevantIssues = rerankedIssues.stream()
-            .filter(i -> i.rerankScore() >= LLM_RELEVANCE_THRESHOLD)
-            .toList();
-
-        if (relevantIssues.isEmpty()) {
+        if (rerankedIssues.isEmpty()) {
             log.debug("no issues above relevance threshold, skipping llm call",
                 kv("threshold", LLM_RELEVANCE_THRESHOLD),
                 kv("maxScore", rerankedIssues.stream().mapToDouble(IssueSearchResponse::rerankScore).max().orElse(0)));
-            return "I don't know, the retrieved issues describe similar symptoms but contain no stated fix.";
+            return "No relevant issues were found for your query.";
         }
         
-        String prompt = buildLLMPrompt(searchQuery, relevantIssues);
+        String prompt = buildLLMPrompt(searchQuery, rerankedIssues);
         OllamaChatRequest request = new OllamaChatRequest(
             OLLAMA_MODEL,
             List.of(new OllamaMessage("user", prompt)),
@@ -130,7 +126,7 @@ public class SearchResponseService {
     private String buildLLMPrompt(String query, List<IssueSearchResponse> issues) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("A developer upgraded a library and hit this problem:\n");
+        sb.append("A developer has this problem:\n");
         sb.append(query).append("\n\n");
         sb.append("Relevant GitHub issues:\n\n");
 
@@ -140,14 +136,14 @@ public class SearchResponseService {
                 ? issue.body().substring(0, BODY_TRUNCATION_CHARS) + "..."
                 : issue.body();
 
-            sb.append("Issue ").append(i + 1).append(": ").append(issue.title()).append("\n");
+            sb.append("Issue ").append(i + 1).append(" (relevance: ").append(String.format("%.2f", issue.rerankScore())).append("): ").append(issue.title()).append("\n");
             sb.append(body).append("\n");
             sb.append("---\n\n");
         }
 
-        sb.append("Based only on the issues above, explain what is likely causing the problem and what the developer should do.\n");        
-        sb.append("Write as direct advice in 2-3 sentences. Do not use any knowledge outside the issues above.\n");                         
-        sb.append("If the issues do not contain enough information to give a specific cause or fix, say: \"I don't know, the retrieved issues describe similar symptoms but contain no stated fix.\"");   
+        sb.append("Based only on the issues above, directly answer the developer's question. Address them directly using 'you'.\n");
+        sb.append("Prioritize issues with higher relevance scores but do not mention scores in your response. Write as direct advice in 2-3 sentences. Do not use any knowledge outside the issues above.\n");
+        sb.append("If the issues do not contain enough information to give a specific cause or fix, say: \"I don't know, the retrieved issues describe similar symptoms but contain no stated fix.\"");
 
         return sb.toString();
     }

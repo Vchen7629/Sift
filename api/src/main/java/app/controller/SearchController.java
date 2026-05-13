@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ai.djl.translate.TranslateException;
 import app.dto.IssueSearchResponse;
+import app.service.RerankingService;
 import app.service.SearchResponseService;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.validation.Valid;
@@ -61,9 +62,14 @@ public class SearchController {
         }
 
         List<IssueSearchResponse> rerankedResults = searchResponseService.rerankCandidates(request.searchQuery, issueCandidates);
+        List<IssueSearchResponse> refilteredResults = RerankingService.refilterRelevance(rerankedResults);
+        if (refilteredResults.size() == 0) {
+            log.debug("0 issue results after refiltering");
+            return ResponseEntity.ok().body(new searchQueryResponse(request.repoName, refilteredResults.size(), refilteredResults, "No relevant issues were found for your query."));
+        }
         
-        String finalResponse = searchResponseService.generateFinalResponse(request.searchQuery, rerankedResults);
+        String finalResponse = searchResponseService.generateFinalResponse(request.searchQuery, refilteredResults);
 
-        return ResponseEntity.ok().body(new searchQueryResponse(request.repoName, rerankedResults.size(), rerankedResults, finalResponse));
+        return ResponseEntity.ok().body(new searchQueryResponse(request.repoName, refilteredResults.size(), refilteredResults, finalResponse));
     }
 }
