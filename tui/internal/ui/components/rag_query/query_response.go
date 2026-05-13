@@ -47,7 +47,7 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 		}
 
 	case tea.WindowSizeMsg:
-		m.viewport.SetWidth(m.ctx.MainWidth - 2)
+		m.viewport.SetWidth(max(0, m.ctx.MainWidth-2))
 		m.viewport.SetHeight(4)
 
 	case NewSearchQueryMsg:
