@@ -25,20 +25,23 @@ func TestSidebarUpdate_SidebarFocusedGuard(t *testing.T) {
 	tt := []struct {
 		name             string
 		isSidebarFocused bool
+		isSearching	     bool
 		key              rune
 		wantIdx          int
 	}{
-		{"down blocked when not focused", false, tea.KeyDown, 0},
-		{"up blocked when not focused", false, tea.KeyUp, 0},
-		{"down works when focused", true, tea.KeyDown, 1},
+		{"down blocked when not focused", false, false, tea.KeyDown, 0},
+		{"up blocked when not focused", false, false, tea.KeyUp, 0},
+		{"down blocked when searching", true, true, tea.KeyDown, 0},
+		{"up blocked when searching", true, true, tea.KeyUp, 0},
+		{"down works when focused and not searching", true, false, tea.KeyDown, 1},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewSidebar(testCtx())
 
-			m.Update(common.FetchIndexedRepoMsg{IndexedRepos: fakeIndexedRepos}, false)
-			m.Update(tea.KeyPressMsg{Code: tc.key}, tc.isSidebarFocused)
+			m.Update(common.FetchIndexedRepoMsg{IndexedRepos: fakeIndexedRepos}, false, tc.isSearching)
+			m.Update(tea.KeyPressMsg{Code: tc.key}, tc.isSidebarFocused, tc.isSearching)
 
 			assert.Equal(t, m.focusedIdx, tc.wantIdx)
 		})
@@ -58,8 +61,8 @@ func TestSidebarUpdate_Enter(t *testing.T) {
 	for _, tc := range tc {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewSidebar(testCtx())
-			m.Update(common.FetchIndexedRepoMsg{IndexedRepos: tc.repos}, false)
-			cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter}, true)
+			m.Update(common.FetchIndexedRepoMsg{IndexedRepos: tc.repos}, false, false)
+			cmd := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter}, true, false)
 
 			if tc.wantCmd {
 				assert.NotNil(t, cmd)

@@ -56,13 +56,13 @@ func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
 	}
 
 	switch {
+	case focusRepoList:
+		return lipgloss.JoinHorizontal(lipgloss.Left, 
+			btn("[/] new query"), btn("[↑↓] change selected repo"), btn("[s] back to query card"), btn("[↵] select repo"),
+		)
 	case isSearching:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
 			btn("[/] cancel search"), btn("[esc] clear search query"), btn("[↵] search"),
-		)
-	case focusRepoList:
-		return lipgloss.JoinHorizontal(lipgloss.Left,
-			btn("[/] new query"), btn("[↑↓] change selected repo"), btn("[s] back to query card"), btn("[↵] select repo"),
 		)
 	default:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
