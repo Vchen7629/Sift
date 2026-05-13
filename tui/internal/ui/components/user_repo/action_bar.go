@@ -52,26 +52,22 @@ func (m *ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 }
 
 func (m *ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {
-	navBtnStyle := styles.NavBtnStyle
-	navBtnTextStyle := styles.NavBtnTextStyle
-
-	if isSidebarFocused {
-		navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll dependencies"))
-		swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus repo list"))
-		openBrowserBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↵] open in browser"))
-
-		return lipgloss.JoinHorizontal(lipgloss.Left, navBtn, swapFocusBtn, openBrowserBtn)
+	btn := func(text string) string {
+		return styles.NavBtnStyle.Render(styles.NavBtnTextStyle.Render(text))
 	}
 
-	navBtn := navBtnStyle.Render(navBtnTextStyle.Render("[↑↓] scroll repos"))
-	searchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[/] search repos"))
-	clearSearchBtn := navBtnStyle.Render(navBtnTextStyle.Render("[esc] clear search"))
-	swapFocusBtn := navBtnStyle.Render(navBtnTextStyle.Render("[s] focus sidebar"))
-
-	btns := []string{navBtn, searchBtn, clearSearchBtn, swapFocusBtn}
-	if !isIndexed {
-		btns = append(btns, navBtnStyle.Render(navBtnTextStyle.Render("[r] index")))
+	switch {
+	case isSidebarFocused:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[↑↓] scroll dependencies"), btn("[s] focus repo list"), btn("[↵] open in browser"),
+		)
+	case !isIndexed:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[↑↓] scroll repos"), btn("[/] search repos"), btn("[esc] clear search"), btn("[s] focus sidebar"), btn("[r] index"),
+		)
+	default:
+		return lipgloss.JoinHorizontal(lipgloss.Left,
+			btn("[↑↓] scroll repos"), btn("[/] search repos"), btn("[esc] clear search"), btn("[s] focus sidebar"),
+		)
 	}
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, btns...)
 }
