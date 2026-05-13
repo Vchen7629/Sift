@@ -43,7 +43,10 @@ var statusProgress = map[string]float64{
 	"skipped:no dependencies found":            1.0,
 }
 
-type doneProcessingMsg struct{ idx int }
+type doneProcessingMsg struct {
+	idx    int
+	status string
+}
 
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
@@ -55,17 +58,11 @@ func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 		if pct, ok := statusProgress[msg.status]; ok {
 			cmd = m.progress.SetPercent(pct)
 			if pct == 1.0 {
-				return tea.Batch(cmd, func() tea.Msg { return doneProcessingMsg{idx: m.idx} })
+				return tea.Batch(cmd, func() tea.Msg { return doneProcessingMsg{idx: m.idx, status: msg.status} })
 			}
+			return tea.Batch(m.checkProgress(), cmd)
 		}
-		// this is to stop polling after its done processing
-		if msg.status == "processed" || msg.status == "skipped:no dependencies found" {
-			return cmd
-		}
-		return tea.Batch(m.checkProgress(), cmd)
-
-	case getJobStatusErr:
-		return nil
+		return m.checkProgress()
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -95,13 +92,16 @@ type tickMsg struct {
 	status string
 }
 
-type getJobStatusErr struct{ Err error }
+type getJobStatusErr struct {
+	idx int
+	err string
+}
 
 func (m *ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
 		status, err := api.GetJobStatus(m.ctx.Username, m.repoName)
 		if err != nil {
-			return getJobStatusErr{Err: err}
+			return getJobStatusErr{idx: m.idx, err: err.Error()}
 		}
 
 		return tickMsg{t: t, idx: m.idx, status: status}

@@ -104,7 +104,7 @@ func (m *RagQueryResponseModel) View() tea.View {
 	case len(m.queryRes.IssueSources) == 0 && m.queryRes.Summary != "No relevant issues were found for your query.":
 		return tea.NewView(placeholderComponent(
 			mainWidth, "Enter a query to search across your GitHub issues", outerBorder, contentPos,
-		))		
+		))
 	case m.queryRes.Summary == "No relevant issues were found for your query.":
 		innerWidth := mainWidth - 4
 		centeredText := lipgloss.Place(innerWidth, 6, lipgloss.Center, lipgloss.Center,

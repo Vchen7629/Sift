@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"charm.land/bubbles/v2/progress"
+	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -29,9 +30,13 @@ type ListModel struct {
 	progressBars     map[int]*ProgressBarModel
 	pendingCleanup   map[int]bool
 	noSearchResults  bool
+	spinner          spinner.Model
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
+	s := spinner.New()
+	s.Spinner = spinner.Points
+
 	m := &ListModel{
 		ctx:              ctx,
 		GHRepos:          []api.RepoApiRes{},
@@ -39,6 +44,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		progressBars:     map[int]*ProgressBarModel{},
 		pendingCleanup:   map[int]bool{},
 		FetchError:       "",
+		spinner:          s,
 	}
 	return m
 }
@@ -51,6 +57,8 @@ func (m *ListModel) Init() tea.Cmd {
 type retryFetchMsg struct{}
 
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+	m.spinner.Style = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
+
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if isSidebarFocused || len(m.GHRepos) == 0 {
@@ -121,12 +129,29 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	case common.FetchIndexedRepoMsg:
 		return m.cleanupProgressBars()
 
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		for idx := range m.pendingCleanup {
+			m.ProcessingStatus[idx] = "fetching indexed repo " + m.spinner.View()
+		}
+
+		return cmd
 	case retryFetchMsg:
 		return common.FetchIndexedRepo(m.ctx.Username)
 	case doneProcessingMsg:
+		if msg.status == "skipped:no dependencies found" {
+			delete(m.progressBars, msg.idx)
+			m.ProcessingStatus[msg.idx] = msg.status
+			return nil
+		}
 		m.pendingCleanup[msg.idx] = true
-		m.ProcessingStatus[msg.idx] = "fetching indexed repo..."
-		return common.FetchIndexedRepo(m.ctx.Username)
+		m.ProcessingStatus[msg.idx] = "fetching indexed repo " + m.spinner.View()
+
+		return tea.Batch(m.spinner.Tick, common.FetchIndexedRepo(m.ctx.Username))
+	case getJobStatusErr:
+		m.ProcessingStatus[msg.idx] = msg.err
+		return nil
 
 	case searchQueryMsg:
 		if len(msg.filteredGHRepos) == 0 {
@@ -156,6 +181,7 @@ func (m *ListModel) View() tea.View {
 		if m.noSearchResults {
 			text = "No repositories match your search"
 		}
+
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render(text))
 	}
 
