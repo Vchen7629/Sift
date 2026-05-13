@@ -98,10 +98,7 @@ func (m *SidebarModel) sideBarList() string {
 	var indexedRepoList []string
 
 	for i, repo := range m.indexedRepos {
-		textColor := m.ctx.SelectedTheme.AccentMid
-		if i == m.focusedIdx {
-			textColor = m.ctx.SelectedTheme.AccentBright
-		}
+		textColor := styles.FocusColor(m.ctx.SelectedTheme, i, m.focusedIdx)
 
 		repoName := lipgloss.NewStyle().PaddingLeft(2).Width(22).Foreground(textColor).Render(repo.Name)
 		totalDependencies := lipgloss.NewStyle().Width(10).Foreground(textColor).Render(fmt.Sprintf("%d libs", repo.TotalDependencies))

@@ -115,11 +115,7 @@ func (m *RagQueryResponseModel) source() tea.View {
 }
 
 func (m *RagQueryResponseModel) sourceCard(idx int, dependency api.IssueSource) string {
-	textColor := m.ctx.SelectedTheme.AccentMid
-
-	if m.focusedIdx == idx {
-		textColor = m.ctx.SelectedTheme.AccentBright
-	}
+	textColor := styles.FocusColor(m.ctx.SelectedTheme, idx, m.focusedIdx)
 
 	dependencyText := lipgloss.NewStyle().Foreground(textColor)
 

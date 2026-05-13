@@ -46,7 +46,9 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		if !isSidebarFocused || m.FocusedIndexedRepo == nil {
 			break
 		}
+
 		cardHeight := lipgloss.Height(m.dependencyCard(m.FocusedIdx, m.FocusedIndexedRepo.Dependencies[m.FocusedIdx]))
+
 		switch msg.String() {
 		case "up":
 			service.NavigateUp(&m.FocusedIdx, &m.viewport, cardHeight)
@@ -127,13 +129,9 @@ func (m *Sidebar) repoDependencyList() tea.View {
 }
 
 func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
-	textColor := m.ctx.SelectedTheme.AccentMid
-	if idx == m.FocusedIdx {
-		textColor = m.ctx.SelectedTheme.AccentBright
-	}
+	textColor := styles.FocusColor(m.ctx.SelectedTheme, idx, m.FocusedIdx)
 
 	name := lipgloss.NewStyle().Foreground(textColor).Render(dependency.Name)
-
 	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).
 		Background(lipgloss.Blue).Render(dependency.Version)
 
