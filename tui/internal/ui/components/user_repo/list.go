@@ -3,6 +3,7 @@ package user_repo
 import (
 	"fmt"
 	"image/color"
+	"time"
 
 	"charm.land/bubbles/v2/progress"
 	"charm.land/bubbles/v2/viewport"
@@ -25,6 +26,7 @@ type ListModel struct {
 	ProcessingStatus map[int]string
 	viewport         viewport.Model
 	progressBars     map[int]*ProgressBarModel
+	pendingCleanup   map[int]bool
 	FetchError       string
 }
 
@@ -34,6 +36,7 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 		GHRepos:          []api.RepoApiRes{},
 		ProcessingStatus: map[int]string{},
 		progressBars:     map[int]*ProgressBarModel{},
+		pendingCleanup:   map[int]bool{},
 		FetchError:       "",
 	}
 	return m
@@ -42,6 +45,9 @@ func NewUserRepoList(ctx *context.App) *ListModel {
 func (m *ListModel) Init() tea.Cmd {
 	return nil
 }
+
+// retryFetchMsg triggers a re-fetch when a processed repo hasn't appeared in the index yet
+type retryFetchMsg struct{}
 
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 	switch msg := msg.(type) {
@@ -113,6 +119,17 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			cmds = append(cmds, pb.Update(msg))
 		}
 		return tea.Batch(cmds...)
+
+	case common.FetchIndexedRepoMsg:
+		return m.cleanupProgressBars()
+
+	case retryFetchMsg:
+		return common.FetchIndexedRepo(m.ctx.Username)
+
+	case DoneProcessingMsg:
+		m.pendingCleanup[msg.Idx] = true
+		m.ProcessingStatus[msg.Idx] = "fetching indexed repo..."
+		return common.FetchIndexedRepo(m.ctx.Username)
 	}
 
 	return nil
@@ -209,4 +226,22 @@ func IndexRepo(idx int, username, repoName string) tea.Cmd {
 
 		return indexRepoMsg{idx: idx, repoName: repoName}
 	}
+}
+
+func (m *ListModel) cleanupProgressBars() tea.Cmd {
+	for idx := range m.pendingCleanup {
+		if idx < len(m.GHRepos) && m.IndexedRepoMap[m.GHRepos[idx].Name] != nil {
+			delete(m.progressBars, idx)
+			delete(m.pendingCleanup, idx)
+		}
+	}
+
+	// retry fetching for any remaining pending
+	if len(m.pendingCleanup) > 0 {
+		return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+			return retryFetchMsg{}
+		})
+	}
+
+	return nil
 }

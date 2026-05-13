@@ -51,6 +51,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.isSidebarFocused = !m.isSidebarFocused
 		}
 		return m, nil
+
 	case githubRepoFetchedMsg:
 		m.ghRepos = msg.repoList
 		m.RepoList.GHRepos = msg.repoList
@@ -79,7 +80,8 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(m.ghRepos) > 0 {
 			m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[m.focusedIdx].Name]
 		}
-		return m, nil
+
+		return m, m.RepoList.Update(msg, m.isSidebarFocused)
 
 	case common.FetchIndexedRepoErr:
 		m.ActionBar.IndexRepoApiDown = true

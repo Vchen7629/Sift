@@ -43,6 +43,8 @@ var statusProgress = map[string]float64{
 	"skipped:no dependencies found":            1.0,
 }
 
+type DoneProcessingMsg struct{ Idx int }
+
 func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -52,6 +54,11 @@ func (m *ProgressBarModel) Update(msg tea.Msg) tea.Cmd {
 		var cmd tea.Cmd
 		if pct, ok := statusProgress[msg.status]; ok {
 			cmd = m.progress.SetPercent(pct)
+			if pct == 1.0 {
+				return tea.Batch(cmd, tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
+					return DoneProcessingMsg{Idx: m.idx}
+				}))
+			}
 		}
 		// this is to stop polling after its done processing
 		if msg.status == "processed" || msg.status == "skipped:no dependencies found" {
