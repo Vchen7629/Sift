@@ -1,11 +1,10 @@
 //go:build unit
 
-package user_repo_test
+package user_repo
 
 import (
 	"testing"
 	"tui/internal/api"
-	"tui/internal/ui/components/user_repo"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -17,8 +16,8 @@ func testListCtx() *context.App {
 	return &context.App{Username: "testuser", SelectedTheme: styles.Warm}
 }
 
-func listWithRepos(repos []api.RepoApiRes) *user_repo.ListModel {
-	m := user_repo.NewUserRepoList(testListCtx())
+func listWithRepos(repos []api.RepoApiRes) *ListModel {
+	m := NewUserRepoList(testListCtx())
 	m.GHRepos = repos
 
 	return m
@@ -61,13 +60,37 @@ func TestListUpdate_IndexRepoRequest(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			m := listWithRepos(tc.repos)
-			cmd := m.Update(user_repo.IndexRepoRequestMsg{}, false)
+			cmd := m.Update(IndexRepoRequestMsg{}, false)
 
 			if tc.wantCmd {
 				assert.NotNil(t, cmd)
 			} else {
 				assert.Nil(t, cmd)
 			}
+		})
+	}
+}
+
+func TestListUpdate_SearchQueryMsg(t *testing.T) {
+	repos := []api.RepoApiRes{{Name: "sift"}, {Name: "other"}}
+
+	tt := []struct {
+		name          string
+		filtered      []api.RepoApiRes
+		wantNoResults bool
+		wantLen       int
+	}{
+		{"updates GHRepos with filtered results", repos[:1], false, 1},
+		{"empty results sets noSearchResults", []api.RepoApiRes{}, true, 0},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			m := listWithRepos(repos)
+			m.Update(searchQueryMsg{filteredGHRepos: tc.filtered}, false)
+
+			assert.Equal(t, tc.wantLen, len(m.GHRepos))
+			assert.Equal(t, tc.wantNoResults, m.noSearchResults)
 		})
 	}
 }
