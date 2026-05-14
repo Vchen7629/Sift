@@ -42,7 +42,7 @@ symptom queries per issue (3 - 5 ), manually label the dataset, and benchmark:
       - MRR (Mean Reciprocal Rank)
       - Recall@10
       - NDCG@10
-- [ ] Prometheus metrics
+- [x] Prometheus metrics
 - [x] Replace all timing logs with Micrometer spans
 - [x] Add otel bridge in micrometer to convert tracing api calls into OTEL SDK calls
 - [x] Add a exporter library like opentelemetry-exporter-otlp to send the spans to the storage
