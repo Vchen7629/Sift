@@ -40,10 +40,10 @@ func (m *RagQueryResponseModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
+func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused, isSearching bool) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
-		if isSidebarFocused {
+		if isSidebarFocused || isSearching {
 			break
 		}
 

@@ -35,7 +35,7 @@ func TestQueryResponse_SidebarFocusedGuard(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewRagQueryResponse(queryResponseCtx())
 			m.queryRes = api.SearchRes{IssueSources: []api.IssueSource{{}, {}}}
-			m.Update(tea.KeyPressMsg{Code: tc.key}, tc.isSidebarFocused)
+			m.Update(tea.KeyPressMsg{Code: tc.key}, tc.isSidebarFocused, false)
 
 			assert.Equal(t, tc.wantIdx, m.focusedIdx)
 		})
@@ -60,7 +60,7 @@ func TestQueryResponse_WindowSizeMsg(t *testing.T) {
 			ctx.MainWidth = tc.width
 
 			m := NewRagQueryResponse(ctx)
-			m.Update(tea.WindowSizeMsg{Width: 33, Height: 22}, false)
+			m.Update(tea.WindowSizeMsg{Width: 33, Height: 22}, false, false)
 
 			assert.Equal(t, tc.expectedWidth, m.viewport.Width())
 			assert.Equal(t, tc.expectedHeight, m.viewport.Height())
@@ -75,7 +75,7 @@ func TestQueryResponse_NewSearchQueryMsg(t *testing.T) {
 	}
 
 	m := NewRagQueryResponse(queryResponseCtx())
-	m.Update(NewSearchQueryMsg{Res: res}, false)
+	m.Update(NewSearchQueryMsg{Res: res}, false, false)
 
 	assert.Equal(t, res, m.queryRes)
 }
@@ -120,7 +120,7 @@ func TestQueryResponse_UpdateMessages(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewRagQueryResponse(queryResponseCtx())
 			m.loadingSearchQuery = tc.setupLoading
-			cmd := m.Update(tc.msg, false)
+			cmd := m.Update(tc.msg, false, false)
 
 			assert.Equal(t, tc.wantLoading, m.loadingSearchQuery)
 			assert.Equal(t, tc.wantCmd, cmd != nil)
