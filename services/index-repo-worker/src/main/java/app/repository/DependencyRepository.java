@@ -44,8 +44,7 @@ public class DependencyRepository {
 
     @Observed(name="dependency.bulkinsertdocuments.repository")
     public <T extends IndexableDocuments.Base> void bulkInsertDocuments(
-        @NotEmpty List<T> documents,
-        @NotBlank String indexName
+        @NotEmpty List<T> documents, @NotBlank String indexName, int batchSize
     ) throws IOException {
         List<BulkOperation> operations = new ArrayList<>();
 
@@ -56,10 +55,8 @@ public class DependencyRepository {
             );
         }
 
-        int BATCH_SIZE = 750;
-
-        for (int i = 0; i < operations.size(); i += BATCH_SIZE) {
-            List<BulkOperation> batch = operations.subList(i, Math.min(i + BATCH_SIZE, operations.size()));
+        for (int i = 0; i < operations.size(); i += batchSize) {
+            List<BulkOperation> batch = operations.subList(i, Math.min(i + batchSize, operations.size()));
 
             BulkResponse bulkRes = openSearchClient.bulk(r -> r
                 .index(indexName)

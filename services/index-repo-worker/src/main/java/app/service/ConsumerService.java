@@ -2,16 +2,8 @@ package app.service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -27,18 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import ai.djl.translate.TranslateException;
 import app.component.parser.DependencyParserStrategy.Dependency;
-import app.dto.DependencyDocument;
-import app.dto.GithubChangeLogResponse;
-import app.dto.IndexableDocuments;
 import app.dto.JobStatusDocument;
-import app.dto.ProcessedGithubIssue;
-import app.dto.UserRepoDocument;
-import app.repository.DependencyRepository;
 import app.repository.JobStatusRepository;
-import app.repository.UserRepoRepository;
-import app.service.githubRepo.ChangelogService;
-import app.service.githubRepo.DependencyService;
-import app.service.githubRepo.IssueService;
+import app.service.github.DependencyService;
+import app.service.processing.RepoIndexingService;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
@@ -48,12 +32,8 @@ import io.nats.client.Message;
 @Slf4j
 public class ConsumerService {
     private final DependencyService dependencyService;
-    private final ChangelogService changelogService;
-    private final IssueService issueService;
-    private final TextEmbeddingService textEmbeddingService;
+    private final RepoIndexingService repoIndexingService;
     private final JobStatusRepository jobStatusRepository;
-    private final DependencyRepository dependencyRepository;
-    private final UserRepoRepository userRepoRepository;
     private final JetStreamSubscription jetStreamSubscription; 
     private final ObjectMapper objectMapper;
     private final io.micrometer.tracing.Tracer tracer;
@@ -61,24 +41,16 @@ public class ConsumerService {
 
     public ConsumerService(
         DependencyService dependencyService,
-        ChangelogService changelogService,
-        IssueService issueService,
-        TextEmbeddingService textEmbeddingService,
+        RepoIndexingService repoIndexingService,
         JobStatusRepository jobStatusRepository,
-        DependencyRepository dependencyRepository,
-        UserRepoRepository userRepoRepository,
         JetStreamSubscription jetStreamSubscription,
         ObjectMapper objectMapper,
         io.micrometer.tracing.Tracer tracer,
         io.micrometer.tracing.propagation.Propagator propagator
     ) {
         this.dependencyService = dependencyService;
-        this.changelogService = changelogService;
-        this.issueService = issueService;
-        this.textEmbeddingService = textEmbeddingService;
+        this.repoIndexingService = repoIndexingService;
         this.jobStatusRepository = jobStatusRepository;
-        this.dependencyRepository = dependencyRepository;
-        this.userRepoRepository = userRepoRepository;
         this.jetStreamSubscription = jetStreamSubscription;
         this.objectMapper = objectMapper;
         this.tracer = tracer;
@@ -110,7 +82,7 @@ public class ConsumerService {
                     Map<String, List<Dependency>> dependenciesByLanguage = fetchAllRepoDependencies(msg, payload);
                     if (dependenciesByLanguage.isEmpty()) continue;
 
-                    processRepoDependencies(dependenciesByLanguage, payload.repoName, payload.userId);
+                    repoIndexingService.processAll(dependenciesByLanguage, payload.repoName, payload.userId);
 
                     msg.ack();
                     jobStatusRepository.upsert(new JobStatusDocument(payload.userId, payload.repoName, "processed"));
@@ -145,97 +117,5 @@ public class ConsumerService {
         }
 
         return dependenciesByLanguage;
-    }
-
-    private void processRepoDependencies(
-        Map<String, List<Dependency>> dependenciesByLanguage,
-        @NotBlank String repoName,
-        @NotBlank String userId
-    ) throws TranslateException, IOException, InterruptedException, ExecutionException {
-        List<ProcessedGithubIssue> issueList = new ArrayList<>();
-        List<GithubChangeLogResponse> changeLogs = new ArrayList<>();
-        Map<String, String> libraryMap = new HashMap<>();
-
-        Set<DependencyDocument> indexedDependencies = dependencyRepository.list();
-
-        for (Map.Entry<String, List<Dependency>> entry : dependenciesByLanguage.entrySet()) {
-            List<Dependency> dependencies = entry.getValue();
-
-            // the amount of threads to spawn in for fetching issues, one per repo
-            Set<String> uniqueRepos = dependencies.stream()
-                .map(Dependency -> Dependency.repoName())
-                .collect(Collectors.toSet());
-
-            // dependency names whose issues are already fetched
-            Set<String> indexedDepNames = indexedDependencies.stream()
-                .map(DependencyDocument::dependencyName)
-                .collect(Collectors.toSet());
-
-            io.micrometer.tracing.Span parentSpan = tracer.currentSpan();
-
-            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-                List<Future<List<ProcessedGithubIssue>>> futures = uniqueRepos.stream()
-                    .filter(dep -> !indexedDepNames.contains(dep))
-                    .map(dependencyName -> executor.submit(() -> {
-                        try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(parentSpan)) {
-                            return issueService.fetch(dependencyName);
-                        }
-                    }))
-                    .toList();
-                
-                for (Future<List<ProcessedGithubIssue>> future : futures) {
-                    issueList.addAll(future.get());
-                }
-            }
-
-            log.debug("fetched all {} issue chunks", issueList.size());
-
-            // name+version pairs already indexed (to avoid false positives from independent sets)
-            Set<String> indexedDepNameVersionPairs = indexedDependencies.stream()
-                .map(d -> d.dependencyName() + "@" + d.version())
-                .collect(Collectors.toSet());
-            
-            for (Dependency dependency : dependencies) {
-                if (indexedDepNameVersionPairs.contains(dependency.repoName() + "@" + dependency.version())) {
-                    log.debug("changelog already indexed, skipping...", 
-                        kv("name", dependency.name()),
-                        kv("version", dependency.version()));
-
-                    libraryMap.put(dependency.name(), dependency.version());
-
-                    continue;
-                }
-
-                GithubChangeLogResponse changeLog = changelogService.fetchForVersion(
-                    dependency.repoName(), dependency.version()
-                ).join();
-
-                if (!changeLog.changes().equals("no-release")) {
-                    changeLogs.add(changeLog);
-                }
-                
-                libraryMap.put(dependency.name(), dependency.version());
-            }
-        }
-
-        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_all_issues_changelogs"));
-        if (!issueList.isEmpty()) {
-            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.githubIssue(issueList);
-            dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName);
-
-            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_issues"));
-            log.info("inserted new issue documents into openSearch successfully!", kv("repoName", repoName));
-        }
-
-        if (!changeLogs.isEmpty()) {
-            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.githubChangelog(changeLogs);
-            dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName);
-
-            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_changelogs"));
-            log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
-        }
-        
-        userRepoRepository.insert(new UserRepoDocument(userId, repoName, libraryMap, Instant.now()));
-        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_indexed_repo"));
     }
 }
