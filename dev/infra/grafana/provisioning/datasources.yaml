@@ -5,3 +5,7 @@ datasources:
     type: tempo
     url: http://tempo:3200
     access: proxy
+  - name: Victoria-Metrics
+    type: prometheus
+    url: http://victoriametrics:8428
+    access: proxy

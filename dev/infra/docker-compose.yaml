@@ -22,6 +22,7 @@ services:
       - 9600:9600
     networks:                                                                                                                                                          
       - opensearch-net
+    profiles: ["core"]
                                                                                                                                                                         
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
@@ -34,6 +35,7 @@ services:
       OPENSEARCH_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
     networks:
       - opensearch-net
+    profiles: ["core"]
                                                                                                                                                                         
   dashboards-init:
     image: curlimages/curl:latest
@@ -70,6 +72,7 @@ services:
         until create_index_pattern dependency-issues; do echo 'Retrying dependency-issue...'; sleep 3; done
         echo 'Index patterns created.'
     restart: on-failure
+    profiles: ["core"]
   
   nats:
     image: nats:latest
@@ -79,6 +82,7 @@ services:
     command: -js -sd /data -m 8222
     volumes:
       - nats_data:/data
+    profiles: ["core"]
 
   nats-init:
     image: natsio/nats-box:latest
@@ -105,6 +109,7 @@ services:
           --discard=old \
           --dupe-window=2m \
           --defaults
+    profiles: ["core"]
   
   valkey:
     image: valkey/valkey:9
@@ -120,6 +125,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    profiles: ["core"]
   
   init-observability:
     image: busybox:latest
@@ -150,10 +156,48 @@ services:
       - observability-net
     profiles: ["observability"]
 
+  vm-agent:
+    image: victoriametrics/vmagent:v1.143.0
+    depends_on:
+      - "victoriametrics"
+    ports:
+      - 8429:8429
+    environment:
+      - HOST_IP=${HOST_IP}
+    volumes:
+      - vmagentdata:/vmagentdata
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--promscrape.config.strictParse=false"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - observability-net
+    profiles: ["observability"]
+
+  # stores metrics and read requests
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.143.0
+    ports:
+      - 8428:8428
+    volumes:
+      - vmdata:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--httpListenAddr=:8428"
+      - "--retentionPeriod=1"
+    networks:
+      - observability-net
+    profiles: ["observability"]
+
   grafana:
     image: grafana/grafana:12.3.1@sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f
     volumes:
-      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana/provisioning/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana/provisioning/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
@@ -170,6 +214,8 @@ volumes:
   opensearch-data:
   nats_data:
   valkey_data:
+  vmdata:
+  vmagentdata:
 
 networks:
   opensearch-net:
