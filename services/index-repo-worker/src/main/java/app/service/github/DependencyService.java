@@ -1,4 +1,4 @@
-package app.service.githubRepo;
+package app.service.github;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

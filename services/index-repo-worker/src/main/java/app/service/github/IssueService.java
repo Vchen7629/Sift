@@ -1,4 +1,4 @@
-package app.service.githubRepo;
+package app.service.github;
 
 import java.io.IOException;
 import java.util.ArrayList;
