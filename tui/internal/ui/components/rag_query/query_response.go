@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"tui/internal/api"
 	"tui/internal/service"
+	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
 
@@ -51,6 +52,8 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused bool) tea.C
 			service.NavigateUp(&m.focusedIdx, &m.viewport, 1)
 		case "down":
 			service.NavigateDown(&m.focusedIdx, len(m.queryRes.IssueSources), &m.viewport, 1)
+		case "enter":
+			return common.OpenInBrowser(m.queryRes.IssueSources[m.focusedIdx].Url)
 		}
 
 	case tea.WindowSizeMsg:
