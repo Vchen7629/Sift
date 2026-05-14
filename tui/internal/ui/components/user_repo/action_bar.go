@@ -1,6 +1,7 @@
 package user_repo
 
 import (
+	"fmt"
 	"tui/internal/ui/common"
 	"tui/internal/ui/context"
 	"tui/internal/ui/styles"
@@ -12,6 +13,7 @@ import (
 type ActionBarModel struct {
 	ctx              *context.App
 	IndexRepoApiDown bool
+	GHRepoCount 	 int
 }
 
 func NewActionBar(ctx *context.App) *ActionBarModel {
@@ -33,6 +35,8 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 		case "r":
 			return func() tea.Msg { return IndexRepoRequestMsg{} }
 		}
+	case searchQueryMsg:
+		m.GHRepoCount = len(msg.filteredGHRepos)
 	}
 
 	return nil
@@ -48,7 +52,10 @@ func (m *ActionBarModel) View(isSidebarFocused, isIndexed bool) tea.View {
 			lipgloss.JoinHorizontal(lipgloss.Left, statusText, m.actionBarBtns(isSidebarFocused, isIndexed))),
 		)
 	}
-	return tea.NewView(widthStyle.Render(m.actionBarBtns(isSidebarFocused, isIndexed)))
+
+	RepoCountText := lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright).Render(fmt.Sprintf("Displaying %d repos", m.GHRepoCount))
+
+	return tea.NewView(widthStyle.Render(lipgloss.JoinHorizontal(lipgloss.Left, RepoCountText, m.actionBarBtns(isSidebarFocused, isIndexed))))
 }
 
 func (m *ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string {

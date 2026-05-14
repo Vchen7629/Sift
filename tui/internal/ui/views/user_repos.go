@@ -57,6 +57,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.RepoList.GHRepos = msg.repoList
 		m.RepoList.FocusedIdx = 0
 		m.SearchBar.OriginalGHRepoList = msg.repoList
+		m.ActionBar.GHRepoCount = len(msg.repoList)
 		if len(msg.repoList) > 0 {
 			focused := m.ghRepos[0]
 			m.Sidebar.FocusedGHRepo = &focused
