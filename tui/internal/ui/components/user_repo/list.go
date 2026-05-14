@@ -1,15 +1,11 @@
 package user_repo
 
 import (
-	"fmt"
-	"image/color"
-	"time"
-
-	"charm.land/bubbles/v2/progress"
-	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"fmt"
+	"image/color"
 
 	"tui/internal/api"
 	"tui/internal/service"
@@ -20,45 +16,30 @@ import (
 )
 
 type ListModel struct {
-	ctx              *context.App
-	GHRepos          []api.RepoApiRes
-	IndexedRepoMap   map[string]*types.IndexedRepo
-	FocusedIdx       int
-	ProcessingStatus map[int]string
-	FetchError       string
-	viewport         viewport.Model
-	progressBars     map[int]*ProgressBarModel
-	pendingCleanup   map[int]bool
-	noSearchResults  bool
-	spinner          spinner.Model
+	ctx             *context.App
+	GHRepos         []api.RepoApiRes
+	IndexedRepoMap  map[string]*types.IndexedRepo
+	FocusedIdx      int
+	FetchError      string
+	viewport        viewport.Model
+	IndexCoord      *indexCoordinator
+	noSearchResults bool
 }
 
 func NewUserRepoList(ctx *context.App) *ListModel {
-	s := spinner.New()
-	s.Spinner = spinner.Points
-
-	m := &ListModel{
-		ctx:              ctx,
-		GHRepos:          []api.RepoApiRes{},
-		ProcessingStatus: map[int]string{},
-		progressBars:     map[int]*ProgressBarModel{},
-		pendingCleanup:   map[int]bool{},
-		FetchError:       "",
-		spinner:          s,
+	return &ListModel{
+		ctx:        ctx,
+		GHRepos:    []api.RepoApiRes{},
+		FetchError: "",
+		IndexCoord: newIndexCoordinator(ctx),
 	}
-	return m
 }
 
 func (m *ListModel) Init() tea.Cmd {
 	return nil
 }
 
-// retryFetchMsg triggers a re-fetch when a processed repo hasn't appeared in the index yet
-type retryFetchMsg struct{}
-
 func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
-	m.spinner.Style = lipgloss.NewStyle().Foreground(m.ctx.SelectedTheme.AccentBright)
-
 	switch msg := msg.(type) {
 	case tea.KeyPressMsg:
 		if isSidebarFocused || len(m.GHRepos) == 0 {
@@ -67,7 +48,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 
 		// progress bar adds 2 lines of height vs without
 		cardHeight := 3
-		if _, ok := m.progressBars[m.FocusedIdx]; ok {
+		if _, ok := m.IndexCoord.progressBars[m.FocusedIdx]; ok {
 			cardHeight = 5
 		}
 
@@ -77,14 +58,9 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		case "down":
 			service.NavigateDown(&m.FocusedIdx, len(m.GHRepos), &m.viewport, cardHeight)
 		}
-
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth)
 		m.viewport.SetHeight(m.ctx.MainHeight - 4)
-
-		for _, pb := range m.progressBars {
-			pb.Update(msg)
-		}
 
 	// trigger from user pressing r
 	case IndexRepoRequestMsg:
@@ -100,82 +76,20 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		repoName := fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[idx].Name)
 
 		return IndexRepo(idx, m.ctx.Username, repoName)
-	// response from api call
-	case indexRepoMsg:
-		pb := NewProgressBar(m.ctx, msg.idx, msg.repoName)
-		m.progressBars[msg.idx] = pb
-		return pb.Init()
-	case indexRepoErrMsg:
-		m.ProcessingStatus[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
-	// for the progress bar
-	case tickMsg:
-		statusText := "new index job request"
-		if msg.status != "" {
-			statusText = msg.status
-		}
-
-		m.ProcessingStatus[msg.idx] = statusText
-		if pb, ok := m.progressBars[msg.idx]; ok {
-			return pb.Update(msg)
-		}
-
-	case progress.FrameMsg:
-		var cmds []tea.Cmd
-		for _, pb := range m.progressBars {
-			cmds = append(cmds, pb.Update(msg))
-		}
-		return tea.Batch(cmds...)
-
-	case common.FetchIndexedRepoMsg:
-		return m.cleanupProgressBars()
-
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		for idx := range m.pendingCleanup {
-			m.ProcessingStatus[idx] = "fetching indexed repo " + m.spinner.View()
-		}
-
-		return cmd
-	case retryFetchMsg:
-		return common.FetchIndexedRepo(m.ctx.Username)
-	case doneProcessingMsg:
-		if msg.status == "skipped:no dependencies found" {
-			delete(m.progressBars, msg.idx)
-			m.ProcessingStatus[msg.idx] = msg.status
-			return nil
-		}
-		m.pendingCleanup[msg.idx] = true
-		m.ProcessingStatus[msg.idx] = "fetching indexed repo " + m.spinner.View()
-
-		return tea.Batch(m.spinner.Tick, common.FetchIndexedRepo(m.ctx.Username))
-	case getJobStatusErr:
-		m.ProcessingStatus[msg.idx] = msg.err
-		return nil
 
 	case searchQueryMsg:
-		if len(msg.filteredGHRepos) == 0 {
-			m.GHRepos = msg.filteredGHRepos
-			m.IndexedRepoMap = msg.filteredIndexedRepos
-			m.noSearchResults = true
-			return nil
-		}
-
 		m.GHRepos = msg.filteredGHRepos
 		m.IndexedRepoMap = msg.filteredIndexedRepos
-		m.noSearchResults = false
-
+		m.noSearchResults = len(msg.filteredGHRepos) == 0
 		return nil
 	}
 
-	return nil
+	return m.IndexCoord.Update(msg)
 }
 
 var repoCardStyle = lipgloss.NewStyle().PaddingLeft(2).Padding(0, 1).Border(lipgloss.RoundedBorder())
 
 func (m *ListModel) View() tea.View {
-	var cards []string
-
 	if len(m.GHRepos) <= 0 {
 		text := "Loading your repos..."
 		if m.noSearchResults {
@@ -189,6 +103,7 @@ func (m *ListModel) View() tea.View {
 		return tea.NewView(lipgloss.NewStyle().Padding(1, 2).Render("error fetching from github"))
 	}
 
+	var cards []string
 	for i, repo := range m.GHRepos {
 		ir := m.IndexedRepoMap[repo.Name]
 		var indexedRepo types.IndexedRepo
@@ -205,7 +120,7 @@ func (m *ListModel) View() tea.View {
 
 		// just render header text if progress bar doesnt exist
 		var content string
-		if pb, ok := m.progressBars[i]; ok {
+		if pb, ok := m.IndexCoord.progressBars[i]; ok {
 			content = lipgloss.JoinVertical(lipgloss.Top, header, pb.View().Content)
 		} else {
 			content = header
@@ -229,7 +144,7 @@ func (m *ListModel) cardHeader(idx int, indexedRepo types.IndexedRepo, ghRepo ap
 
 	// index metadata like index status, lastIndexed and  totalDependencies
 	var indexMetadata string
-	status, exists := m.ProcessingStatus[idx]
+	status, exists := m.IndexCoord.StatusFor(idx)
 	switch {
 	case !exists:
 		indexMetadata = lipgloss.NewStyle().Render("Unindexed")
@@ -267,22 +182,4 @@ func IndexRepo(idx int, username, repoName string) tea.Cmd {
 
 		return indexRepoMsg{idx: idx, repoName: repoName}
 	}
-}
-
-func (m *ListModel) cleanupProgressBars() tea.Cmd {
-	for idx := range m.pendingCleanup {
-		if idx < len(m.GHRepos) && m.IndexedRepoMap[m.GHRepos[idx].Name] != nil {
-			delete(m.progressBars, idx)
-			delete(m.pendingCleanup, idx)
-		}
-	}
-
-	// retry fetching for any remaining pending
-	if len(m.pendingCleanup) > 0 {
-		return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-			return retryFetchMsg{}
-		})
-	}
-
-	return nil
 }

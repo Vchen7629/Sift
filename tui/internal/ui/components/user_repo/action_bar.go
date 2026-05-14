@@ -13,7 +13,7 @@ import (
 type ActionBarModel struct {
 	ctx              *context.App
 	IndexRepoApiDown bool
-	GHRepoCount 	 int
+	GHRepoCount      int
 }
 
 func NewActionBar(ctx *context.App) *ActionBarModel {

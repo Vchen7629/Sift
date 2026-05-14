@@ -18,26 +18,20 @@ type UserRepoModel struct {
 	SearchBar        *user_repo.SearchBarModel
 	RepoList         *user_repo.ListModel
 	Sidebar          *user_repo.Sidebar
-	ghRepos          []api.RepoApiRes
-	indexedRepoMap   map[string]*types.IndexedRepo
-	focusedIdx       int
 	isSidebarFocused bool
 }
 
 func NewUserRepo(ctx *context.App) *UserRepoModel {
 	return &UserRepoModel{
-		ctx:              ctx,
-		ActionBar:        user_repo.NewActionBar(ctx),
-		SearchBar:        user_repo.NewSearchBar(ctx, "Search Your Repositories..."),
-		RepoList:         user_repo.NewUserRepoList(ctx),
-		Sidebar:          user_repo.NewSidebar(ctx),
-		ghRepos:          []api.RepoApiRes{},
-		isSidebarFocused: false,
+		ctx:       ctx,
+		ActionBar: user_repo.NewActionBar(ctx),
+		SearchBar: user_repo.NewSearchBar(ctx, "Search Your Repositories..."),
+		RepoList:  user_repo.NewUserRepoList(ctx),
+		Sidebar:   user_repo.NewSidebar(ctx),
 	}
 }
 
 func (m *UserRepoModel) Init() tea.Cmd {
-	m.focusedIdx = 0
 	m.isSidebarFocused = false
 	m.RepoList.Reset()
 
@@ -53,15 +47,14 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case githubRepoFetchedMsg:
-		m.ghRepos = msg.repoList
 		m.RepoList.GHRepos = msg.repoList
 		m.RepoList.FocusedIdx = 0
 		m.SearchBar.OriginalGHRepoList = msg.repoList
 		m.ActionBar.GHRepoCount = len(msg.repoList)
 		if len(msg.repoList) > 0 {
-			focused := m.ghRepos[0]
+			focused := m.RepoList.GHRepos[0]
 			m.Sidebar.FocusedGHRepo = &focused
-			m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[0].Name]
+			m.Sidebar.FocusedIndexedRepo = m.RepoList.IndexedRepoMap[focused.Name]
 			m.populateIndexRepoStatus()
 		}
 		return m, nil
@@ -71,20 +64,20 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case common.FetchIndexedRepoMsg:
-		m.indexedRepoMap = make(map[string]*types.IndexedRepo, len(msg.IndexedRepos))
+		indexedRepoMap := make(map[string]*types.IndexedRepo, len(msg.IndexedRepos))
 		for i := range msg.IndexedRepos {
-			m.indexedRepoMap[msg.IndexedRepos[i].Name] = &msg.IndexedRepos[i]
+			indexedRepoMap[msg.IndexedRepos[i].Name] = &msg.IndexedRepos[i]
 		}
-		m.RepoList.IndexedRepoMap = m.indexedRepoMap
+		m.RepoList.IndexedRepoMap = indexedRepoMap
 		m.populateIndexRepoStatus()
-		m.SearchBar.OriginalIndexedRepoList = m.indexedRepoMap
+		m.SearchBar.OriginalIndexedRepoList = indexedRepoMap
 		m.ActionBar.IndexRepoApiDown = false
 
-		if len(m.ghRepos) > 0 {
-			m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[m.focusedIdx].Name]
+		if len(m.RepoList.GHRepos) > 0 {
+			m.Sidebar.FocusedIndexedRepo = indexedRepoMap[m.RepoList.GHRepos[m.RepoList.FocusedIdx].Name]
 		}
 
-		return m, m.RepoList.Update(msg, m.isSidebarFocused)
+		return m, m.RepoList.IndexCoord.CleanupProgressBars(m.RepoList.GHRepos, m.RepoList.IndexedRepoMap)
 
 	case common.FetchIndexedRepoErr:
 		m.ActionBar.IndexRepoApiDown = true
@@ -97,14 +90,12 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused)
 
 	if len(m.RepoList.GHRepos) > 0 && !m.SearchBar.IsSearching() {
-		newIdx := m.RepoList.FocusedIdx
-		if newIdx != m.focusedIdx {
-			m.focusedIdx = newIdx
+		focused := &m.RepoList.GHRepos[m.RepoList.FocusedIdx]
+		if m.Sidebar.FocusedGHRepo == nil || m.Sidebar.FocusedGHRepo.Name != focused.Name {
 			m.Sidebar.ResetFocus()
 		}
-		focused := &m.ghRepos[m.focusedIdx]
 		m.Sidebar.FocusedGHRepo = focused
-		m.Sidebar.FocusedIndexedRepo = m.indexedRepoMap[m.ghRepos[m.focusedIdx].Name]
+		m.Sidebar.FocusedIndexedRepo = m.RepoList.IndexedRepoMap[focused.Name]
 	}
 
 	return m, tea.Batch(actionBarCmd, repoListCmd, searchBarCmd, sidebarCmd)
@@ -138,8 +129,8 @@ func (m *UserRepoModel) fetchRepoList() tea.Msg {
 
 func (m *UserRepoModel) populateIndexRepoStatus() {
 	for i, ghRepo := range m.RepoList.GHRepos {
-		if m.indexedRepoMap[ghRepo.Name] != nil {
-			m.RepoList.ProcessingStatus[i] = "Indexed"
+		if m.RepoList.IndexedRepoMap[ghRepo.Name] != nil {
+			m.RepoList.IndexCoord.SetStatus(i, "Indexed")
 		}
 	}
 }
