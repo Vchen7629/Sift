@@ -26,7 +26,7 @@ func FetchIndexedRepo(username string) tea.Cmd {
 	}
 }
 
-type BrowserOpenedMsg struct { Err error }
+type BrowserOpenedMsg struct{ Err error }
 
 func OpenInBrowser(url string) tea.Cmd {
 	return func() tea.Msg {

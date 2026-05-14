@@ -11,7 +11,7 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx 			*context.App
+	ctx             *context.App
 	hasSearchResult bool
 }
 

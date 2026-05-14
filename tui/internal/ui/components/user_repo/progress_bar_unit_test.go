@@ -80,7 +80,7 @@ func TestProgressBar_TickMsg_EmitsDoneMsgAt100Pct(t *testing.T) {
 			cmd := m.Update(tickMsg{status: status})
 
 			msgs := runBatch(cmd)
-			assert.Contains(t, msgs, doneProcessingMsg{idx: 2})
+			assert.Contains(t, msgs, doneProcessingMsg{idx: 2, status: status})
 		})
 	}
 }
