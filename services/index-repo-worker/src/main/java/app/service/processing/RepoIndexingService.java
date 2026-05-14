@@ -28,6 +28,7 @@ import app.repository.JobStatusRepository;
 import app.repository.UserRepoRepository;
 import app.service.github.ChangelogService;
 import app.service.github.IssueService;
+import io.micrometer.observation.annotation.Observed;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -62,6 +63,7 @@ public class RepoIndexingService {
         this.tracer = tracer;
     }
 
+    @Observed(name = "repoindexing.processall.service")
     public void processAll(
         Map<String, List<Dependency>> dependenciesByLanguage, String repoName, String userId
     ) throws TranslateException, IOException, InterruptedException, ExecutionException {
@@ -118,7 +120,7 @@ public class RepoIndexingService {
     private ChangeLogResult fetchDependencyChangelogs(
         Map<String, List<Dependency>> dependenciesByLanguage,
         Set<DependencyDocument> indexedDependencies
-    ) {
+    ) throws InterruptedException, ExecutionException {
         // name+version pairs already indexed (to avoid false positives from independent sets)
         Set<String> indexedDepNameVersionPairs = indexedDependencies.stream()
             .map(d -> d.dependencyName() + "@" + d.version())
@@ -128,26 +130,37 @@ public class RepoIndexingService {
         Map<String, String> libraryMap = new HashMap<>();
 
         for (List<Dependency> dependencies : dependenciesByLanguage.values()) {
+            List<Dependency> toFetch = new ArrayList<>();
+
+            // build the list of changelogs to process (not processed before) before using virtual threads to 
+            // prevent concurrency issues
             for (Dependency dependency : dependencies) {
+                libraryMap.put(dependency.name(), dependency.version());
                 if (indexedDepNameVersionPairs.contains(dependency.repoName() + "@" + dependency.version())) {
                     log.debug("changelog already indexed, skipping...", 
                         kv("name", dependency.name()),
                         kv("version", dependency.version()));
-
-                    libraryMap.put(dependency.name(), dependency.version());
-
-                    continue;
+                } else {
+                    toFetch.add(dependency);
                 }
+            }
 
-                GithubChangeLogResponse changeLog = changelogService.fetchForVersion(
-                    dependency.repoName(), dependency.version()
-                ).join();
+            io.micrometer.tracing.Span parentSpan = tracer.currentSpan();
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                List<Future<GithubChangeLogResponse>> futures = toFetch.stream()
+                    .map(dep -> executor.submit(() -> {
+                        try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(parentSpan)) {
+                            return changelogService.fetchForVersion(dep.repoName(), dep.version());
+                        }
+                    }))
+                    .toList();
 
-                if (!changeLog.changes().equals("no-release")) {
-                    changeLogs.add(changeLog);
+                for (var future : futures) {
+                    GithubChangeLogResponse changeLog = future.get();
+                    if (!changeLog.changes().equals("no-release")) {
+                        changeLogs.add(changeLog);
+                    }
                 }
-                
-                libraryMap.put(dependency.name(), dependency.version());
             }
         }
 
