@@ -11,11 +11,14 @@ import (
 )
 
 type ActionBarModel struct {
-	ctx *context.App
+	ctx 			*context.App
+	hasSearchResult bool
 }
 
 func NewActionBar(ctx *context.App) *ActionBarModel {
-	return &ActionBarModel{ctx: ctx}
+	return &ActionBarModel{
+		ctx: ctx, hasSearchResult: false,
+	}
 }
 
 func (m *ActionBarModel) Init() tea.Cmd {
@@ -29,6 +32,9 @@ func (m *ActionBarModel) Update(msg tea.Msg) tea.Cmd {
 		case "s":
 			return func() tea.Msg { return common.ToggleFocusMsg{} }
 		}
+
+	case NewSearchQueryMsg:
+		m.hasSearchResult = true
 	}
 	return nil
 }
@@ -51,6 +57,8 @@ func (m *ActionBarModel) View(isRepoListFocused, isSearching bool, selectedRepo 
 
 func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
 	switch {
+	case !m.hasSearchResult:
+		return lipgloss.JoinHorizontal(lipgloss.Left, styles.NavBtn("[/] new query"))
 	case focusRepoList:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
 			styles.NavBtn("[/] new query"), styles.NavBtn("[↑↓] change selected repo"), styles.NavBtn("[s] back to query card"),
