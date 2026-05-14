@@ -176,18 +176,15 @@ public class ConsumerService {
                 .map(DependencyDocument::dependencyName)
                 .collect(Collectors.toSet());
 
-            Observation currentObservation = observationRegistry.getCurrentObservation();
+            io.micrometer.tracing.Span parentSpan = tracer.currentSpan();
 
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 List<Future<List<ProcessedGithubIssue>>> futures = uniqueRepos.stream()
                     .filter(dep -> !indexedDepNames.contains(dep))
                     .map(dependencyName -> executor.submit(() -> {
-                        if (currentObservation != null) {
-                            try (Observation.Scope scope = currentObservation.openScope()) {
-                                return issueService.fetch(dependencyName);
-                            }
+                        try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(parentSpan)) {
+                            return issueService.fetch(dependencyName);
                         }
-                        return issueService.fetch(dependencyName);
                     }))
                     .toList();
                 

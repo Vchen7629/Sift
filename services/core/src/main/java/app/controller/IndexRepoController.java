@@ -68,7 +68,6 @@ public class IndexRepoController {
     }
 
     @PostMapping("/job_status")
-    @Observed(name="indexrepo.getStatus.controller")
     public ResponseEntity<String> getStatus(
         @RequestBody @Valid Request request
     ) throws IOException {
