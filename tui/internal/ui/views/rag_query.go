@@ -49,11 +49,14 @@ func (m *RagQueryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.SelectedRepo = selectedRepo
 
 		return m, nil
+	case rag_query.NewSearchQueryMsg:
+		m.isSidebarFocused = false
+		m.Searchbar.IsFocused = false
 	}
 
 	actionBarCmd := m.ActionBar.Update(msg)
 	searchBarCmd := m.Searchbar.Update(msg, m.SelectedRepo)
-	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused)
+	queryResCmd := m.ResponseDisplay.Update(msg, m.isSidebarFocused, m.Searchbar.IsSearching())
 	sidebarCmd := m.Sidebar.Update(msg, m.isSidebarFocused, m.Searchbar.IsSearching())
 
 	return m, tea.Batch(actionBarCmd, searchBarCmd, queryResCmd, sidebarCmd)
