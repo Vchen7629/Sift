@@ -19,46 +19,46 @@ func makeViewport(height, yOffset int) *viewport.Model {
 }
 
 func TestScrollToFocused(t *testing.T) {
-	tt := []struct{
-		name		  string
-		height		  int
+	tt := []struct {
+		name          string
+		height        int
 		initialOffset int
 		focusedIndex  int
 		cardHeight    int
 		wantOffset    int
 	}{
 		{
-			name: "item fully visible, no scroll",
+			name:   "item fully visible, no scroll",
 			height: 5, initialOffset: 0,
 			focusedIndex: 1, cardHeight: 2,
 			wantOffset: 0,
 		},
 		{
-			name: "item below visible area, scrolls down just enough",
+			name:   "item below visible area, scrolls down just enough",
 			height: 3, initialOffset: 0,
 			focusedIndex: 2, cardHeight: 2,
 			wantOffset: 3,
 		},
 		{
-			name: "item above visible area, scrolls up just enough",
+			name:   "item above visible area, scrolls up just enough",
 			height: 3, initialOffset: 6,
 			focusedIndex: 1, cardHeight: 2,
 			wantOffset: 2,
 		},
 		{
-			name: "item exactly at bottom boundary, no scroll",
+			name:   "item exactly at bottom boundary, no scroll",
 			height: 4, initialOffset: 0,
 			focusedIndex: 1, cardHeight: 2,
 			wantOffset: 0,
 		},
 		{
-			name: "item exactly at top boundary, no scroll",
+			name:   "item exactly at top boundary, no scroll",
 			height: 4, initialOffset: 2,
 			focusedIndex: 1, cardHeight: 2,
 			wantOffset: 2,
 		},
 		{
-			name: "scroll back to top when first item focused",
+			name:   "scroll back to top when first item focused",
 			height: 3, initialOffset: 5,
 			focusedIndex: 0, cardHeight: 3,
 			wantOffset: 0,
