@@ -30,8 +30,8 @@ public class TextEmbeddingService {
         this.embeddingModel = embeddingModel;
     }
 
-    @Observed(name="textembedding.generatechangelog.service")
-    public List<IndexableDocuments.ChangeLog> generateChangeLog(
+    @Observed(name="textembedding.githubchangelog.service")
+    public List<IndexableDocuments.ChangeLog> githubChangelog(
         @NotEmpty @Valid List<GithubChangeLogResponse> changeLogs
     ) throws TranslateException {
         List<List<GithubChangeLogResponse>> batches = partition(changeLogs, 32);
@@ -66,8 +66,8 @@ public class TextEmbeddingService {
         return changeLogDocuments;
     }
     
-    @Observed(name="textembedding.generateissue.service")
-    public List<IndexableDocuments.Issue> generateIssue(
+    @Observed(name="textembedding.githubissue.service")
+    public List<IndexableDocuments.Issue> githubIssue(
         @NotEmpty @Valid List<ProcessedGithubIssue> issueDocuments
     ) throws TranslateException {
         List<List<ProcessedGithubIssue>> batches = partition(issueDocuments, 32);

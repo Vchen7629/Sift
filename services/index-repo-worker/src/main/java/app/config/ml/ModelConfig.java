@@ -1,4 +1,4 @@
-package app.config;
+package app.config.ml;
 
 import ai.djl.MalformedModelException;
 import ai.djl.huggingface.translator.TextEmbeddingTranslatorFactory;

@@ -39,8 +39,6 @@ import app.repository.UserRepoRepository;
 import app.service.githubRepo.ChangelogService;
 import app.service.githubRepo.DependencyService;
 import app.service.githubRepo.IssueService;
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.ObservationRegistry;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
@@ -58,7 +56,6 @@ public class ConsumerService {
     private final UserRepoRepository userRepoRepository;
     private final JetStreamSubscription jetStreamSubscription; 
     private final ObjectMapper objectMapper;
-    private final ObservationRegistry observationRegistry;
     private final io.micrometer.tracing.Tracer tracer;
     private final io.micrometer.tracing.propagation.Propagator propagator;
 
@@ -72,7 +69,6 @@ public class ConsumerService {
         UserRepoRepository userRepoRepository,
         JetStreamSubscription jetStreamSubscription,
         ObjectMapper objectMapper,
-        ObservationRegistry observationRegistry,
         io.micrometer.tracing.Tracer tracer,
         io.micrometer.tracing.propagation.Propagator propagator
     ) {
@@ -85,7 +81,6 @@ public class ConsumerService {
         this.userRepoRepository = userRepoRepository;
         this.jetStreamSubscription = jetStreamSubscription;
         this.objectMapper = objectMapper;
-        this.observationRegistry = observationRegistry;
         this.tracer = tracer;
         this.propagator = propagator;
     }
@@ -225,7 +220,7 @@ public class ConsumerService {
 
         jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_all_issues_changelogs"));
         if (!issueList.isEmpty()) {
-            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.generateIssue(issueList);
+            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.githubIssue(issueList);
             dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName);
 
             jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_issues"));
@@ -233,7 +228,7 @@ public class ConsumerService {
         }
 
         if (!changeLogs.isEmpty()) {
-            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.generateChangeLog(changeLogs);
+            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.githubChangelog(changeLogs);
             dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName);
 
             jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_changelogs"));
