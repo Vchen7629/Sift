@@ -120,7 +120,7 @@ public class RepoIndexingService {
         return issueList;
     }
 
-    private record ChangeLogResult(List<GithubChangeLogResponse> changelogs, Map<String, String> libraryMap) {}
+    record ChangeLogResult(List<GithubChangeLogResponse> changelogs, Map<String, String> libraryMap) {}
 
     ChangeLogResult fetchDependencyChangelogs(
         Map<String, List<Dependency>> dependenciesByLanguage,
@@ -172,7 +172,7 @@ public class RepoIndexingService {
         return new ChangeLogResult(changeLogs, libraryMap);
     }
 
-    private record EmbeddingRes(
+    record EmbeddingRes(
         List<IndexableDocuments.Issue> issueDocuments, 
         List<IndexableDocuments.ChangeLog> changeLogDocuments
     ) {}
