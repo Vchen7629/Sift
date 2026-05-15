@@ -152,7 +152,8 @@ public class RepoIndexingServiceUT {
     }
 
     @Test
-    void fetchDependencyChangelogs_FetchesNewVersion() throws Exception {
+    void fetchDependencyChangelogs_DoesNotSkipDifferentVersion() throws Exception {
+        // indexed has org/dep@1.0, dep is @2.0, different version should not be skipped
         Dependency dep = new Dependency("dep", "2.0", "org/dep");
         Map<String, List<Dependency>> deps = Map.of("go", List.of(dep));
         when(changelogService.fetchForVersion("org/dep", "2.0"))
