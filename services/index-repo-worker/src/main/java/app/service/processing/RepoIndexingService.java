@@ -29,6 +29,8 @@ import app.repository.UserRepoRepository;
 import app.service.github.ChangelogService;
 import app.service.github.IssueService;
 import io.micrometer.observation.annotation.Observed;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.extern.slf4j.Slf4j;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -65,7 +67,8 @@ public class RepoIndexingService {
 
     @Observed(name = "repoindexing.processall.service")
     public void processAll(
-        Map<String, List<Dependency>> dependenciesByLanguage, String repoName, String userId
+        @NotEmpty Map<String, List<Dependency>> dependenciesByLanguage, 
+        @NotBlank String repoName, @NotBlank String userId
     ) throws TranslateException, IOException, InterruptedException, ExecutionException {
         Set<DependencyDocument> indexedDependencies = dependencyRepository.list();
     
@@ -79,7 +82,7 @@ public class RepoIndexingService {
         jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_indexed_repo"));
     }
 
-    private List<ProcessedGithubIssue> fetchDependencyIssues(
+    List<ProcessedGithubIssue> fetchDependencyIssues(
         Map<String, List<Dependency>> dependenciesByLanguage,
         Set<DependencyDocument> indexedDependencies
     ) throws InterruptedException, ExecutionException {
@@ -119,7 +122,7 @@ public class RepoIndexingService {
 
     private record ChangeLogResult(List<GithubChangeLogResponse> changelogs, Map<String, String> libraryMap) {}
 
-    private ChangeLogResult fetchDependencyChangelogs(
+    ChangeLogResult fetchDependencyChangelogs(
         Map<String, List<Dependency>> dependenciesByLanguage,
         Set<DependencyDocument> indexedDependencies
     ) throws InterruptedException, ExecutionException {
@@ -174,7 +177,7 @@ public class RepoIndexingService {
         List<IndexableDocuments.ChangeLog> changeLogDocuments
     ) {}
 
-    private EmbeddingRes createEmbeddings(
+    EmbeddingRes createEmbeddings(
         List<ProcessedGithubIssue> issueList, 
         ChangeLogResult changeLogResult,
         String userId, String repoName
@@ -191,7 +194,7 @@ public class RepoIndexingService {
         return new EmbeddingRes(issueDocuments, changeLogDocuments);
     }
 
-    private void upsertIssueChangelogs(
+    void upsertIssueChangelogs(
         List<IndexableDocuments.Issue> issueEmbeddings,
         List<IndexableDocuments.ChangeLog> changeLogEmbeddings,
         String userId, String repoName
