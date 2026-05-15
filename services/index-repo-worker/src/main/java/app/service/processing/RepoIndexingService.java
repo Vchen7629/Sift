@@ -72,7 +72,9 @@ public class RepoIndexingService {
         List<ProcessedGithubIssue> issueList = fetchDependencyIssues(dependenciesByLanguage, indexedDependencies);
         ChangeLogResult changeLogResult = fetchDependencyChangelogs(dependenciesByLanguage, indexedDependencies);
     
-        embedAndInsert(issueList, changeLogResult, userId, repoName);
+        EmbeddingRes embeddings = createEmbeddings(issueList, changeLogResult, userId, repoName);
+        upsertIssueChangelogs(embeddings.issueDocuments(), embeddings.changeLogDocuments(), userId, repoName);
+
         userRepoRepository.insert(new UserRepoDocument(userId, repoName, changeLogResult.libraryMap(), Instant.now()));
         jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_indexed_repo"));
     }
@@ -167,29 +169,81 @@ public class RepoIndexingService {
         return new ChangeLogResult(changeLogs, libraryMap);
     }
 
-    private void embedAndInsert(
-        List<ProcessedGithubIssue> issueList,
+    private record EmbeddingRes(
+        List<IndexableDocuments.Issue> issueDocuments, 
+        List<IndexableDocuments.ChangeLog> changeLogDocuments
+    ) {}
+
+    private EmbeddingRes createEmbeddings(
+        List<ProcessedGithubIssue> issueList, 
         ChangeLogResult changeLogResult,
         String userId, String repoName
     ) throws TranslateException, IOException {
+        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_all_issues_changelogs"));
+
+        var issueDocuments = issueList.isEmpty() 
+            ? List.<IndexableDocuments.Issue>of() 
+            : textEmbeddingService.githubIssue(issueList);
+        var changeLogDocuments = changeLogResult.changelogs().isEmpty()
+            ? List.<IndexableDocuments.ChangeLog>of()
+            : textEmbeddingService.githubChangelog(changeLogResult.changelogs());
+
+        return new EmbeddingRes(issueDocuments, changeLogDocuments);
+    }
+
+    private void upsertIssueChangelogs(
+        List<IndexableDocuments.Issue> issueEmbeddings,
+        List<IndexableDocuments.ChangeLog> changeLogEmbeddings,
+        String userId, String repoName
+    ) throws TranslateException, InterruptedException, ExecutionException {
         int BATCH_SIZE = 750;
 
-        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:fetched_all_issues_changelogs"));
-        
-        if (!issueList.isEmpty()) {
-            List<IndexableDocuments.Issue> issueDocuments = textEmbeddingService.githubIssue(issueList);
-            dependencyRepository.bulkInsertDocuments(issueDocuments, DependencyRepository.issuesIndexName, BATCH_SIZE);
+        jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:created_embeddings"));
 
-            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_issues"));
-            log.info("inserted new issue documents into openSearch successfully!", kv("repoName", repoName));
+        io.micrometer.tracing.Span parentSpan = tracer.currentSpan();
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+
+            for (int i = 0; i < issueEmbeddings.size(); i += BATCH_SIZE) {
+                // creating a copy of the sublist for thread safety
+                List<IndexableDocuments.Issue> batch = new ArrayList<>(
+                    issueEmbeddings.subList(i, Math.min(i + BATCH_SIZE, issueEmbeddings.size()))
+                );
+                futures.add(executor.submit(() -> insertBatch(batch, DependencyRepository.issuesIndexName, parentSpan)));
+            }
+
+            for (int i = 0; i < changeLogEmbeddings.size(); i += BATCH_SIZE) {
+                List<IndexableDocuments.ChangeLog> batch = new ArrayList<>(
+                    changeLogEmbeddings.subList(i, Math.min(i + BATCH_SIZE, changeLogEmbeddings.size()))
+                );
+                futures.add(executor.submit(() -> insertBatch(batch, DependencyRepository.changeLogIndexName, parentSpan)));
+            }
+
+            for (Future<?> future : futures) {
+                future.get();
+            }
+
+            if (!issueEmbeddings.isEmpty()) {
+                jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_issues"));
+                log.info("inserted new issue documents into openSearch successfully!", kv("repoName", repoName));
+            }
+
+            if (!changeLogEmbeddings.isEmpty()) {
+                jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_changelogs"));
+                log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
+            }
         }
+    }
 
-        if (!changeLogResult.changelogs().isEmpty()) {
-            List<IndexableDocuments.ChangeLog> changeLogDocuments = textEmbeddingService.githubChangelog(changeLogResult.changelogs());
-            dependencyRepository.bulkInsertDocuments(changeLogDocuments, DependencyRepository.changeLogIndexName, BATCH_SIZE);
-
-            jobStatusRepository.upsert(new JobStatusDocument(userId, repoName, "processing:inserted_all_changelogs"));
-            log.info("inserted new changelog documents into openSearch successfully!", kv("repoName", repoName));
+    private <T extends IndexableDocuments.Base> void insertBatch(
+        List<T> batch, String indexName, io.micrometer.tracing.Span parentSpan
+    ) {
+        try (io.micrometer.tracing.Tracer.SpanInScope scope = tracer.withSpan(parentSpan)) {
+            try {
+                dependencyRepository.bulkInsertDocuments(batch, indexName);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
