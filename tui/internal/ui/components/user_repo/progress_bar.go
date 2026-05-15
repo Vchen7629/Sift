@@ -36,7 +36,7 @@ var statusProgress = map[string]float64{
 	"processing:fetched_repo":                  0.075,
 	"processing:fetched_dependency_list":       0.10,
 	"processing:fetched_all_issues_changelogs": 0.35,
-	"processing:created_embeddings":			0.80,
+	"processing:created_embeddings":            0.80,
 	"processing:inserted_all_issues":           0.85,
 	"processing:inserted_all_changelogs":       0.90,
 	"processing:inserted_indexed_repo":         0.95,

@@ -12,6 +12,7 @@ import (
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 )
 
 type Sidebar struct {
@@ -153,9 +154,14 @@ func (m *Sidebar) repoDependencyList() tea.View {
 func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
 	textColor := styles.FocusColor(m.ctx.SelectedTheme, idx, m.FocusedIdx)
 
-	name := lipgloss.NewStyle().Foreground(textColor).Render(dependency.Name)
-	version := lipgloss.NewStyle().Width(10).MarginRight(2).Align(lipgloss.Center).
-		Background(lipgloss.Blue).Render(dependency.Version)
+	name := lipgloss.NewStyle().
+		Foreground(textColor).
+		Render(truncateText(dependency.Name, m.ctx.SidebarWidth-28))
+
+	version := lipgloss.NewStyle().
+		Width(10).MarginRight(2).Align(lipgloss.Center).
+		Background(lipgloss.Blue).
+		Render(truncateText(dependency.Version, m.ctx.SidebarWidth-46))
 
 	statusText := lipgloss.White
 	switch dependency.Status {
@@ -173,4 +179,8 @@ func (m *Sidebar) dependencyCard(idx int, dependency types.Dependency) string {
 	marginBottom := lipgloss.NewStyle().MarginBottom(1)
 
 	return marginBottom.Render(lipgloss.JoinHorizontal(lipgloss.Left, name, spaceBetween, rightBlock))
+}
+
+func truncateText(rawText string, maxWidth int) string {
+	return ansi.Truncate(rawText, maxWidth, "...")
 }
