@@ -1,6 +1,7 @@
 package user_repo
 
 import (
+	"errors"
 	"time"
 	"tui/internal/api"
 	"tui/internal/ui/context"
@@ -88,9 +89,9 @@ func (m *ProgressBarModel) View() tea.View {
 }
 
 type tickMsg struct {
-	idx    int
-	t      time.Time
-	status string
+	idx                     int
+	t                       time.Time
+	status, newSessionToken string
 }
 
 type getJobStatusErr struct {
@@ -101,10 +102,26 @@ type getJobStatusErr struct {
 func (m *ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
 		status, err := api.GetJobStatus(m.ctx.SessionToken, m.repoName)
+
+		if errors.Is(err, api.ErrUnauthorized) {
+			ghToken := api.GithubPatToken()
+
+			newSessionToken, err := api.NewSession(ghToken)
+			if err != nil {
+				return getJobStatusErr{idx: m.idx, err: err.Error()}
+			}
+
+			status, err = api.GetJobStatus(newSessionToken, m.repoName)
+			if err != nil {
+				return getJobStatusErr{idx: m.idx, err: err.Error()}
+			}
+
+			return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: newSessionToken}
+		}
 		if err != nil {
 			return getJobStatusErr{idx: m.idx, err: err.Error()}
 		}
 
-		return tickMsg{t: t, idx: m.idx, status: status}
+		return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: m.ctx.SessionToken}
 	})
 }

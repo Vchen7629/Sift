@@ -44,7 +44,11 @@ func IndexRepo(sessionToken, repoName string) error {
 		}
 	}()
 
-	if resp.StatusCode != http.StatusAccepted {
+	switch resp.StatusCode {
+	case http.StatusForbidden:
+		return ErrUnauthorized
+	case http.StatusAccepted: // skip to logic if accepted
+	default:
 		return fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 
@@ -80,11 +84,13 @@ func GetJobStatus(sessionToken, repoName string) (string, error) {
 		}
 	}()
 
-	if resp.StatusCode == http.StatusNotFound {
+	switch resp.StatusCode {
+	case http.StatusForbidden:
+		return "", ErrUnauthorized
+	case http.StatusNotFound:
 		return "", nil
-	}
-
-	if resp.StatusCode != http.StatusOK {
+	case http.StatusOK: // do nothing when ok
+	default:
 		return "", fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 

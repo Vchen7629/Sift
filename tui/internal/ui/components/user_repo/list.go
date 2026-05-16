@@ -1,11 +1,13 @@
 package user_repo
 
 import (
+	"errors"
+	"fmt"
+	"image/color"
+
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"fmt"
-	"image/color"
 
 	"tui/internal/api"
 	"tui/internal/service"
@@ -164,8 +166,8 @@ func (m *ListModel) cardHeader(idx int, indexedRepo types.IndexedRepo, ghRepo ap
 }
 
 type indexRepoMsg struct {
-	idx      int
-	repoName string
+	idx                       int
+	repoName, NewSessionToken string
 }
 
 type indexRepoErrMsg struct {
@@ -176,10 +178,26 @@ type indexRepoErrMsg struct {
 func IndexRepo(idx int, sessionToken, repoName string) tea.Cmd {
 	return func() tea.Msg {
 		err := api.IndexRepo(sessionToken, repoName)
+
+		if errors.Is(err, api.ErrUnauthorized) {
+			ghToken := api.GithubPatToken()
+
+			newSessionToken, err := api.NewSession(ghToken)
+			if err != nil {
+				return indexRepoErrMsg{idx: idx, err: err}
+			}
+
+			err = api.IndexRepo(newSessionToken, repoName)
+			if err != nil {
+				return indexRepoErrMsg{idx: idx, err: err}
+			}
+
+			return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: newSessionToken}
+		}
 		if err != nil {
 			return indexRepoErrMsg{idx: idx, err: err}
 		}
 
-		return indexRepoMsg{idx: idx, repoName: repoName}
+		return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: sessionToken}
 	}
 }

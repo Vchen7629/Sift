@@ -57,8 +57,8 @@ func (m *ActionBarModel) View(isRepoListFocused, isSearching bool, selectedRepo 
 
 func (m *ActionBarModel) actionBarBtns(focusRepoList, isSearching bool) string {
 	switch {
-	case !m.hasSearchResult:
-		return lipgloss.JoinHorizontal(lipgloss.Left, styles.NavBtn("[/] new query"))
+	case !m.hasSearchResult && !focusRepoList:
+		return lipgloss.JoinHorizontal(lipgloss.Left, styles.NavBtn("[/] new query"), styles.NavBtn("[s] switch selected repo"))
 	case focusRepoList:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
 			styles.NavBtn("[/] new query"), styles.NavBtn("[↑↓] change selected repo"), styles.NavBtn("[s] back to query card"),

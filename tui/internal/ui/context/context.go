@@ -27,7 +27,7 @@ type App struct {
 func NewApp() (*App, error) {
 	ghToken := api.GithubPatToken()
 
-	SessionToken, err := api.AuthenticateUser(ghToken)
+	SessionToken, err := api.NewSession(ghToken)
 	if err != nil {
 		return nil, err
 	}

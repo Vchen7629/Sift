@@ -72,6 +72,7 @@ func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.populateIndexRepoStatus()
 		m.SearchBar.OriginalIndexedRepoList = indexedRepoMap
 		m.ActionBar.IndexRepoApiDown = false
+		m.ctx.SessionToken = msg.NewSessionToken
 
 		if len(m.RepoList.GHRepos) > 0 {
 			m.Sidebar.FocusedIndexedRepo = indexedRepoMap[m.RepoList.GHRepos[m.RepoList.FocusedIdx].Name]

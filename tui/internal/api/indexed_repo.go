@@ -42,7 +42,11 @@ func DeleteIndexedRepo(sessionToken, repoName string) error {
 		}
 	}()
 
-	if resp.StatusCode != http.StatusNoContent {
+	switch resp.StatusCode {
+	case http.StatusForbidden:
+		return ErrUnauthorized
+	case http.StatusNoContent: // do nothing when no content resp
+	default:
 		return fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 
@@ -78,7 +82,11 @@ func GetAllIndexedRepos(sessionToken string) ([]types.IndexedRepo, error) {
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusForbidden:
+		return nil, ErrUnauthorized
+	case http.StatusOK: // do nothing when ok
+	default:
 		return nil, fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 

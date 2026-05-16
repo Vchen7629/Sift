@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"tui/internal/api"
@@ -12,17 +13,36 @@ import (
 
 type ToggleFocusMsg struct{}
 
-type FetchIndexedRepoMsg struct{ IndexedRepos []types.IndexedRepo }
+type FetchIndexedRepoMsg struct {
+	IndexedRepos    []types.IndexedRepo
+	NewSessionToken string
+}
 type FetchIndexedRepoErr struct{ Err error }
 
 func FetchIndexedRepo(sessionToken string) tea.Cmd {
 	return func() tea.Msg {
 		indexRepos, err := api.GetAllIndexedRepos(sessionToken)
+
+		if errors.Is(err, api.ErrUnauthorized) {
+			ghToken := api.GithubPatToken()
+
+			newSessionToken, err := api.NewSession(ghToken)
+			if err != nil {
+				return FetchIndexedRepoErr{Err: err}
+			}
+
+			indexRepos, err = api.GetAllIndexedRepos(newSessionToken)
+			if err != nil {
+				return FetchIndexedRepoErr{Err: err}
+			}
+
+			return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: newSessionToken}
+		}
 		if err != nil {
 			return FetchIndexedRepoErr{Err: err}
 		}
 
-		return FetchIndexedRepoMsg{IndexedRepos: indexRepos}
+		return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: sessionToken}
 	}
 }
 

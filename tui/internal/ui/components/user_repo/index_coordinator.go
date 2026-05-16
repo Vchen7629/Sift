@@ -44,6 +44,7 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case indexRepoMsg:
+		c.ctx.SessionToken = msg.NewSessionToken
 		pb := NewProgressBar(c.ctx, msg.idx, msg.repoName)
 		c.progressBars[msg.idx] = pb
 
@@ -52,6 +53,7 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		c.statuses[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
 
 	case tickMsg:
+		c.ctx.SessionToken = msg.newSessionToken
 		statusText := "new index job request"
 		if msg.status != "" {
 			statusText = msg.status
@@ -81,7 +83,7 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		c.pendingCleanup[msg.idx] = true
 		c.statuses[msg.idx] = "fetching indexed repo " + c.spinner.View()
 
-		return tea.Batch(c.spinner.Tick, common.FetchIndexedRepo(c.ctx.Username))
+		return tea.Batch(c.spinner.Tick, common.FetchIndexedRepo(c.ctx.SessionToken))
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd

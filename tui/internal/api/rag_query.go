@@ -59,7 +59,11 @@ func Search(sessionToken, username, repoName, searchQuery string) (SearchRes, er
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusForbidden:
+		return SearchRes{}, ErrUnauthorized
+	case http.StatusOK: // do nothing when status ok
+	default:
 		return SearchRes{}, fmt.Errorf("unexpected error sending req: %d", resp.StatusCode)
 	}
 

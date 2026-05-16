@@ -1,6 +1,7 @@
 package rag_query
 
 import (
+	"errors"
 	"tui/internal/api"
 	"tui/internal/ui/common"
 	"tui/internal/ui/context"
@@ -45,16 +46,35 @@ func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 	return m.UpdateInput(msg)
 }
 
-type NewSearchQueryMsg struct{ Res api.SearchRes }
+type NewSearchQueryMsg struct {
+	Res             api.SearchRes
+	NewSessionToken string
+}
 type NewSearchQueryErr struct{ RepoName, Err string }
 
 func (m *SearchBarModel) newSearchQuery(repoName string) tea.Cmd {
 	return func() tea.Msg {
 		searchRes, err := api.Search(m.Ctx.SessionToken, m.Ctx.Username, repoName, m.TextInput.Value())
+
+		if errors.Is(err, api.ErrUnauthorized) {
+			ghToken := api.GithubPatToken()
+
+			newSessionToken, err := api.NewSession(ghToken)
+			if err != nil {
+				return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
+			}
+
+			searchRes, err = api.Search(newSessionToken, m.Ctx.Username, repoName, m.TextInput.Value())
+			if err != nil {
+				return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
+			}
+
+			return NewSearchQueryMsg{Res: searchRes, NewSessionToken: newSessionToken}
+		}
 		if err != nil {
 			return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
 		}
 
-		return NewSearchQueryMsg{Res: searchRes}
+		return NewSearchQueryMsg{Res: searchRes, NewSessionToken: m.Ctx.SessionToken}
 	}
 }

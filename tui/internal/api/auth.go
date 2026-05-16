@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,8 +9,10 @@ import (
 
 var authBaseUrl = "http://localhost:8080/auth"
 
+var ErrUnauthorized = errors.New("unauthorized")
+
 // this calls the backend to generate a new session for authentication
-func AuthenticateUser(ghToken string) (string, error) {
+func NewSession(ghToken string) (string, error) {
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/token", authBaseUrl), nil)
 	if err != nil {
 		return "", err
