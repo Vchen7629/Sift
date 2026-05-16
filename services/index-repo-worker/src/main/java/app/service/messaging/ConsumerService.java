@@ -1,4 +1,4 @@
-package app.service;
+package app.service.messaging;
 
 import java.io.IOException;
 import java.time.Duration;

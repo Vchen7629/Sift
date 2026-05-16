@@ -1,4 +1,4 @@
-package app.config;
+package app.config.internal;
 
 import io.micrometer.observation.ObservationPredicate;
 import io.micrometer.observation.ObservationRegistry;
