@@ -1,4 +1,4 @@
-package app.service;
+package app.service.internal;
 
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.springframework.scheduling.annotation.Scheduled;

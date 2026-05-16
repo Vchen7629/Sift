@@ -1,4 +1,4 @@
-package app.service;
+package app.service.external;
 
 import java.io.IOException;
 import java.util.List;
@@ -7,10 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import ai.djl.translate.TranslateException;
 import app.dto.IssueSearchResponse;
-import app.repository.SearchRepository;
-import app.repository.UserRepoRepository;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
@@ -20,21 +17,10 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Service
 @Slf4j
-public class SearchResponseService {
-    private final UserRepoRepository userRepoRepository;
-    private final SearchRepository searchRepository;
-    private final RerankingService rerankingService;
+public class OllamaService {
     private final RestClient ollamaRestClient;
 
-    public SearchResponseService(
-        UserRepoRepository userRepoRepository,
-        SearchRepository searchRepository,
-        RerankingService rerankingService,
-        RestClient ollamaRestClient
-    ) {
-        this.userRepoRepository = userRepoRepository;
-        this.searchRepository = searchRepository;
-        this.rerankingService = rerankingService;
+    public OllamaService(RestClient ollamaRestClient) {
         this.ollamaRestClient = ollamaRestClient;
     }
 
@@ -47,34 +33,7 @@ public class SearchResponseService {
             log.warn("ollama not reachable at startup", kv("err", e.getMessage()));
         }
     }
-
-    @Observed(name = "searchresponse.generateissuecandidates.service")
-    public List<IssueSearchResponse> generateIssueCandidates(
-        @NotBlank String userId, @NotBlank String searchQuery, @NotBlank String repoName
-    ) throws TranslateException, IOException {
-        List<String> repoDependencies = userRepoRepository.listAllRepoDependencies(userId, repoName);
-
-        if (repoDependencies.isEmpty()) {
-            log.debug("no dependencies found for repo", kv("userId", userId), kv("repoName", repoName));
-            return List.of();
-        }
-
-        return searchRepository.findRelevantIssues(repoDependencies, searchQuery);
-    }
-
-    @Observed(name = "searchresponse.rerankcandidates.service")
-    public List<IssueSearchResponse> rerankCandidates(
-        @NotBlank String searchQuery, @NotEmpty List<IssueSearchResponse> issueResults
-    ) {
-        long start = System.currentTimeMillis();
-        List<IssueSearchResponse> rerankedResults = rerankingService.rerank(searchQuery, issueResults);
-        long elapsed = System.currentTimeMillis() - start;
-
-        log.debug("reranking took {} ms", elapsed);
-
-        return rerankedResults;
-    }
-
+    
     private static final String OLLAMA_MODEL = "qwen3:4b-q4_K_M";
     private static final float LLM_RELEVANCE_THRESHOLD = 0.3f;
 
@@ -83,7 +42,7 @@ public class SearchResponseService {
     private record OllamaChatResponseMessage(String role, String content) {}
     private record OllamaChatResponse(OllamaChatResponseMessage message) {}
 
-    @Observed(name = "searchresponse.generatefinalresponse.service")
+    @Observed(name = "ollama.generatefinalresponse.service")
     public String generateFinalResponse(@NotBlank String searchQuery, @NotEmpty List<IssueSearchResponse> rerankedIssues) {
         if (rerankedIssues.isEmpty()) {
             log.debug("no issues above relevance threshold, skipping llm call",

@@ -1,4 +1,4 @@
-package app.service;
+package app.service.ml;
 
 import java.util.Comparator;
 import java.util.List;

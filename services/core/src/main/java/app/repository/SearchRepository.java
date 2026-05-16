@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 
 import ai.djl.translate.TranslateException;
 import app.dto.IssueSearchResponse;
-import app.service.TextEmbeddingService;
+import app.service.ml.TextEmbeddingService;
 import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotBlank;
