@@ -58,6 +58,7 @@ symptom queries per issue (3 - 5 ), manually label the dataset, and benchmark:
 - [x] Grafana metrics and span visualization
 
 ### Deployment
-- [ ] look into spring security to lock down sensitive routes
+- [x] look into spring security to lock down sensitive routes: implemented session based oauth flow with refresh logic
+in tui
 - [ ] Kubernetes deployment
 - [ ] Finish Readme
