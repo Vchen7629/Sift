@@ -92,6 +92,7 @@ type tickMsg struct {
 	idx                     int
 	t                       time.Time
 	status, newSessionToken string
+	isReauthed              bool
 }
 
 type getJobStatusErr struct {
@@ -116,12 +117,12 @@ func (m *ProgressBarModel) checkProgress() tea.Cmd {
 				return getJobStatusErr{idx: m.idx, err: err.Error()}
 			}
 
-			return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: newSessionToken}
+			return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: newSessionToken, isReauthed: true}
 		}
 		if err != nil {
 			return getJobStatusErr{idx: m.idx, err: err.Error()}
 		}
 
-		return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: m.ctx.SessionToken}
+		return tickMsg{t: t, idx: m.idx, status: status, newSessionToken: m.ctx.SessionToken, isReauthed: false}
 	})
 }

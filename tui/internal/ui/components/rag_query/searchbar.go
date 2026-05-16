@@ -49,6 +49,7 @@ func (m *SearchBarModel) Update(msg tea.Msg, selectedRepo string) tea.Cmd {
 type NewSearchQueryMsg struct {
 	Res             api.SearchRes
 	NewSessionToken string
+	isReauthed      bool
 }
 type NewSearchQueryErr struct{ RepoName, Err string }
 
@@ -69,12 +70,12 @@ func (m *SearchBarModel) newSearchQuery(repoName string) tea.Cmd {
 				return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
 			}
 
-			return NewSearchQueryMsg{Res: searchRes, NewSessionToken: newSessionToken}
+			return NewSearchQueryMsg{Res: searchRes, NewSessionToken: newSessionToken, isReauthed: true}
 		}
 		if err != nil {
 			return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
 		}
 
-		return NewSearchQueryMsg{Res: searchRes, NewSessionToken: m.Ctx.SessionToken}
+		return NewSearchQueryMsg{Res: searchRes, NewSessionToken: m.Ctx.SessionToken, isReauthed: false}
 	}
 }

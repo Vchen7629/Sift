@@ -63,7 +63,6 @@ func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused, isSearching bool) t
 		m.viewport.SetWidth(m.ctx.SidebarWidth)
 
 	case common.FetchIndexedRepoMsg:
-		m.ctx.SessionToken = msg.NewSessionToken
 		m.indexedRepos = msg.IndexedRepos
 		if len(m.indexedRepos) > 0 {
 			return func() tea.Msg {

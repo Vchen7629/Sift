@@ -168,6 +168,7 @@ func (m *ListModel) cardHeader(idx int, indexedRepo types.IndexedRepo, ghRepo ap
 type indexRepoMsg struct {
 	idx                       int
 	repoName, NewSessionToken string
+	isReauthed                bool
 }
 
 type indexRepoErrMsg struct {
@@ -192,12 +193,12 @@ func IndexRepo(idx int, sessionToken, repoName string) tea.Cmd {
 				return indexRepoErrMsg{idx: idx, err: err}
 			}
 
-			return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: newSessionToken}
+			return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: newSessionToken, isReauthed: true}
 		}
 		if err != nil {
 			return indexRepoErrMsg{idx: idx, err: err}
 		}
 
-		return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: sessionToken}
+		return indexRepoMsg{idx: idx, repoName: repoName, NewSessionToken: sessionToken, isReauthed: false}
 	}
 }

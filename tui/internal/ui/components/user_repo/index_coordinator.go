@@ -44,7 +44,10 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case indexRepoMsg:
-		c.ctx.SessionToken = msg.NewSessionToken
+		if msg.isReauthed {
+			c.ctx.SessionToken = msg.NewSessionToken
+		}
+
 		pb := NewProgressBar(c.ctx, msg.idx, msg.repoName)
 		c.progressBars[msg.idx] = pb
 
@@ -53,7 +56,9 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		c.statuses[msg.idx] = fmt.Sprintf("error: %s", msg.err.Error())
 
 	case tickMsg:
-		c.ctx.SessionToken = msg.newSessionToken
+		if msg.isReauthed {
+			c.ctx.SessionToken = msg.newSessionToken
+		}
 		statusText := "new index job request"
 		if msg.status != "" {
 			statusText = msg.status

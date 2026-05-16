@@ -6,7 +6,6 @@ import (
 	"testing"
 	"tui/internal/api"
 	"tui/internal/ui/context"
-	"tui/internal/ui/styles"
 
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
@@ -14,9 +13,7 @@ import (
 )
 
 func queryResponseCtx() *context.App {
-	return &context.App{
-		SelectedTheme: styles.Warm,
-	}
+	return &context.App{}
 }
 
 func TestQueryResponse_SidebarFocusedGuard(t *testing.T) {
@@ -69,15 +66,35 @@ func TestQueryResponse_WindowSizeMsg(t *testing.T) {
 }
 
 func TestQueryResponse_NewSearchQueryMsg(t *testing.T) {
-	res := api.SearchRes{
-		RepoName:     "my-repo",
-		IssueSources: []api.IssueSource{{Title: "bug"}},
+	tt := []struct {
+		name          string
+		isReauthed    bool
+		newSessToken  string
+		expectedToken string
+	}{
+		{"sets query res properly", false, "new-token", "old-token"},
+		{"updates the token on reauth", true, "new-token", "new-token"},
+		{"does not overwrite token when not reauthed", false, "old-token-2", "old-token"},
 	}
 
-	m := NewRagQueryResponse(queryResponseCtx())
-	m.Update(NewSearchQueryMsg{Res: res}, false, false)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			res := api.SearchRes{
+				RepoName:     "my-repo",
+				IssueSources: []api.IssueSource{{Title: "bug"}},
+			}
 
-	assert.Equal(t, res, m.queryRes)
+			ctx := queryResponseCtx()
+			m := NewRagQueryResponse(ctx)
+			m.ctx.SessionToken = "old-token"
+			msg := NewSearchQueryMsg{Res: res, NewSessionToken: tc.newSessToken, isReauthed: tc.isReauthed}
+
+			m.Update(msg, false, false)
+
+			assert.Equal(t, res, m.queryRes)
+			assert.Equal(t, tc.expectedToken, ctx.SessionToken)
+		})
+	}
 }
 
 func TestQueryResponse_UpdateMessages(t *testing.T) {

@@ -107,3 +107,102 @@ func TestUserRepo_Update_GithubRepoFetchedMsg(t *testing.T) {
 		})
 	}
 }
+func TestUserRepoUpdate_FetchIndexedRepoMsg(t *testing.T) {
+	indexedSift := types.IndexedRepo{Name: "Sift"}
+	indexedBudget := types.IndexedRepo{Name: "Budget.me"}
+
+	tt := []struct {
+		name                   string
+		ghRepos                []api.RepoApiRes
+		indexedRepos           []types.IndexedRepo
+		isReauthed             bool
+		newSessToken           string
+		expectedToken          string
+		expectedIndexedMap     map[string]*types.IndexedRepo
+		expectedFocusedIndexed *types.IndexedRepo
+		expectedIndexedStatus  map[int]string
+	}{
+		{
+			name:                   "empty indexed repos clears map, no focused repo",
+			ghRepos:                []api.RepoApiRes{{Name: "Sift"}},
+			indexedRepos:           []types.IndexedRepo{},
+			isReauthed:             false,
+			newSessToken:           "new-token",
+			expectedToken:          "old-token",
+			expectedIndexedMap:     map[string]*types.IndexedRepo{},
+			expectedFocusedIndexed: nil,
+			expectedIndexedStatus:  map[int]string{},
+		},
+		{
+			name:          "focused repo set to first GH repo when it is indexed",
+			ghRepos:       []api.RepoApiRes{{Name: "Sift"}, {Name: "Budget.me"}},
+			indexedRepos:  []types.IndexedRepo{indexedSift, indexedBudget},
+			isReauthed:    false,
+			newSessToken:  "new-token",
+			expectedToken: "old-token",
+			expectedIndexedMap: map[string]*types.IndexedRepo{
+				"Sift": &indexedSift, "Budget.me": &indexedBudget,
+			},
+			expectedFocusedIndexed: &indexedSift,
+			expectedIndexedStatus:  map[int]string{0: "Indexed", 1: "Indexed"},
+		},
+		{
+			name:                   "focused repo nil when first GH repo not indexed",
+			ghRepos:                []api.RepoApiRes{{Name: "Sift"}},
+			indexedRepos:           []types.IndexedRepo{indexedBudget},
+			isReauthed:             false,
+			newSessToken:           "new-token",
+			expectedToken:          "old-token",
+			expectedIndexedMap:     map[string]*types.IndexedRepo{"Budget.me": &indexedBudget},
+			expectedFocusedIndexed: nil,
+			expectedIndexedStatus:  map[int]string{},
+		},
+		{
+			name:                   "no GH repos means no focused repo regardless of indexed repos",
+			ghRepos:                []api.RepoApiRes{},
+			indexedRepos:           []types.IndexedRepo{indexedSift},
+			isReauthed:             false,
+			newSessToken:           "new-token",
+			expectedToken:          "old-token",
+			expectedIndexedMap:     map[string]*types.IndexedRepo{"Sift": &indexedSift},
+			expectedFocusedIndexed: nil,
+			expectedIndexedStatus:  map[int]string{},
+		},
+		{
+			name:                   "updates session token when reauthed",
+			ghRepos:                []api.RepoApiRes{},
+			indexedRepos:           []types.IndexedRepo{},
+			isReauthed:             true,
+			newSessToken:           "new-token",
+			expectedToken:          "new-token",
+			expectedIndexedMap:     map[string]*types.IndexedRepo{},
+			expectedFocusedIndexed: nil,
+			expectedIndexedStatus:  map[int]string{},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			m := newUserRepoModel(false, false)
+			m.ctx.SessionToken = "old-token"
+			m.RepoList.GHRepos = tc.ghRepos
+
+			m.Update(common.FetchIndexedRepoMsg{
+				IndexedRepos:    tc.indexedRepos,
+				NewSessionToken: tc.newSessToken,
+				IsReauthed:      tc.isReauthed,
+			})
+
+			assert.Equal(t, tc.expectedToken, m.ctx.SessionToken)
+			assert.Equal(t, tc.expectedIndexedMap, m.RepoList.IndexedRepoMap)
+			assert.Equal(t, tc.expectedIndexedMap, m.SearchBar.OriginalIndexedRepoList)
+			assert.False(t, m.ActionBar.IndexRepoApiDown)
+			assert.Equal(t, tc.expectedFocusedIndexed, m.Sidebar.FocusedIndexedRepo)
+			for idx, wantStatus := range tc.expectedIndexedStatus {
+				status, ok := m.RepoList.IndexCoord.StatusFor(idx)
+				assert.True(t, ok)
+				assert.Equal(t, wantStatus, status)
+			}
+		})
+	}
+}

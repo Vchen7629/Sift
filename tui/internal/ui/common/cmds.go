@@ -16,6 +16,7 @@ type ToggleFocusMsg struct{}
 type FetchIndexedRepoMsg struct {
 	IndexedRepos    []types.IndexedRepo
 	NewSessionToken string
+	IsReauthed      bool
 }
 type FetchIndexedRepoErr struct{ Err error }
 
@@ -36,13 +37,13 @@ func FetchIndexedRepo(sessionToken string) tea.Cmd {
 				return FetchIndexedRepoErr{Err: err}
 			}
 
-			return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: newSessionToken}
+			return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: newSessionToken, IsReauthed: true}
 		}
 		if err != nil {
 			return FetchIndexedRepoErr{Err: err}
 		}
 
-		return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: sessionToken}
+		return FetchIndexedRepoMsg{IndexedRepos: indexRepos, NewSessionToken: sessionToken, IsReauthed: false}
 	}
 }
 

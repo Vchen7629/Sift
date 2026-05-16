@@ -70,7 +70,9 @@ func (m *RagQueryResponseModel) Update(msg tea.Msg, isSidebarFocused, isSearchin
 
 		return m.spinner.Tick
 	case NewSearchQueryMsg:
-		m.ctx.SessionToken = msg.NewSessionToken
+		if msg.isReauthed {
+			m.ctx.SessionToken = msg.NewSessionToken
+		}
 		m.loadingSearchQuery = false
 		m.queryRes = msg.Res
 
