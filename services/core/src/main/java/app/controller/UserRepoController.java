@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,24 +32,24 @@ public class UserRepoController {
         this.indexedRepoRepository = indexedRepoRepository;
     }
 
-    private record DeleteRepoRequest(@NotBlank String userId, @NotBlank String repoName) {}
+    private record DeleteRepoRequest(@NotBlank String repoName) {}
 
     @DeleteMapping("/delete")
     @Observed(name="userrepo.delete.controller")
-    public ResponseEntity<Void> deleteRepo(@RequestBody @Valid DeleteRepoRequest request) throws IOException {
-        log.info("recieved delete repo request", kv("userId", request.userId), kv("repoUrl", request.repoName));
-
-        indexedRepoRepository.delete(request.userId, request.repoName);
+    public ResponseEntity<?> deleteRepo(
+        @RequestBody @Valid DeleteRepoRequest reqBody, @AuthenticationPrincipal String username
+    ) throws IOException {
+        log.info("recieved delete repo request", kv("userId", username), kv("repoUrl", reqBody.repoName()));
+        indexedRepoRepository.delete(username, reqBody.repoName());
 
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/list/{userId}")
+    @GetMapping("/list")
     @Observed(name="userrepo.list.controller")
-    public ResponseEntity<List<IndexedRepoDocument>> listTrackedRepos(@NotBlank @PathVariable String userId) throws IOException {
+    public ResponseEntity<?> listTrackedRepos(@AuthenticationPrincipal String username) throws IOException {
         log.info("recieved list all tracked repos request");
-
-        List<IndexedRepoDocument> trackedRepos = indexedRepoRepository.listAll(userId);
+        List<IndexedRepoDocument> trackedRepos = indexedRepoRepository.listAll(username);
 
         return ResponseEntity.ok().body(trackedRepos);
     }
