@@ -15,13 +15,25 @@ var client = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
-func IndexRepo(username, repoName string) error {
-	payload, err := service.MarshalRequestBody(username, repoName)
+func IndexRepo(sessionToken, repoName string) error {
+	log.Printf("got session token %s for index repo", sessionToken)
+	payload, err := service.MarshalRequestBody(repoName)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/add", indexBaseUrl), "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/add", indexBaseUrl), bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Sift-tui/1.0")
+	req.AddCookie(&http.Cookie{
+		Name:  "JSESSIONID",
+		Value: sessionToken,
+	})
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -40,13 +52,24 @@ func IndexRepo(username, repoName string) error {
 }
 
 // used to poll the job status for the progress bar
-func GetJobStatus(username, repoName string) (string, error) {
-	payload, err := service.MarshalRequestBody(username, repoName)
+func GetJobStatus(sessionToken, repoName string) (string, error) {
+	payload, err := service.MarshalRequestBody(repoName)
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/job_status", indexBaseUrl), "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/job_status", indexBaseUrl), bytes.NewBuffer(payload))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Sift-tui/1.0")
+	req.AddCookie(&http.Cookie{
+		Name:  "JSESSIONID",
+		Value: sessionToken,
+	})
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}

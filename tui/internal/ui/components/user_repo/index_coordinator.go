@@ -95,7 +95,7 @@ func (c *indexCoordinator) Update(msg tea.Msg) tea.Cmd {
 		return cmd
 
 	case retryFetchMsg:
-		return common.FetchIndexedRepo(c.ctx.Username)
+		return common.FetchIndexedRepo(c.ctx.SessionToken)
 
 	case getJobStatusErr:
 		c.statuses[msg.idx] = msg.err

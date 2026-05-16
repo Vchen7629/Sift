@@ -31,7 +31,7 @@ func NewSidebar(ctx *context.App) *SidebarModel {
 }
 
 func (m *SidebarModel) Init() tea.Cmd {
-	return common.FetchIndexedRepo(m.ctx.Username)
+	return common.FetchIndexedRepo(m.ctx.SessionToken)
 }
 
 func (m *SidebarModel) Update(msg tea.Msg, isSidebarFocused, isSearching bool) tea.Cmd {

@@ -100,7 +100,7 @@ type getJobStatusErr struct {
 
 func (m *ProgressBarModel) checkProgress() tea.Cmd {
 	return tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
-		status, err := api.GetJobStatus(m.ctx.Username, m.repoName)
+		status, err := api.GetJobStatus(m.ctx.SessionToken, m.repoName)
 		if err != nil {
 			return getJobStatusErr{idx: m.idx, err: err.Error()}
 		}

@@ -48,9 +48,11 @@ func (m *BaseModel) Update(msg tea.Msg) tea.Cmd {
 
 func (m *BaseModel) View() tea.View {
 	title := "Sift · "
-	if m.ctx.Username != "" {
+	switch {
+	case m.ctx.Username != "":
 		title = fmt.Sprintf("Sift · @%s", m.ctx.Username)
 	}
+
 	titleText := lipgloss.NewStyle().
 		PaddingLeft(2).PaddingRight(1).
 		Background(styles.Footer).Foreground(styles.TextPrimary).

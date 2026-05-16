@@ -50,7 +50,7 @@ type NewSearchQueryErr struct{ RepoName, Err string }
 
 func (m *SearchBarModel) newSearchQuery(repoName string) tea.Cmd {
 	return func() tea.Msg {
-		searchRes, err := api.Search(m.Ctx.Username, repoName, m.TextInput.Value())
+		searchRes, err := api.Search(m.Ctx.SessionToken, m.Ctx.Username, repoName, m.TextInput.Value())
 		if err != nil {
 			return NewSearchQueryErr{RepoName: repoName, Err: err.Error()}
 		}

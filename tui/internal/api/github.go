@@ -1,6 +1,9 @@
 package api
 
-import gh "github.com/cli/go-gh/v2/pkg/api"
+import (
+	gh "github.com/cli/go-gh/v2/pkg/api"
+	"github.com/cli/go-gh/v2/pkg/auth"
+)
 
 type GithubClient struct {
 	rest *gh.RESTClient
@@ -39,4 +42,12 @@ func (c *GithubClient) GithubUserRepositories() ([]RepoApiRes, error) {
 	}
 
 	return apiRes, err
+}
+
+// fetch the user's gh pat token, used for authorization for indexed repo
+// routes on the backend
+func GithubPatToken() string {
+	token, _ := auth.TokenForHost("github.com")
+
+	return token
 }

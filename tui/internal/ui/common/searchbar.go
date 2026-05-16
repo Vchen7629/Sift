@@ -15,12 +15,12 @@ type SearchBar struct {
 	IsFocused bool
 }
 
-func NewSearchBar(Ctx *context.App, placeholderText string) *SearchBar {
+func NewSearchBar(ctx *context.App, placeholderText string) *SearchBar {
 	ti := textinput.New()
 	ti.Placeholder = placeholderText
 
 	return &SearchBar{
-		Ctx:       Ctx,
+		Ctx:       ctx,
 		TextInput: ti,
 	}
 }

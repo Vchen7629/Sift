@@ -9,7 +9,6 @@ import (
 )
 
 type SearchReq struct {
-	UserId      string `json:"userId"`
 	RepoName    string `json:"repoName"`
 	SearchQuery string `json:"searchQuery"`
 }
@@ -30,16 +29,27 @@ type IssueSource struct {
 
 var searchBaseUrl = "http://localhost:8080/search"
 
-func Search(username, repoName, searchQuery string) (SearchRes, error) {
+func Search(sessionToken, username, repoName, searchQuery string) (SearchRes, error) {
 	repoNameFmt := fmt.Sprintf("%s/%s", username, repoName)
 
-	payload := SearchReq{UserId: username, RepoName: repoNameFmt, SearchQuery: searchQuery}
+	payload := SearchReq{RepoName: repoNameFmt, SearchQuery: searchQuery}
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return SearchRes{}, err
 	}
 
-	resp, err := client.Post(fmt.Sprintf("%s/new", searchBaseUrl), "application/json", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/new", searchBaseUrl), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return SearchRes{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Sift-tui/1.0")
+	req.AddCookie(&http.Cookie{
+		Name:  "JSESSIONID",
+		Value: sessionToken,
+	})
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return SearchRes{}, err
 	}

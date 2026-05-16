@@ -75,7 +75,7 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 		idx := m.FocusedIdx
 		repoName := fmt.Sprintf("%s/%s", m.ctx.Username, m.GHRepos[idx].Name)
 
-		return IndexRepo(idx, m.ctx.Username, repoName)
+		return IndexRepo(idx, m.ctx.SessionToken, repoName)
 
 	case searchQueryMsg:
 		m.GHRepos = msg.filteredGHRepos
@@ -173,9 +173,9 @@ type indexRepoErrMsg struct {
 	err error
 }
 
-func IndexRepo(idx int, username, repoName string) tea.Cmd {
+func IndexRepo(idx int, sessionToken, repoName string) tea.Cmd {
 	return func() tea.Msg {
-		err := api.IndexRepo(username, repoName)
+		err := api.IndexRepo(sessionToken, repoName)
 		if err != nil {
 			return indexRepoErrMsg{idx: idx, err: err}
 		}

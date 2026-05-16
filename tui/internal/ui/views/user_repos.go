@@ -35,7 +35,7 @@ func (m *UserRepoModel) Init() tea.Cmd {
 	m.isSidebarFocused = false
 	m.RepoList.Reset()
 
-	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.Username))
+	return tea.Batch(m.fetchRepoList, common.FetchIndexedRepo(m.ctx.SessionToken))
 }
 
 func (m *UserRepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

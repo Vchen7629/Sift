@@ -16,6 +16,7 @@ type App struct {
 	WindowWidth, WindowHeight int
 	MainWidth, MainHeight     int
 	SidebarWidth              int
+	SessionToken              string
 	Username                  string
 	CurrentPage               Page
 	ThemeSelectorOpen         bool
@@ -24,6 +25,13 @@ type App struct {
 }
 
 func NewApp() (*App, error) {
+	ghToken := api.GithubPatToken()
+
+	SessionToken, err := api.AuthenticateUser(ghToken)
+	if err != nil {
+		return nil, err
+	}
+
 	client, err := api.NewGithubClient()
 	if err != nil {
 		return nil, err
@@ -39,5 +47,6 @@ func NewApp() (*App, error) {
 		SelectedTheme:   styles.Warm,
 		GithubApiClient: client,
 		Username:        username,
+		SessionToken:    SessionToken,
 	}, nil
 }

@@ -15,9 +15,9 @@ type ToggleFocusMsg struct{}
 type FetchIndexedRepoMsg struct{ IndexedRepos []types.IndexedRepo }
 type FetchIndexedRepoErr struct{ Err error }
 
-func FetchIndexedRepo(username string) tea.Cmd {
+func FetchIndexedRepo(sessionToken string) tea.Cmd {
 	return func() tea.Msg {
-		indexRepos, err := api.GetAllIndexedRepos(username)
+		indexRepos, err := api.GetAllIndexedRepos(sessionToken)
 		if err != nil {
 			return FetchIndexedRepoErr{Err: err}
 		}

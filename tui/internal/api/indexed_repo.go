@@ -14,8 +14,8 @@ import (
 
 var indexedRepoBaseUrl = "http://localhost:8080/user_repo"
 
-func DeleteIndexedRepo(username, repoName string) error {
-	payload, err := service.MarshalRequestBody(username, repoName)
+func DeleteIndexedRepo(sessionToken, repoName string) error {
+	payload, err := service.MarshalRequestBody(repoName)
 	if err != nil {
 		return err
 	}
@@ -24,8 +24,13 @@ func DeleteIndexedRepo(username, repoName string) error {
 	if err != nil {
 		return err
 	}
-
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "Sift-tui/1.0")
+	req.AddCookie(&http.Cookie{
+		Name:  "JSESSIONID",
+		Value: sessionToken,
+	})
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -51,8 +56,18 @@ type fetchIndexedRepoResp struct {
 	Dependencies      []types.Dependency `json:"dependencies"`
 }
 
-func GetAllIndexedRepos(username string) ([]types.IndexedRepo, error) {
-	resp, err := client.Get(fmt.Sprintf("%s/list/%s", indexedRepoBaseUrl, username))
+func GetAllIndexedRepos(sessionToken string) ([]types.IndexedRepo, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/list", indexedRepoBaseUrl), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "Sift-tui/1.0")
+	req.AddCookie(&http.Cookie{
+		Name:  "JSESSIONID",
+		Value: sessionToken,
+	})
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
