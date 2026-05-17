@@ -67,12 +67,12 @@ func (m *ActionBarModel) actionBarBtns(isSidebarFocused, isIndexed bool) string 
 	case !isIndexed:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
 			styles.NavBtn("[↑↓] scroll repos"), styles.NavBtn("[/] search repos"), styles.NavBtn("[esc] clear search"),
-			styles.NavBtn("[s] focus sidebar"), styles.NavBtn("[r] index"),
+			styles.NavBtn("[s] focus sidebar"), styles.NavBtn("[r] index"), styles.NavBtn("[↵] open in browser"),
 		)
 	default:
 		return lipgloss.JoinHorizontal(lipgloss.Left,
 			styles.NavBtn("[↑↓] scroll repos"), styles.NavBtn("[/] search repos"), styles.NavBtn("[esc] clear search"),
-			styles.NavBtn("[s] focus sidebar"),
+			styles.NavBtn("[s] focus sidebar"), styles.NavBtn("[↵] open in browser"),
 		)
 	}
 }

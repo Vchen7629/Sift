@@ -56,6 +56,10 @@ func (m *Sidebar) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			service.NavigateUp(&m.FocusedIdx, &m.viewport, cardHeight)
 		case "down":
 			service.NavigateDown(&m.FocusedIdx, len(m.FocusedIndexedRepo.Dependencies), &m.viewport, cardHeight)
+		case "enter":
+			url := fmt.Sprintf("https://github.com/%s", m.FocusedIndexedRepo.Dependencies[m.FocusedIdx].Name)
+
+			return common.OpenInBrowser(url)
 		}
 
 	case tea.WindowSizeMsg:

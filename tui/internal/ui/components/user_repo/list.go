@@ -59,6 +59,10 @@ func (m *ListModel) Update(msg tea.Msg, isSidebarFocused bool) tea.Cmd {
 			service.NavigateUp(&m.FocusedIdx, &m.viewport, cardHeight)
 		case "down":
 			service.NavigateDown(&m.FocusedIdx, len(m.GHRepos), &m.viewport, cardHeight)
+		case "enter":
+			url := fmt.Sprintf("https://github.com/%s/%s", m.ctx.Username, m.GHRepos[m.FocusedIdx].Name)
+
+			return common.OpenInBrowser(url)
 		}
 	case tea.WindowSizeMsg:
 		m.viewport.SetWidth(m.ctx.MainWidth)
