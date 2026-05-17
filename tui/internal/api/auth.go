@@ -28,7 +28,7 @@ func NewSession(ghToken string) (string, error) {
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			log.Println("error closing auth user respon body")
+			log.Println("error closing auth user response body")
 		}
 	}()
 
